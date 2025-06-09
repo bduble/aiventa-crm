@@ -27,9 +27,12 @@ export default function App() {
                 <h1 className="text-3xl font-bold text-electricblue mb-4">
                   {message}
                 </h1>
-                <p className="text-slategray">
+                <p className="text-slategray mb-8">
                   This confirms our front-end is talking to the FastAPI back-end.
                 </p>
+
++               {/* Always render Leads below */}
++               <Leads />
               </>
             }
           />
@@ -39,4 +42,3 @@ export default function App() {
     </Router>
   );
 }
-
