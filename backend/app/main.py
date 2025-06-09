@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.app.routers.leads import router as leads_router
-from backend.app.routers.users import router as users_router
+from routers.leads import router as leads_router
+from routers.users import router as users_router
 
 app = FastAPI(title="Aiventa CRM API")
 
