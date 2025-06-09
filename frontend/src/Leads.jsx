@@ -12,26 +12,24 @@ export default function Leads() {
   });
   const [loading, setLoading] = useState(false);
 
-   useEffect(() => {
--    fetch(import.meta.env.VITE_API_BASE_URL + '/leads')
--      .then(r => r.json())
--      .then(setLeads)
--      .catch(console.error);
-+    const url = import.meta.env.VITE_API_BASE_URL + '/leads';
-+    console.log('Fetching leads from:', url);
-+    fetch(url)
-+      .then(r => {
-+        console.log('Raw response status:', r.status);
-+        return r.json();
-+      })
-+      .then(data => {
-+        console.log('Leads data:', data);
-+        setLeads(data);
-+      })
-+      .catch(err => {
-+        console.error('Error fetching leads:', err);
-+      });
-  }, []);
+useEffect(() => {
+  const url = import.meta.env.VITE_API_BASE_URL + '/leads';
+  console.log('Fetching leads from:', url);
+
+  fetch(url)
+    .then((r) => {
+      console.log('Raw response status:', r.status);
+      return r.json();
+    })
+    .then((data) => {
+      console.log('Leads data:', data);
+      setLeads(data);
+    })
+    .catch((err) => {
+      console.error('Error fetching leads:', err);
+    });
+}, []);
+
 
 
   const submit = () => {
