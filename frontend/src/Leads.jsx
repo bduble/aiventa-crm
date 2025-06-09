@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { toast, Toaster } from 'react-hot-toast'; // small toast library
+import { toast, Toaster } from 'react-hot-toast';
 
 export default function Leads() {
   const [leads, setLeads] = useState([]);
@@ -8,40 +8,28 @@ export default function Leads() {
     email: '',
     phone: '',
     source: '',
-    notes: ''
+    notes: '',
   });
   const [loading, setLoading] = useState(false);
+  const API = import.meta.env.VITE_API_BASE_URL + '/leads';
 
-useEffect(() => {
-  const url = import.meta.env.VITE_API_BASE_URL + '/leads';
-  console.log('Fetching leads from:', url);
-
-  fetch(url)
-    .then((r) => {
-      console.log('Raw response status:', r.status);
-      return r.json();
-    })
-    .then((data) => {
-      console.log('Leads data:', data);
-      setLeads(data);
-    })
-    .catch((err) => {
-      console.error('Error fetching leads:', err);
-    });
-}, []);
-
-
+  useEffect(() => {
+    fetch(API)
+      .then((res) => res.json())
+      .then((data) => setLeads(data))
+      .catch((err) => console.error('Error fetching leads:', err));
+  }, []);
 
   const submit = () => {
-    if (!form.name) return; // extra safety
+    if (!form.name) return;
     setLoading(true);
-    fetch(import.meta.env.VITE_API_BASE_URL + '/leads', {
+    fetch(API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
     })
-      .then(r => r.json())
-      .then(newLead => {
+      .then((res) => res.json())
+      .then((newLead) => {
         setLeads([newLead, ...leads]);
         setForm({ name: '', email: '', phone: '', source: '', notes: '' });
         toast.success('Lead added!');
@@ -53,17 +41,16 @@ useEffect(() => {
   return (
     <div className="p-8 bg-white rounded shadow space-y-6 overflow-auto">
       <Toaster position="top-right" />
-
       <h2 className="text-2xl font-bold">Leads</h2>
 
       {/* Form */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {['name','email','phone','source','notes'].map((key) => (
+        {['name', 'email', 'phone', 'source', 'notes'].map((key) => (
           <input
             key={key}
             placeholder={key.charAt(0).toUpperCase() + key.slice(1)}
             value={form[key]}
-            onChange={e => setForm({ ...form, [key]: e.target.value })}
+            onChange={(e) => setForm({ ...form, [key]: e.target.value })}
             className="w-full p-2 border rounded focus:outline-none focus:ring"
           />
         ))}
@@ -81,7 +68,7 @@ useEffect(() => {
         <table className="min-w-full bg-white">
           <thead className="bg-slategray text-white">
             <tr>
-              {['Name','Email','Phone','Source','Notes','Created At'].map(col => (
+              {['Name', 'Email', 'Phone', 'Source', 'Notes', 'Created At'].map((col) => (
                 <th key={col} className="py-2 px-4 text-left whitespace-nowrap">
                   {col}
                 </th>

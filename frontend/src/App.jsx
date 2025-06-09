@@ -1,31 +1,28 @@
 import { useState, useEffect } from 'react';
+import Leads from './Leads';
 
 export default function App() {
-  const [leads, setLeads] = useState(null);
-  const api = 'https://aiventa-crm.onrender.com/leads';
+  const [message, setMessage] = useState('Loading...');
 
   useEffect(() => {
-    console.log('Fetching from:', api);
+    const api = import.meta.env.VITE_API_BASE_URL + '/';
     fetch(api)
-      .then(r => {
-        console.log('Status:', r.status);
-        return r.json();
-      })
-      .then(data => {
-        console.log('Data:', data);
-        setLeads(data);
-      })
-      .catch(err => console.error('Error:', err));
+      .then((r) => r.json())
+      .then((data) => setMessage(data.message))
+      .catch(() => setMessage('Error connecting to API'));
   }, []);
 
   return (
-    <div className="p-8">
-      <h1 className="text-xl font-bold mb-4">Lead Fetch Test</h1>
-      {leads === null ? (
-        <p>Loading...</p>
-      ) : (
-        <pre className="bg-gray-100 p-4 rounded">{JSON.stringify(leads, null, 2)}</pre>
-      )}
+    <div className="min-h-screen bg-offwhite p-8">
+      <h1 className="text-3xl font-bold text-electricblue mb-4">
+        {message}
+      </h1>
+      <p className="text-slategray mb-8">
+        This confirms our front-end is talking to the FastAPI back-end.
+      </p>
+
+      {/* Always render the Leads component on the page */}
+      <Leads />
     </div>
   );
 }
