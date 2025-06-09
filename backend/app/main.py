@@ -7,8 +7,8 @@ app = FastAPI(title="Aiventa CRM API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=["*"],      # wildcard allows all origins
+    allow_credentials=False,  # must be False when using wildcard
     allow_methods=["*"],
     allow_headers=["*"],
 )
