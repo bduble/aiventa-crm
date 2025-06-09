@@ -11,14 +11,14 @@ export default function Leads() {
   });
 
   useEffect(() => {
-    fetch(\`\${import.meta.env.VITE_API_BASE_URL}/leads\`)
+    fetch(import.meta.env.VITE_API_BASE_URL + '/leads')
       .then(r => r.json())
       .then(setLeads)
       .catch(console.error);
   }, []);
 
   const submit = () => {
-    fetch(\`\${import.meta.env.VITE_API_BASE_URL}/leads\`, {
+    fetch(import.meta.env.VITE_API_BASE_URL + '/leads', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
