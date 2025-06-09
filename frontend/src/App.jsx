@@ -6,7 +6,7 @@ export default function App() {
   const [message, setMessage] = useState('Loading...');
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_BASE_URL}/`)
+    fetch(\`\${import.meta.env.VITE_API_BASE_URL}/\`)
       .then(res => res.json())
       .then(data => setMessage(data.message))
       .catch(() => setMessage('Error connecting to API'));
@@ -19,25 +19,14 @@ export default function App() {
         <Link to="/leads">Leads</Link>
       </nav>
       <div className="min-h-screen bg-offwhite p-8">
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <>
-                <h1 className="text-3xl font-bold text-electricblue mb-4">
-                  {message}
-                </h1>
-                <p className="text-slategray mb-8">
-                  This confirms our front-end is talking to the FastAPI back-end.
-                </p>
-
-+               {/* Always render Leads below */}
-+               <Leads />
-              </>
-            }
-          />
-          <Route path="/leads" element={<Leads />} />
-        </Routes>
+        <h1 className="text-3xl font-bold text-electricblue mb-4">
+          {message}
+        </h1>
+        <p className="text-slategray mb-8">
+          This confirms our front-end is talking to the FastAPI back-end.
+        </p>
+        {/* Always show Leads here */}
+        <Leads />
       </div>
     </Router>
   );
