@@ -6,7 +6,7 @@ export default function App() {
   const [message, setMessage] = useState('Loading...');
 
   useEffect(() => {
-    fetch(\`\${import.meta.env.VITE_API_BASE_URL}/\`)
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/`)
       .then(res => res.json())
       .then(data => setMessage(data.message))
       .catch(() => setMessage('Error connecting to API'));
