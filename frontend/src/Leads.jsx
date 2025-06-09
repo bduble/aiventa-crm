@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast, Toaster } from 'react-hot-toast'; // small toast library
 
 export default function Leads() {
   const [leads, setLeads] = useState([]);
@@ -9,6 +10,7 @@ export default function Leads() {
     source: '',
     notes: ''
   });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetch(import.meta.env.VITE_API_BASE_URL + '/leads')
@@ -18,6 +20,8 @@ export default function Leads() {
   }, []);
 
   const submit = () => {
+    if (!form.name) return; // extra safety
+    setLoading(true);
     fetch(import.meta.env.VITE_API_BASE_URL + '/leads', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -27,37 +31,66 @@ export default function Leads() {
       .then(newLead => {
         setLeads([newLead, ...leads]);
         setForm({ name: '', email: '', phone: '', source: '', notes: '' });
+        toast.success('Lead added!');
       })
-      .catch(console.error);
+      .catch(() => toast.error('Failed to add lead'))
+      .finally(() => setLoading(false));
   };
 
   return (
-    <div className="p-8 bg-white rounded shadow">
-      <h2 className="text-xl font-bold mb-4">Leads</h2>
-      <div className="mb-6 space-y-2">
+    <div className="p-8 bg-white rounded shadow space-y-6 overflow-auto">
+      <Toaster position="top-right" />
+
+      <h2 className="text-2xl font-bold">Leads</h2>
+
+      {/* Form */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {['name','email','phone','source','notes'].map((key) => (
           <input
             key={key}
             placeholder={key.charAt(0).toUpperCase() + key.slice(1)}
             value={form[key]}
             onChange={e => setForm({ ...form, [key]: e.target.value })}
-            className="block w-full p-2 border rounded"
+            className="w-full p-2 border rounded focus:outline-none focus:ring"
           />
         ))}
-        <button onClick={submit} className="px-4 py-2 bg-electricblue text-white rounded">
-          Add Lead
+        <button
+          onClick={submit}
+          disabled={!form.name || loading}
+          className="col-span-full md:col-span-1 px-4 py-2 bg-electricblue text-white rounded disabled:opacity-50"
+        >
+          {loading ? 'Adding...' : 'Add Lead'}
         </button>
       </div>
-      <ul className="space-y-2">
-        {leads.map(l => (
-          <li key={l.id} className="border p-4 rounded">
-            <strong>{l.name}</strong><br/>
-            <span className="text-sm">{l.email} | {l.phone}</span><br/>
-            <em className="text-xs">Source: {l.source}</em><br/>
-            <p className="mt-1">{l.notes}</p>
-          </li>
-        ))}
-      </ul>
+
+      {/* Table */}
+      <div className="overflow-x-auto">
+        <table className="min-w-full bg-white">
+          <thead className="bg-slategray text-white">
+            <tr>
+              {['Name','Email','Phone','Source','Notes','Created At'].map(col => (
+                <th key={col} className="py-2 px-4 text-left whitespace-nowrap">
+                  {col}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {leads.map((l) => (
+              <tr key={l.id} className="border-b">
+                <td className="py-2 px-4">{l.name}</td>
+                <td className="py-2 px-4">{l.email || '—'}</td>
+                <td className="py-2 px-4">{l.phone || '—'}</td>
+                <td className="py-2 px-4">{l.source || '—'}</td>
+                <td className="py-2 px-4">{l.notes || '—'}</td>
+                <td className="py-2 px-4 whitespace-nowrap">
+                  {new Date(l.created_at).toLocaleString()}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
