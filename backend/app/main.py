@@ -19,3 +19,13 @@ app.include_router(users.router)
 @app.get("/")
 def read_root():
     return {"message": "Hello, Aiventa CRM!"}
+    
+from supabase import create_client
+import os
+from dotenv import load_dotenv
+
+load_dotenv(".env")  # load SUPABASE_URL & SUPABASE_KEY
+
+SUPA_URL = os.getenv("SUPABASE_URL")
+SUPA_KEY = os.getenv("SUPABASE_SERVICE_KEY")
+supabase = create_client(SUPA_URL, SUPA_KEY)
