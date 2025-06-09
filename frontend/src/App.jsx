@@ -4,6 +4,9 @@ export default function App() {
   const [message, setMessage] = useState('Loading...');
 
   useEffect(() => {
+    // Log the URL we’re about to fetch
+    console.log("API Base URL:", import.meta.env.VITE_API_BASE_URL);
+
     fetch(`${import.meta.env.VITE_API_BASE_URL}/`)
       .then(res => res.json())
       .then(data => setMessage(data.message))
