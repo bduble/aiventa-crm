@@ -11,7 +11,7 @@ export default function Leads() {
     notes: '',
   });
   const [loading, setLoading] = useState(false);
-  const API = import.meta.env.VITE_API_BASE_URL + '/leads';
+  const API = import.meta.env.VITE_API_BASE_URL + '/leads/';
 
   useEffect(() => {
     fetch(API)

@@ -7,7 +7,7 @@ export default function App() {
   useEffect(() => {
     const api = import.meta.env.VITE_API_BASE_URL + '/';
     fetch(api)
-      .then((r) => r.json())
+      .then((res) => res.json())
       .then((data) => setMessage(data.message))
       .catch(() => setMessage('Error connecting to API'));
   }, []);
