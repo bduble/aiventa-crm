@@ -1,14 +1,16 @@
+# app/routers/leads.py
+
 from fastapi import APIRouter, HTTPException
+from postgrest import APIError
 from app.db import supabase
 
 router = APIRouter()
 
 @router.get("/leads/")
 def list_leads():
-    res = supabase.table("leads").select("*").execute()
-    # if something went wrong, res.error will be truthy
-    if res.error:
-        # you can log res.error.message or raise an HTTPException
-        raise HTTPException(status_code=500, detail=res.error.message)
-    return res.data  # this is your list of rows
-
+    try:
+        resp = supabase.table("leads").select("*").execute()
+        return resp.data
+    except APIError as e:
+        # e.args[0] is usually the JSON error object from PostgREST
+        raise HTTPException(status_code=500, detail=e.args[0])
