@@ -13,7 +13,7 @@ app.add_middleware(
 
 @app.get("/", tags=["root"])
 def read_root():
-    return {"message": "Welcome to aiVenta!"
+    return {"message": "Welcome to aiVenta!"}     # ← added closing brace and parenthesis
 
 app.include_router(leads.router, prefix="/leads", tags=["leads"])
 app.include_router(users.router, prefix="/users", tags=["users"])
