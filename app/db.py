@@ -1,8 +1,11 @@
-from supabase import create_client
-import os
+# app/db.py
+from dotenv import load_dotenv
+load_dotenv()            # ← make sure this is *before* any os.environ[...] uses
 
-# Pull these from your ENV (set in Render or .env locally)
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+import os
+from supabase import create_client
+
+SUPABASE_URL = os.environ["SUPABASE_URL"]
+SUPABASE_KEY = os.environ["SUPABASE_KEY"]
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
