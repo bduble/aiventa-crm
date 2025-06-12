@@ -11,10 +11,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ← Add this back in:
 @app.get("/", tags=["root"])
-async def read_root():
-    return {"message": "Welcome to aiVenta!"}
+def read_root():
+    return {"message": "Welcome to aiVenta!"
 
 app.include_router(leads.router, prefix="/leads", tags=["leads"])
 app.include_router(users.router, prefix="/users", tags=["users"])
