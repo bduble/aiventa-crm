@@ -6,10 +6,9 @@ router = APIRouter()
 @router.get("/leads/")
 def list_leads():
     res = supabase.table("leads").select("*").execute()
-    # check status_code instead of `res.error`
-    if res.status_code != 200:
-        raise HTTPException(
-            status_code=res.status_code,
-            detail=res.status_text or "Error fetching leads"
-        )
-    return res.data
+    # if something went wrong, res.error will be truthy
+    if res.error:
+        # you can log res.error.message or raise an HTTPException
+        raise HTTPException(status_code=500, detail=res.error.message)
+    return res.data  # this is your list of rows
+
