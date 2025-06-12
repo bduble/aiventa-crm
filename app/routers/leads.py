@@ -1,5 +1,9 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from app.db import supabase             # ← add this import
+from app.models import Lead, LeadCreate
+
+router = APIRouter()
+
 
 router = APIRouter()
 
