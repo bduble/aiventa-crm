@@ -1,6 +1,6 @@
 # app/routers/leads.py
 from fastapi import APIRouter, HTTPException
-from db import supabase
+from app.db import supabase   # ← change here
 
 router = APIRouter(prefix="/leads", tags=["leads"])
 
