@@ -1,16 +1,28 @@
-# app/routers/leads.py
-
 from fastapi import APIRouter, HTTPException
-from postgrest import APIError
-from app.db import supabase
+from pydantic import BaseModel
 
 router = APIRouter()
 
-@router.get("/leads/")
+class LeadCreate(BaseModel):
+    name: str
+    email: str
+    # any other fields…
+
+class Lead(BaseModel):
+    id: int
+    name: str
+    email: str
+    # same fields plus any auto-generated ones…
+
+@router.get("/", response_model=list[Lead])
 def list_leads():
-    try:
-        resp = supabase.table("leads").select("*").execute()
-        return resp.data
-    except APIError as e:
-        # e.args[0] is usually the JSON error object from PostgREST
-        raise HTTPException(status_code=500, detail=e.args[0])
+    res = supabase.table("leads").select("*").execute()
+    return res.data
+
+@router.post("/", response_model=Lead, status_code=201)
+def create_lead(lead: LeadCreate):
+    payload = lead.dict()
+    res = supabase.table("leads").insert(payload).single().execute()
+    if res.error:
+        raise HTTPException(400, res.error.message)
+    return res.data
