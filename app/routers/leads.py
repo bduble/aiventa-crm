@@ -1,19 +1,15 @@
-# app/routers/leads.py
 from fastapi import APIRouter, HTTPException
-from app.db import supabase   # ← change here
+from app.db import supabase
 
-router = APIRouter(prefix="/leads", tags=["leads"])
+router = APIRouter()
 
-@router.get("/")
-async def list_leads():
-    result = supabase.table("leads").select("*").execute()
-    if result.error:
-        raise HTTPException(status_code=500, detail=result.error.message)
-    return result.data
-
-@router.post("/")
-async def create_lead(lead: dict):
-    result = supabase.table("leads").insert(lead).execute()
-    if result.error:
-        raise HTTPException(status_code=400, detail=result.error.message)
-    return result.data[0]
+@router.get("/leads/")
+def list_leads():
+    res = supabase.table("leads").select("*").execute()
+    # check status_code instead of `res.error`
+    if res.status_code != 200:
+        raise HTTPException(
+            status_code=res.status_code,
+            detail=res.status_text or "Error fetching leads"
+        )
+    return res.data
