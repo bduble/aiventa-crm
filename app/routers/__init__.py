@@ -1,1 +1,1 @@
-from app.models import Lead, LeadCreate
+from pydantic import BaseModel

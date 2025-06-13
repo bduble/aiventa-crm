@@ -1,13 +1,11 @@
-# app/models.py
+from typing import Optional
 from pydantic import BaseModel
 
 class Lead(BaseModel):
     id: int
     name: str
-    email: str
-    # … whatever fields your “leads” table has
+    email: Optional[str]
 
 class LeadCreate(BaseModel):
     name: str
-    email: str
-    # omit the id (it’ll be generated server-side)
+    email: Optional[str]
