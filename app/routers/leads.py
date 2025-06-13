@@ -16,13 +16,23 @@ class Lead(BaseModel):
 @router.get("/", response_model=list[Lead])
 def list_leads():
     res = supabase.table("leads").select("*").execute()
-    return res.data
+    if res.error:
+        raise HTTPException(status_code=500, detail=res.error.message)
+    return res.data or []
 
 @router.post("/", response_model=Lead, status_code=201)
 def create_lead(lead: LeadCreate):
     payload = lead.dict()
-    res = supabase.table("leads").insert(payload).single().execute()
-    if res.error:
-        raise HTTPException(400, res.error.message)
-    return res.data
+    # insert without .single()
+    res = supabase.table("leads").insert(payload).execute()
 
+    if res.error:
+        raise HTTPException(status_code=400, detail=res.error.message)
+
+    # res.data is a list of inserted records; return the first one
+    try:
+        created = res.data[0]
+    except (IndexError, TypeError):
+        raise HTTPException(status_code=500, detail="Failed to retrieve created lead")
+
+    return created
