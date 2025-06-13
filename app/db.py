@@ -3,26 +3,25 @@
 import os
 import logging
 from dotenv import load_dotenv
-from supabase import create_client, SupabaseClient
+from supabase import create_client
 
-# Pull in .env from your project root
+# 1️⃣ Load your .env (SUPABASE_URL, SUPABASE_KEY)
 load_dotenv()
 
-# ——— Logging setup —————————————————————————————————————————————————————
+# 2️⃣ Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# ——— Environment variables ——————————————————————————————————————————————
+# 3️⃣ Grab env vars
 SUPABASE_URL = os.getenv("SUPABASE_URL")
-# Prefer the service role key if you need full access; otherwise fall back to the anon key
-SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY") or os.getenv("SUPABASE_ANON_KEY")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")  # or SERVICE_KEY if you prefer
 
-if not SUPABASE_URL or not SUPABASE_KEY:
-    logger.error("Missing SUPABASE_URL or SUPABASE_KEY in environment")
-    raise RuntimeError("🔴 SUPABASE_URL and SUPABASE_KEY must be set in .env")
-
+# 4️⃣ Sanity-check logging (only show first few chars of the key)
 logger.info(f"🔍 SUPABASE_URL = {SUPABASE_URL!r}")
-logger.info(f"🔍 SUPABASE_KEY = {SUPABASE_KEY[:5]}…")  # only log the first few chars
+if SUPABASE_KEY:
+    logger.info(f"🔍 SUPABASE_KEY = {SUPABASE_KEY[:5]}…")
+else:
+    logger.error("🔑 SUPABASE_KEY is not set in your environment!")
 
-# ——— Supabase client —————————————————————————————————————————————————————
-supabase: SupabaseClient = create_client(SUPABASE_URL, SUPABASE_KEY)
+# 5️⃣ Create the Supabase client
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
