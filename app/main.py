@@ -17,3 +17,8 @@ def read_root():
 
 app.include_router(leads.router, prefix="/leads", tags=["leads"])
 app.include_router(users.router, prefix="/users", tags=["users"])
+
+from app.routers import users
+
+# after app = FastAPI() and middleware...
+app.include_router(users.router, prefix="/users", tags=["users"])
