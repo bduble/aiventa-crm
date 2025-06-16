@@ -98,3 +98,41 @@ class Opportunity(OpportunityBase):
 
     class Config:
         orm_mode = True
+
+from datetime import date, datetime
+from typing import Optional
+from pydantic import BaseModel
+
+# ── after Opportunity models ──
+
+class ActivityBase(BaseModel):
+    activity_type: str
+    subject: str
+    notes: Optional[str] = None
+    lead_id: Optional[int] = None
+    contact_id: Optional[int] = None
+    account_id: Optional[int] = None
+    opportunity_id: Optional[int] = None
+    due_date: Optional[date] = None
+    completed: bool = False
+
+class ActivityCreate(ActivityBase):
+    pass
+
+class ActivityUpdate(BaseModel):
+    activity_type: Optional[str] = None
+    subject: Optional[str] = None
+    notes: Optional[str] = None
+    lead_id: Optional[int] = None
+    contact_id: Optional[int] = None
+    account_id: Optional[int] = None
+    opportunity_id: Optional[int] = None
+    due_date: Optional[date] = None
+    completed: Optional[bool] = None
+
+class Activity(ActivityBase):
+    id: int
+    inserted_at: datetime
+
+    class Config:
+        orm_mode = True
