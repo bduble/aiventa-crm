@@ -37,3 +37,31 @@ class User(UserBase):
 
     class Config:
         orm_mode = True
+
+# ── after Lead and User models ──
+
+from datetime import datetime
+from typing import Optional
+from pydantic import BaseModel, AnyHttpUrl
+
+class AccountBase(BaseModel):
+    name: str
+    industry: Optional[str] = None
+    website: Optional[AnyHttpUrl] = None
+    description: Optional[str] = None
+
+class AccountCreate(AccountBase):
+    pass
+
+class AccountUpdate(BaseModel):
+    name: Optional[str] = None
+    industry: Optional[str] = None
+    website: Optional[AnyHttpUrl] = None
+    description: Optional[str] = None
+
+class Account(AccountBase):
+    id: int
+    inserted_at: datetime
+
+    class Config:
+        orm_mode = True
