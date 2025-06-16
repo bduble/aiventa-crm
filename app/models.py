@@ -65,3 +65,36 @@ class Account(AccountBase):
 
     class Config:
         orm_mode = True
+
+from datetime import date, datetime
+from decimal import Decimal
+from typing import Optional
+from pydantic import BaseModel, condecimal
+
+# ── below your Contact models ──
+
+class OpportunityBase(BaseModel):
+    name: str
+    account_id: Optional[int] = None
+    contact_id: Optional[int] = None
+    amount: condecimal(max_digits=12, decimal_places=2) = Decimal("0.00")
+    stage: Optional[str] = "Prospecting"
+    close_date: Optional[date] = None
+
+class OpportunityCreate(OpportunityBase):
+    pass
+
+class OpportunityUpdate(BaseModel):
+    name: Optional[str] = None
+    account_id: Optional[int] = None
+    contact_id: Optional[int] = None
+    amount: Optional[condecimal(max_digits=12, decimal_places=2)] = None
+    stage: Optional[str] = None
+    close_date: Optional[date] = None
+
+class Opportunity(OpportunityBase):
+    id: int
+    inserted_at: datetime
+
+    class Config:
+        orm_mode = True
