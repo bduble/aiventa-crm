@@ -69,6 +69,14 @@ class OpportunityCreate(BaseModel):
     stage: str
     amount: Optional[float]
 
+class OpportunityUpdate(BaseModel):
+    name: Optional[str]
+    account_id: Optional[int]
+    contact_id: Optional[int]
+    stage: Optional[str]
+    amount: Optional[float]
+    close_date: Optional[date]    
+
 
 # ── Activities ─────────────────────────────────────────────────────────────────
 
