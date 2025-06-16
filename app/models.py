@@ -30,6 +30,13 @@ class ContactCreate(BaseModel):
     email: Optional[str]
     phone: Optional[str]
 
+class ContactUpdate(BaseModel):
+    lead_id: Optional[int]
+    account_id: Optional[int]
+    name: Optional[str]
+    email: Optional[str]
+    phone: Optional[str]
+
 
 # ── Accounts ───────────────────────────────────────────────────────────────────
 
