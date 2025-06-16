@@ -99,3 +99,18 @@ class ActivityCreate(BaseModel):
     related_contact_id: Optional[int]
     related_account_id: Optional[int]
     related_opportunity_id: Optional[int]
+
+class ActivityUpdate(BaseModel):
+    opportunity_id: Optional[int]
+    contact_id: Optional[int]
+    type: Optional[str]
+    subject: Optional[str]
+    notes: Optional[str]
+    date: Optional[date]
+
+from datetime import date
+from typing import Optional
+from pydantic import BaseModel
+
+# … your existing Contact, Opportunity, etc. …
+
