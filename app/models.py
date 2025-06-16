@@ -28,7 +28,7 @@ class ContactCreate(BaseModel):
     account_id: Optional[int]
     name: str
     email: Optional[str]
-    phone: Optional[str>
+    phone: Optional[str]
 
 
 # ── Accounts ───────────────────────────────────────────────────────────────────
@@ -40,6 +40,10 @@ class Account(BaseModel):
 
 class AccountCreate(BaseModel):
     name: str
+    industry: Optional[str]
+
+class AccountUpdate(BaseModel):
+    name: Optional[str]
     industry: Optional[str]
 
 
