@@ -6,22 +6,33 @@ from pydantic import BaseModel, EmailStr
 
 class LeadBase(BaseModel):
     name: str
-    email: EmailStr        # will validate “foo@bar.com” shape
+    email: EmailStr
 
 
 class LeadCreate(LeadBase):
-    """
-    Schema for incoming POST /leads/ bodies.
-    Just inherits name & email from LeadBase.
-    """
     pass
 
 
 class Lead(LeadBase):
-    """
-    What we return from GET /leads/ (and POST /leads/).
-    Adds the auto-generated `id` field.
-    """
+    id: int
+
+    class Config:
+        orm_mode = True
+
+
+# ────────────────────────────────────────────────────────────────
+
+
+class UserBase(BaseModel):
+    email: EmailStr
+    full_name: Optional[str] = None
+
+
+class UserCreate(UserBase):
+    password: str     # plain-text in—will hash before saving
+
+
+class User(UserBase):
     id: int
 
     class Config:
