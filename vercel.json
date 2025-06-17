@@ -1,15 +1,15 @@
-  {"version": 2,
-
- 
+{
+  "version": 2,
   "builds": [
     {
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
-      "config": { "distDir": "frontend/dist" }
+      "config": { 
+        "distDir": "dist",
+        "buildCommand": "npm ci && npm run build"
+      }
     }
   ],
-
- 
   "routes": [
     { "src": "/(.*)", "dest": "/$1" }
   ]
