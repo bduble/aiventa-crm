@@ -7,3 +7,10 @@ __pycache__/
 
 # Env
 .env
+# ignore all dist folders…
+dist/
+dist-ssr/
+
+#—but not our frontend build:
+!frontend/dist/
+!frontend/dist/**
