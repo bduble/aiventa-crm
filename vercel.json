@@ -5,49 +5,9 @@
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
       "config": { "distDir": "dist" }
-    },
-    {
-      "src": "app/main.py",
-      "use": "@vercel/python",
-      "config": { "maxLambdaSize": "50mb" }
     }
   ],
   "routes": [
-    {
-      "src": "/healthz",
-      "dest": "/app/main.py"
-    },
-    {
-      "src": "/leads/(.*)",
-      "dest": "/app/main.py/leads/$1"
-    },
-    {
-      "src": "/users/(.*)",
-      "dest": "/app/main.py/users/$1"
-    },
-    {
-      "src": "/accounts/(.*)",
-      "dest": "/app/main.py/accounts/$1"
-    },
-    {
-      "src": "/contacts/(.*)",
-      "dest": "/app/main.py/contacts/$1"
-    },
-    {
-      "src": "/opportunities/(.*)",
-      "dest": "/app/main.py/opportunities/$1"
-    },
-    {
-      "src": "/activities/(.*)",
-      "dest": "/app/main.py/activities/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/frontend/dist/$1"
-    },
-    {
-      "src": "/",
-      "dest": "/frontend/dist/index.html"
-    }
+    { "src": "(.*)", "dest": "/$1" }
   ]
 }
