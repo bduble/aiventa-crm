@@ -2,14 +2,18 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>aiVenta</title>
-    <!-- this must be in the head, after DOCTYPE -->
-    <script type="module" src="/src/main.jsx"></script>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>aiVenta CRM</title>
   </head>
   <body>
-    <!-- your React root -->
+    <!-- This is where React will mount -->
     <div id="root"></div>
+
+    <!-- Vite injects this in dev; in prod it'll be rewritten to /assets/... -->
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
 
