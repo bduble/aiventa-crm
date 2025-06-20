@@ -5,7 +5,7 @@ import Leads from "./routes/Leads";
 import Users from "./routes/Users";
 import ActivityTimeline from "./components/ActivityTimeline";
 import CreateLeadForm from "./components/CreateLeadForm";
-import FloorTraffic from "./routes/FloorTraffic";
+import FloorTraffic from "./routes/FloorTraffic.jsx";
 import CreateFloorTrafficForm from "./components/CreateFloorTrafficForm";
 
 export default function App() {
