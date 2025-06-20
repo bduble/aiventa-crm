@@ -1,6 +1,6 @@
 from datetime import date
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 # ── Leads ──────────────────────────────────────────────────────────────────────
 
@@ -108,9 +108,34 @@ class ActivityUpdate(BaseModel):
     notes: Optional[str]
     date: Optional[date]
 
-from datetime import date
-from typing import Optional
-from pydantic import BaseModel
+# ── Floor Log ─────────────────────────────────────────────────────────────────
+
+class FloorTrafficCustomer(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    email: Optional[EmailStr]
+    phone: Optional[str]
+    visit_time: datetime
+    notes: Optional[str]
+    created_at: datetime
+
+class FloorTrafficCustomerCreate(BaseModel):
+    first_name: str
+    last_name: str
+    email: Optional[EmailStr]
+    phone: Optional[str]
+    visit_time: Optional[datetime] = None
+    notes: Optional[str]
+
+class FloorTrafficCustomerUpdate(BaseModel):
+    first_name: Optional[str]
+    last_name: Optional[str]
+    email: Optional[EmailStr]
+    phone: Optional[str]
+    visit_time: Optional[datetime]
+    notes: Optional[str]
+
 
 # … your existing Contact, Opportunity, etc. …
 
