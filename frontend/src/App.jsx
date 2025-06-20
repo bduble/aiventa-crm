@@ -30,7 +30,7 @@ export default function App() {
           <Route path="/users" element={<Users />} />
           <Route path="/activities" element={<ActivityTimeline />} />
           <Route path="/floor-traffic" element={<FloorTraffic />} />
-          <Route path="/floor-traffic/new" element={<CreateFloorTrafficForm />}
+          <Route path="/floor-traffic/new" element={<CreateFloorTrafficForm />} />
         </Routes>
       </div>
     </Router>
