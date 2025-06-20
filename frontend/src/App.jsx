@@ -17,7 +17,6 @@ export default function App() {
         <Link to="/leads/new">New Lead</Link>
         <Link to="/users">Users</Link>
         <Link to="/activities">Activities</Link>
-        <Link to="/activities">Activities</Link>
         <Link to="/floor-traffic">Today's Floor Log</Link>
       </nav>
       <div className="min-h-screen bg-offwhite p-8">
