@@ -7,6 +7,7 @@ import Leads from "./routes/Leads";
 import Users from "./routes/Users";
 import ActivityTimeline from "./components/ActivityTimeline";
 import CreateLeadForm from "./components/CreateLeadForm";
+import CreateFloorTrafficForm from "./components/CreateFloorTrafficForm";
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
         <Link to="/users">Users</Link>
         <Link to="/activities">Activities</Link>
         <Link to="/floor-traffic">Today's Floor Log</Link>
+        <Link to="/floor-traffic/new">Log a Visitor</Link>
       </nav>
       <div className="min-h-screen bg-offwhite p-8">
         <Routes>
@@ -26,6 +28,7 @@ export default function App() {
           <Route path="/leads/new" element={<CreateLeadForm />} />
           <Route path="/users" element={<Users />} />
           <Route path="/activities" element={<ActivityTimeline />} />
+          <Route path="/floor-traffic/new" element={<CreateFloorTrafficForm />}
         </Routes>
       </div>
     </Router>
