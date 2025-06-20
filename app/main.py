@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import leads, users
+from app.routers.floor_traffic import router as floor_router
 
 app = FastAPI()
 
