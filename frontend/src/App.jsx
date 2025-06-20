@@ -1,8 +1,6 @@
 // src/App.jsx
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom"; import FloorTraffic from "./routes/FloorTraffic";
-
-// these paths must match real files under src/routes & src/components
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import Leads from "./routes/Leads";
 import Users from "./routes/Users";
 import ActivityTimeline from "./components/ActivityTimeline";
