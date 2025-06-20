@@ -1,6 +1,6 @@
 // src/App.jsx
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom"; import FloorLog from "./routes/FloorLog";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom"; import FloorTraffic from "./routes/FloorTraffic";
 
 // these paths must match real files under src/routes & src/components
 import Leads from "./routes/Leads";
