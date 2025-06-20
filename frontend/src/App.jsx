@@ -7,6 +7,7 @@ import Leads from "./routes/Leads";
 import Users from "./routes/Users";
 import ActivityTimeline from "./components/ActivityTimeline";
 import CreateLeadForm from "./components/CreateLeadForm";
+import FloorTraffic from "./routes/FloorTraffic";
 import CreateFloorTrafficForm from "./components/CreateFloorTrafficForm";
 
 export default function App() {
@@ -28,6 +29,7 @@ export default function App() {
           <Route path="/leads/new" element={<CreateLeadForm />} />
           <Route path="/users" element={<Users />} />
           <Route path="/activities" element={<ActivityTimeline />} />
+          <Route path="/floor-traffic" element={<FloorTraffic />} />
           <Route path="/floor-traffic/new" element={<CreateFloorTrafficForm />}
         </Routes>
       </div>
