@@ -26,52 +26,53 @@ export default function FloorLog() {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto bg-white shadow rounded-lg p-6">
-      <h1 className="text-2xl font-semibold text-gray-800 mb-6">Today's Floor Log</h1>
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-100 border-b border-gray-200 sticky top-0 z-10">
-            <tr>
-              {headers.map(({ label }) => (
-                <th
-                  key={label}
-                  className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
-                >
-                  {label}
-                </th>
-              ))}
-            </tr>
-          </thead>
-
-          <tbody className="divide-y divide-gray-200">
-            {logs.length ? (
-              logs.map((log, idx) => {
-                // Highlight rows: yellow if timeIn exists but no timeOut, light gray if timeOut exists
-                const isOpen = log.timeIn && !log.timeOut;
-                const bgClass = isOpen ? 'bg-yellow-100' : log.timeOut ? 'bg-gray-50' : 'bg-white';
-                return (
-                  <tr key={log.id || idx} className={bgClass}>
-                    {headers.map(({ key }) => (
-                      <td key={key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {['timeIn', 'timeOut'].includes(key)
-                          ? log[key]
-                            ? new Date(log[key]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                            : ''
-                          : log[key] ?? ''}
-                      </td>
-                    ))}
-                  </tr>
-                );
-              })
-            ) : (
+    <div className="w-full px-4 sm:px-6 lg:px-8">
+      <div className="bg-white shadow rounded-lg p-6">
+        <h1 className="text-2xl font-semibold text-gray-800 mb-6">Today's Floor Log</h1>
+        <div className="overflow-x-auto">
+          <table className="min-w-full w-full table-auto divide-y divide-gray-200">
+            <thead className="bg-gray-100 border-b border-gray-200 sticky top-0 z-10">
               <tr>
-                <td colSpan={headers.length} className="px-6 py-8 text-center text-sm text-gray-500">
-                  No visitors recorded yet today.
-                </td>
+                {headers.map(({ label }) => (
+                  <th
+                    key={label}
+                    className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                  >
+                    {label}
+                  </th>
+                ))}
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody className="divide-y divide-gray-200">
+              {logs.length ? (
+                logs.map((log, idx) => {
+                  const isOpen = log.timeIn && !log.timeOut;
+                  const bgClass = isOpen ? 'bg-yellow-100' : log.timeOut ? 'bg-gray-50' : 'bg-white';
+                  return (
+                    <tr key={log.id || idx} className={bgClass}>
+                      {headers.map(({ key }) => (
+                        <td key={key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                          {['timeIn', 'timeOut'].includes(key)
+                            ? log[key]
+                              ? new Date(log[key]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                              : ''
+                            : log[key] ?? ''}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan={headers.length} className="px-6 py-8 text-center text-sm text-gray-500">
+                    No visitors recorded yet today.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
