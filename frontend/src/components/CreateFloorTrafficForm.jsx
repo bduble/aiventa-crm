@@ -20,42 +20,38 @@ export default function CreateFloorTrafficForm() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm((f) => ({
-      ...f,
+    setForm((prev) => ({
+      ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  console.log('POST payload ➜', form);
-  console.log('POST URL     ➜', __API_BASE__ + '/floor-traffic');
+    e.preventDefault();
+    setError("");
+    try {
+      const res = await fetch(__API_BASE__ + "/floor-traffic", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
 
-  const res = await fetch(__API_BASE__ + '/floor-traffic', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(form),
-  });
+      if (res.status === 404) {
+        throw new Error("Endpoint not found – check your URL");
+      }
+      if (res.status === 405) {
+        throw new Error("That URL exists but does not accept POST");
+      }
+      if (res.status === 422) {
+        const payload = await res.json();
+        throw new Error(payload.message || "Validation failed");
+      }
+      if (!res.ok) {
+        throw new Error("Failed to save, please try again.");
+      }
 
-  console.log('Status:', res.status, res.statusText);
-
-  if (res.status === 404) {
-    throw new Error('Endpoint not found – check your URL');
-  }
-  if (res.status === 405) {
-    throw new Error('That URL exists but does not accept POST');
-  }
-  if (res.status === 422) {
-    const { message } = await res.json();
-    throw new Error(message || 'Validation failed');
-  }
-  if (!res.ok) {
-    throw new Error('Unknown error saving visitor');
-  }
-
-  navigate('/floor-traffic');
-};
- catch (err) {
+      navigate("/floor-traffic");
+    } catch (err) {
       console.error(err);
       setError(err.message);
     }
@@ -81,7 +77,6 @@ export default function CreateFloorTrafficForm() {
             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
-
         <div>
           <label className="block font-medium">Time Out</label>
           <input
@@ -92,8 +87,6 @@ export default function CreateFloorTrafficForm() {
             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
-
-        {/* Salesperson */}
         <div>
           <label className="block font-medium">Salesperson</label>
           <input
@@ -104,8 +97,6 @@ export default function CreateFloorTrafficForm() {
             className="mt-1 block w-full border-gray-300 rounded-md"
           />
         </div>
-
-        {/* Customer Name */}
         <div>
           <label className="block font-medium">Customer Name</label>
           <input
@@ -116,8 +107,6 @@ export default function CreateFloorTrafficForm() {
             className="mt-1 block w-full border-gray-300 rounded-md"
           />
         </div>
-
-        {/* Vehicle */}
         <div>
           <label className="block font-medium">Vehicle</label>
           <input
@@ -127,8 +116,6 @@ export default function CreateFloorTrafficForm() {
             className="mt-1 block w-full border-gray-300 rounded-md"
           />
         </div>
-
-        {/* Trade */}
         <div>
           <label className="block font-medium">Trade</label>
           <input
@@ -138,8 +125,6 @@ export default function CreateFloorTrafficForm() {
             className="mt-1 block w-full border-gray-300 rounded-md"
           />
         </div>
-
-        {/* Demo */}
         <div className="flex items-center">
           <input
             type="checkbox"
@@ -150,10 +135,8 @@ export default function CreateFloorTrafficForm() {
           />
           <label className="ml-2">Demo?</label>
         </div>
-
-        {/* Write-Up */}
         <div>
-          <label className="block font-medium">Write-Up</label>
+          <label className="block font-medium">Write-Up</n        
           <input
             name="writeUp"
             value={form.writeUp}
@@ -161,8 +144,6 @@ export default function CreateFloorTrafficForm() {
             className="mt-1 block w-full border-gray-300 rounded-md"
           />
         </div>
-
-        {/* Customer Offer */}
         <div>
           <label className="block font-medium">Customer Offer</label>
           <input
@@ -172,8 +153,6 @@ export default function CreateFloorTrafficForm() {
             className="mt-1 block w-full border-gray-300 rounded-md"
           />
         </div>
-
-        {/* Mgr TO */}
         <div>
           <label className="block font-medium">Mgr TO</label>
           <input
@@ -183,8 +162,6 @@ export default function CreateFloorTrafficForm() {
             className="mt-1 block w-full border-gray-300 rounded-md"
           />
         </div>
-
-        {/* Origin */}
         <div>
           <label className="block font-medium">Origin</label>
           <input
@@ -194,7 +171,6 @@ export default function CreateFloorTrafficForm() {
             className="mt-1 block w-full border-gray-300 rounded-md"
           />
         </div>
-
         <button
           type="submit"
           className="mt-4 w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700"
