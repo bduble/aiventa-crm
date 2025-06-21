@@ -136,7 +136,7 @@ export default function CreateFloorTrafficForm() {
           <label className="ml-2">Demo?</label>
         </div>
         <div>
-          <label className="block font-medium">Write-Up</n        
+          <label className="block font-medium">Write-Up</label>
           <input
             name="writeUp"
             value={form.writeUp}
