@@ -3,8 +3,22 @@ import React, { useEffect, useState } from 'react';
 export default function FloorLog() {
   const [logs, setLogs] = useState([]);
 
+  // Define table headers and corresponding log keys
+  const headers = [
+    { key: 'timeIn',       label: 'Time In' },
+    { key: 'timeOut',      label: 'Time Out' },
+    { key: 'salesperson',  label: 'Salesperson' },
+    { key: 'customerName', label: 'Customer Name' },
+    { key: 'vehicle',      label: 'Vehicle' },
+    { key: 'trade',        label: 'Trade' },
+    { key: 'demo',         label: 'Demo' },
+    { key: 'writeUp',      label: 'Write-Up' },
+    { key: 'customerOffer',label: 'Customer Offer' },
+    { key: 'mgrTO',        label: 'Mgr TO' },
+    { key: 'origin',       label: 'Origin' }
+  ];
+
   useEffect(() => {
-    // Fetch today's floor traffic records
     fetch(__API_BASE__ + '/floor-traffic/today')
       .then(res => res.json())
       .then(data => setLogs(data))
@@ -18,31 +32,40 @@ export default function FloorLog() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-100 border-b border-gray-200 sticky top-0 z-10">
             <tr>
-              {['Time In', 'Visitor Name', 'Sales Rep', 'Notes'].map((heading) => (
+              {headers.map(({ label }) => (
                 <th
-                  key={heading}
+                  key={label}
                   className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
                 >
-                  {heading}
+                  {label}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+
+          <tbody className="divide-y divide-gray-200">
             {logs.length ? (
-              logs.map((log, idx) => (
-                <tr key={log.id || idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {new Date(log.timeIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{log.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{log.salesperson}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{log.notes}</td>
-                </tr>
-              ))
+              logs.map((log, idx) => {
+                // Highlight rows: yellow if timeIn exists but no timeOut, light gray if timeOut exists
+                const isOpen = log.timeIn && !log.timeOut;
+                const bgClass = isOpen ? 'bg-yellow-100' : log.timeOut ? 'bg-gray-50' : 'bg-white';
+                return (
+                  <tr key={log.id || idx} className={bgClass}>
+                    {headers.map(({ key }) => (
+                      <td key={key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        {['timeIn', 'timeOut'].includes(key)
+                          ? log[key]
+                            ? new Date(log[key]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                            : ''
+                          : log[key] ?? ''}
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })
             ) : (
               <tr>
-                <td colSpan={4} className="px-6 py-8 text-center text-sm text-gray-500">
+                <td colSpan={headers.length} className="px-6 py-8 text-center text-sm text-gray-500">
                   No visitors recorded yet today.
                 </td>
               </tr>
