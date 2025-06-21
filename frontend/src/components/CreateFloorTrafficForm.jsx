@@ -27,27 +27,35 @@ export default function CreateFloorTrafficForm() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    try {
-      const res = await fetch(__API_BASE__ + "/floor-traffic", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      if (res.status === 404) {
-        throw new Error("Endpoint not found. Check your URL.");
-      }
-      if (res.status === 422) {
-        const payload = await res.json();
-        throw new Error(payload.message || "Validation failed.");
-      }
-      if (!res.ok) {
-        throw new Error("Failed to save, please try again.");
-      }
-      // On success, go back to the log
-      navigate("/floor-traffic");
-    } catch (err) {
+  e.preventDefault();
+  console.log('POST payload ➜', form);
+  console.log('POST URL     ➜', __API_BASE__ + '/floor-traffic');
+
+  const res = await fetch(__API_BASE__ + '/floor-traffic', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(form),
+  });
+
+  console.log('Status:', res.status, res.statusText);
+
+  if (res.status === 404) {
+    throw new Error('Endpoint not found – check your URL');
+  }
+  if (res.status === 405) {
+    throw new Error('That URL exists but does not accept POST');
+  }
+  if (res.status === 422) {
+    const { message } = await res.json();
+    throw new Error(message || 'Validation failed');
+  }
+  if (!res.ok) {
+    throw new Error('Unknown error saving visitor');
+  }
+
+  navigate('/floor-traffic');
+};
+ catch (err) {
       console.error(err);
       setError(err.message);
     }
