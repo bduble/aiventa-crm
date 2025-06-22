@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 
 export default function CreateFloorTrafficForm() {
   const navigate = useNavigate();
+  // Use Vite env for API base, fallback to '/api' in dev
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
+
   const [form, setForm] = useState({
     timeIn: "",
     timeOut: "",
@@ -30,7 +33,8 @@ export default function CreateFloorTrafficForm() {
     e.preventDefault();
     setError("");
     try {
-      const res = await fetch(__API_BASE__ + "/floor-traffic", {
+      console.log("Posting to:", `${API_BASE}/floor-traffic`, form);
+      const res = await fetch(`${API_BASE}/floor-traffic`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
@@ -133,7 +137,7 @@ export default function CreateFloorTrafficForm() {
             onChange={handleChange}
             className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
           />
-          <label className="ml-2">Demo?</label>
+          <label className="ml-2 font-medium">Demo?</label>
         </div>
         <div>
           <label className="block font-medium">Write-Up</label>
