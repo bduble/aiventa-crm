@@ -13,3 +13,13 @@ module.exports = {
   },
   plugins: [],
 }
+export default {
+  // or module.exports = { … } if you’re not using ESM
+  darkMode: 'media', // respect OS setting; or 'class' to toggle manually
+  theme: {
+    extend: {
+      // …your custom colors, offwhite, etc…
+    }
+  },
+  plugins: []
+}
