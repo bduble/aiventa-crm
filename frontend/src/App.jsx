@@ -1,5 +1,5 @@
 // src/App.jsx
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 
 import Leads                  from "./routes/Leads";
@@ -10,25 +10,82 @@ import FloorLog               from "./routes/FloorLog";
 import CreateFloorTrafficForm from "./components/CreateFloorTrafficForm";
 
 export default function App() {
+  // Track dark mode preference
+  const [isDark, setIsDark] = useState(
+    window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+  );
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = (e) => setIsDark(e.matches);
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  // Inline styles for guaranteed layout control
+  const navStyle = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: isDark ? '#1a202c' : '#ffffff',
+    boxShadow: isDark ? '0 2px 4px rgba(0,0,0,0.5)' : '0 2px 4px rgba(0,0,0,0.1)',
+    zIndex: 1000,
+  };
+  const navInnerStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1.5rem',
+    maxWidth: '1120px',
+    margin: '0 auto',
+    padding: '0.75rem 1.5rem',
+  };
+  const linkStyle = {
+    color: isDark ? '#f7fafc' : '#1a202c',
+    textDecoration: 'none',
+    fontWeight: 500,
+  };
+  const contentWrapperStyle = {
+    paddingTop: '64px',     // same height as nav
+    minHeight: '100vh',
+    background: isDark ? '#2d3748' : '#f9f9f9',
+    color: isDark ? '#f7fafc' : '#1a202c',
+    padding: '2rem',
+  };
+  const headingStyle = {
+    fontSize: '1.5rem',
+    fontWeight: 600,
+    marginBottom: '1rem',
+  };
+
   return (
     <Router>
       {/* FIXED TOP NAV */}
-      <nav className="fixed inset-x-0 top-0 z-50 bg-white shadow-md dark:bg-gray-900">
-        <div className="max-w-7xl mx-auto flex items-center space-x-8 px-6 py-4">
-          <Link to="/" className="text-gray-800 hover:text-gray-600 dark:text-gray-100 dark:hover:text-gray-300">Home</Link>
-          <Link to="/leads" className="text-gray-800 hover:text-gray-600 dark:text-gray-100 dark:hover:text-gray-300">Leads</Link>
-          <Link to="/leads/new" className="text-gray-800 hover:text-gray-600 dark:text-gray-100 dark:hover:text-gray-300">New Lead</Link>
-          <Link to="/users" className="text-gray-800 hover:text-gray-600 dark:text-gray-100 dark:hover:text-gray-300">Users</Link>
-          <Link to="/activities" className="text-gray-800 hover:text-gray-600 dark:text-gray-100 dark:hover:text-gray-300">Activities</Link>
-          <Link to="/floor-traffic" className="text-gray-800 hover:text-gray-600 dark:text-gray-100 dark:hover:text-gray-300">Today's Floor Log</Link>
-          <Link to="/floor-traffic/new" className="text-gray-800 hover:text-gray-600 dark:text-gray-100 dark:hover:text-gray-300">Log a Visitor</Link>
+      <nav style={navStyle}>
+        <div style={navInnerStyle}>
+          {[
+            ['/', 'Home'],
+            ['/leads', 'Leads'],
+            ['/leads/new', 'New Lead'],
+            ['/users', 'Users'],
+            ['/activities', 'Activities'],
+            ['/floor-traffic', "Today's Floor Log"],
+            ['/floor-traffic/new', 'Log a Visitor'],
+          ].map(([to, label]) => (
+            <Link key={to} to={to} style={linkStyle}>
+              {label}
+            </Link>
+          ))}
         </div>
       </nav>
 
-      {/* MAIN CONTENT */}
-      <div className="pt-20 pb-8 px-4 sm:px-6 lg:px-8 min-h-screen bg-offwhite dark:bg-gray-800 dark:text-gray-100">
+      {/* CONTENT WRAPPER */}
+      <div style={contentWrapperStyle}>
         <Routes>
-          <Route path="/" element={<h2 className="text-xl font-medium">Welcome to aiVenta!</h2>} />
+          <Route
+            path="/"
+            element={<h2 style={headingStyle}>Welcome to aiVenta!</h2>}
+          />
           <Route path="/leads" element={<Leads />} />
           <Route path="/leads/new" element={<CreateLeadForm />} />
           <Route path="/users" element={<Users />} />
