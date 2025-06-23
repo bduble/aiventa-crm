@@ -10,48 +10,23 @@ import FloorLog               from "./routes/FloorLog";
 import CreateFloorTrafficForm from "./components/CreateFloorTrafficForm";
 
 export default function App() {
-  // Inline styles for guaranteed layout control
-  const navStyle = {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#fff',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-    zIndex: 1000,
-  };
-  const navInnerStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '1.5rem',
-    maxWidth: '1120px',
-    margin: '0 auto',
-    padding: '0.75rem 1.5rem',
-  };
-  const contentWrapperStyle = {
-    paddingTop: '64px',     // same height as nav
-    minHeight: '100vh',
-    background: '#f9f9f9',
-    padding: '2rem',
-  };
-
   return (
     <Router>
       {/* FIXED TOP NAV */}
-      <nav style={navStyle}>
-        <div style={navInnerStyle}>
-          <Link to="/">Home</Link>
-          <Link to="/leads">Leads</Link>
-          <Link to="/leads/new">New Lead</Link>
-          <Link to="/users">Users</Link>
-          <Link to="/activities">Activities</Link>
-          <Link to="/floor-traffic">Today's Floor Log</Link>
-          <Link to="/floor-traffic/new">Log a Visitor</Link>
+      <nav className="fixed inset-x-0 top-0 z-50 bg-white shadow dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto flex items-center gap-8 px-6 py-3">
+          <Link to="/" className="text-gray-800 hover:underline dark:text-gray-100">Home</Link>
+          <Link to="/leads" className="text-gray-800 hover:underline dark:text-gray-100">Leads</Link>
+          <Link to="/leads/new" className="text-gray-800 hover:underline dark:text-gray-100">New Lead</Link>
+          <Link to="/users" className="text-gray-800 hover:underline dark:text-gray-100">Users</Link>
+          <Link to="/activities" className="text-gray-800 hover:underline dark:text-gray-100">Activities</Link>
+          <Link to="/floor-traffic" className="text-gray-800 hover:underline dark:text-gray-100">Today's Floor Log</Link>
+          <Link to="/floor-traffic/new" className="text-gray-800 hover:underline dark:text-gray-100">Log a Visitor</Link>
         </div>
       </nav>
 
-      {/* CONTENT WRAPPER */}
-      <div style={contentWrapperStyle}>
+      {/* PUSH CONTENT BELOW NAV */}
+      <div className="pt-16 min-h-screen bg-offwhite p-8 dark:bg-gray-800 dark:text-gray-100">
         <Routes>
           <Route path="/" element={<h2>Welcome to aiVenta!</h2>} />
           <Route path="/leads" element={<Leads />} />
@@ -65,4 +40,3 @@ export default function App() {
     </Router>
   );
 }
-
