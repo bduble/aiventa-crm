@@ -8,8 +8,11 @@
     }
   ],
   "routes": [
+    // 1) Serve any actual file in /dist
     { "handle": "filesystem" },
+    // 2) (Optional) Pass /api/* through if you ever have Vercel Functions
     { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/(.*)",   "dest": "/index.html" }
+    // 3) All other routes → index.html so React Router can handle them
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
