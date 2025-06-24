@@ -1,0 +1,13 @@
+{
+  "name": "aiventa-crm",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    // …plus any other server‐side deps like your ORM…
+  }
+}
