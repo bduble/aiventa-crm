@@ -1,20 +1,26 @@
 // routes/floorTraffic.js
 import express from 'express';
-import FloorTrafficModel from '../models/FloorTrafficModel'; // adjust this path/import to your ORM or DB layer
+import FloorTrafficModel from '../models/FloorTrafficModel.js';
 
 const router = express.Router();
 
-// GET today’s logs (you probably already have something like this)
+/**
+ * GET /api/floor-traffic/today
+ * Fetch today’s floor-traffic entries.
+ */
 router.get('/floor-traffic/today', async (req, res, next) => {
   try {
-    const todayLogs = await FloorTrafficModel.findToday();   // or your own query
-    res.json(todayLogs);
+    const todayLogs = await FloorTrafficModel.findToday();
+    return res.json(todayLogs);
   } catch (err) {
-    next(err);
+    return next(err);
   }
 });
 
-// ← NEW POST HANDLER
+/**
+ * POST /api/floor-traffic
+ * Create a new floor-traffic entry.
+ */
 router.post('/floor-traffic', async (req, res, next) => {
   try {
     const {
@@ -28,15 +34,17 @@ router.post('/floor-traffic', async (req, res, next) => {
       writeUp,
       customerOffer,
       mgrTO,
-      origin
+      origin,
     } = req.body;
 
-    // Basic validation example
+    // Basic validation
     if (!timeIn || !salesperson || !customerName) {
-      return res.status(422).json({ message: 'timeIn, salesperson & customerName are required' });
+      return res
+        .status(422)
+        .json({ message: 'timeIn, salesperson & customerName are required' });
     }
 
-    // Create your record—adjust for your ORM (Sequelize, Mongoose, etc.)
+    // Create the record (adjust for your ORM)
     const newLog = await FloorTrafficModel.create({
       timeIn,
       timeOut,
@@ -48,12 +56,12 @@ router.post('/floor-traffic', async (req, res, next) => {
       writeUp,
       customerOffer,
       mgrTO,
-      origin
+      origin,
     });
 
-    res.status(201).json(newLog);
+    return res.status(201).json(newLog);
   } catch (err) {
-    next(err);
+    return next(err);
   }
 });
 
