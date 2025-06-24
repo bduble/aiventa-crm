@@ -20,7 +20,7 @@ export default function FloorLog() {
 
   useEffect(() => {
     const base = import.meta.env.VITE_API_BASE_URL || '/api';
-    fetch(`${base}/floor-traffic/today`)
+    fetch(`${API_BASE}/floor-traffic/today`)
       .then(res => res.json())
       .then(setLogs)
       .catch(console.error);
