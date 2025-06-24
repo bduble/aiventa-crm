@@ -1,54 +1,48 @@
-// src/routes/FloorTraffic.jsx
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+// src/components/CreateFloorTrafficForm.jsx
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-export default function FloorTraffic() {
-  const [visits, setVisits] = useState([]);
-  const API = import.meta.env.VITE_API_BASE_URL + "/floor-traffic";
+export default function CreateFloorTrafficForm() {
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    fetch(API)
-      .then(res => res.json())
-      .then(data => setVisits(data))
-      .catch(err => console.error("Error loading floor traffic:", err));
-  }, []);
+  // In dev, proxy “/api” → your local server.
+  // In prod, always hit your Render API’s /api namespace.
+  const API_BASE = import.meta.env.DEV
+    ? "/api"
+    : "https://aiventa-crm.onrender.com/api";  // <— force this exact URL in prod
 
-  return (
-    <div className="bg-white p-6 rounded shadow space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Today's Floor Log</h2>
-        <Link
-          to="/floor-traffic/new"
-          className="px-4 py-2 bg-electricblue text-white rounded"
-        >
-          + New Visit
-        </Link>
-      </div>
+  const [form, setForm] = useState({ /* …fields… */ });
+  const [error, setError] = useState("");
 
-      {visits.length === 0 ? (
-        <p>No visits recorded today.</p>
-      ) : (
-        <table className="min-w-full table-auto">
-          <thead>
-            <tr>
-              <th className="px-4 py-2">Time</th>
-              <th className="px-4 py-2">Name</th>
-              <th className="px-4 py-2">Vehicle</th>
-              <th className="px-4 py-2">Notes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {visits.map(v => (
-              <tr key={v.id} className="border-t">
-                <td className="px-4 py-2">{new Date(v.visit_time).toLocaleTimeString()}</td>
-                <td className="px-4 py-2">{v.name}</td>
-                <td className="px-4 py-2">{v.vehicle_of_interest || "—"}</td>
-                <td className="px-4 py-2">{v.notes || "—"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
-  );
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    try {
+      const res = await fetch(`${API_BASE}/floor-traffic`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      if (res.status === 405) {
+        throw new Error("Server received the request but doesn’t accept POST here");
+      }
+      if (res.status === 404) {
+        throw new Error("No such endpoint—check your URL");
+      }
+      if (res.status === 422) {
+        const { message } = await res.json();
+        throw new Error(message || "Validation failed");
+      }
+      if (!res.ok) {
+        throw new Error("Unknown error saving visitor");
+      }
+
+      navigate("/floor-traffic");
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  // …the rest of your form JSX…
 }
