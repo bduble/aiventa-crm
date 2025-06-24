@@ -8,7 +8,7 @@
     }
   ],
   "routes": [
-    // 1) Serve any actual file in /dist
+    // 1) 
     { "handle": "filesystem" },
     // 2) (Optional) Pass /api/* through if you ever have Vercel Functions
     { "src": "/api/(.*)", "dest": "/api/$1" },
