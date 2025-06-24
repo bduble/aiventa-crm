@@ -18,6 +18,20 @@ router.get('/floor-traffic/today', async (req, res, next) => {
 });
 
 /**
+ * GET /api/floor-traffic
+ * Alias for today's floor-traffic entries.
+ * Mirrors the FastAPI implementation.
+ */
+router.get('/floor-traffic', async (req, res, next) => {
+  try {
+    const todayLogs = await FloorTrafficModel.findToday();
+    return res.json(todayLogs);
+  } catch (err) {
+    return next(err);
+  }
+});
+
+/**
  * POST /api/floor-traffic
  * Create a new floor-traffic entry.
  */
