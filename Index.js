@@ -1,21 +1,40 @@
+// index.js
 import express from 'express';
+import cors from 'cors';
 import floorTrafficRouter from './routes/floorTraffic.js';
 
 const app = express();
 
-// built-in middleware to parse JSON bodies
+// Allow requests from your frontend (adjust origin as needed)
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || '*',  
+  methods: ['GET','POST','OPTIONS'],
+}));
+
+// Built-in middleware to parse JSON
 app.use(express.json());
 
-// mount all /floor-traffic routes under /api
-// (matches your frontend’s proxy to /api/floor-traffic)
+// Health-check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
+// Mount floor-traffic routes under /api
 app.use('/api', floorTrafficRouter);
 
-// error handler (optional but recommended)
+// Fallback for unknown routes
+app.use((req, res) => {
+  res.status(404).json({ message: 'Not Found' });
+});
+
+// Central error handler
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(500).json({ message: 'Internal server error' });
 });
 
-// start the server
+// Start the server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`API server listening on port ${PORT}`);
+});
