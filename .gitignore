@@ -8,3 +8,5 @@ __pycache__/
 # Env
 .env
 # ignore all dist folders…
+
+**/dist/
