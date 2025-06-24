@@ -5,7 +5,7 @@ import FloorTrafficModel from '../models/FloorTrafficModel'; // adjust this path
 const router = express.Router();
 
 // GET today’s logs (you probably already have something like this)
-router.get('/floor-traffic', async (req, res, next) => {
+router.get('/floor-traffic/today', async (req, res, next) => {
   try {
     const todayLogs = await FloorTrafficModel.findToday();   // or your own query
     res.json(todayLogs);
