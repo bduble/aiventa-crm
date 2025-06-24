@@ -2,10 +2,7 @@
 from fastapi import APIRouter, HTTPException, status
 from datetime import date, datetime, timedelta
 from app.db import supabase
-from app.models import (
-    FloorTrafficCustomer,
-    FloorTrafficCustomerCreate,
-)
+from app.models import FloorTrafficCustomer, FloorTrafficCustomerCreate
 
 router = APIRouter(
     prefix="/api/floor-traffic",
@@ -17,8 +14,7 @@ router = APIRouter(
     response_model=list[FloorTrafficCustomer],
     summary="Get today's floor-traffic entries",
 )
-def get_today_floor_traffic():
-    # Compute today's window
+async def get_today_floor_traffic():
     today = date.today()
     start = datetime.combine(today, datetime.min.time())
     end = start + timedelta(days=1)
@@ -36,30 +32,38 @@ def get_today_floor_traffic():
         raise HTTPException(status_code=500, detail=res.error.message)
     return res.data or []
 
+@router.get(
+    "/",
+    response_model=list[FloorTrafficCustomer],
+    summary="Alias for today's entries",
+)
+async def get_today_alias():
+    # Simply forward to the same logic
+    return await get_today_floor_traffic()
 
 @router.post(
     "/",
     response_model=FloorTrafficCustomer,
     status_code=status.HTTP_201_CREATED,
-    summary="Log a new floor-traffic visit",
+    summary="Log a new visitor",
 )
-def create_floor_traffic(entry: FloorTrafficCustomerCreate):
+async def create_floor_traffic(entry: FloorTrafficCustomerCreate):
     payload = entry.dict(exclude_unset=True)
-
-    # Basic required-field validation
+    # Basic validation
     if not payload.get("visit_time") or not payload.get("salesperson") or not payload.get("customer_name"):
         raise HTTPException(
             status_code=422,
             detail="visit_time, salesperson & customer_name are required",
         )
 
-    res = supabase \
-        .table("floor_traffic_customers") \
-        .insert(payload) \
-        .single() \
+    res = (
+        supabase
+        .table("floor_traffic_customers")
+        .insert(payload)
+        .single()
         .execute()
-
+    )
     if res.error:
         raise HTTPException(status_code=400, detail=res.error.message)
-
     return res.data
+
