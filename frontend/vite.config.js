@@ -9,7 +9,8 @@ export default defineConfig({
       '/api': {
         target: 'https://aiventa-crm.onrender.com',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
+        // Keep the /api prefix when forwarding requests so backend routes match
+        // the expected /api/* paths.
       },
     },
   },
