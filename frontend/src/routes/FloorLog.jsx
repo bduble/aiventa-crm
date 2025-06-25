@@ -43,12 +43,13 @@ export default function FloorLog() {
       </h1>
       <div className="w-full bg-white dark:bg-gray-900 shadow-lg rounded-lg p-4 lg:p-6 overflow-x-auto">
         <table className="table-fixed w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead className="bg-gray-100 dark:bg-gray-700 sticky top-0 z-10">
+          <thead className="bg-electricblue dark:bg-darkblue sticky top-0 z-10 text-white">
             <tr>
               {headers.map(({ label }) => (
                 <th
                   key={label}
-                  className="px-2 py-1 text-left font-semibold text-gray-600 dark:text-gray-300 uppercase whitespace-nowrap text-[0.7rem] sm:text-xs lg:text-sm"
+                  style={{ width: `${100 / headers.length}%` }}
+                  className="px-2 py-2 text-left font-semibold uppercase whitespace-nowrap text-xs sm:text-sm lg:text-base"
                 >
                   {label}
                 </th>
@@ -65,11 +66,15 @@ export default function FloorLog() {
                     ? 'bg-gray-50 dark:bg-gray-800'
                     : 'bg-white dark:bg-gray-900';
                 return (
-                  <tr key={idx} className={rowBg}>
+                  <tr
+                    key={idx}
+                    className={`${rowBg} hover:bg-electricblue/10 dark:hover:bg-electricblue/20`}
+                  >
                     {headers.map(({ key }) => (
                       <td
                         key={key}
-                        className="px-2 py-1 whitespace-nowrap text-[0.75rem] sm:text-sm text-gray-700 dark:text-gray-200"
+                        style={{ width: `${100 / headers.length}%` }}
+                        className="px-2 py-2 whitespace-nowrap text-xs sm:text-sm md:text-base text-gray-700 dark:text-gray-200"
                       >
                         {['timeIn','timeOut'].includes(key)
                           ? log[key]
