@@ -31,3 +31,11 @@ SUPABASE_KEY=<your-supabase-key>
 
 The Express server reads `CORS_ORIGIN` and `PORT` if you wish to
 customize the allowed frontend origin or port number.
+
+## Running Tests
+
+Install dependencies into your virtual environment and run `pytest` from the project root:
+
+```bash
+pytest
+```
