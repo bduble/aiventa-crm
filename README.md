@@ -5,10 +5,9 @@
 ### FastAPI (Python)
 
 ```bash
-cd backend
 python3 -m venv venv
 source venv/bin/activate
-pip install -r ../requirements.txt
+pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 ```
 
@@ -19,19 +18,21 @@ npm install
 npm start
 ```
 
+### React (frontend)
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
 ## Environment Variables
 
 The FastAPI services expect `SUPABASE_URL` and `SUPABASE_KEY` to be
-available. Create a `.env` file in the project root (this file is
-ignored by Git):
+
 
 ```env
 SUPABASE_URL=<your-supabase-url>
 SUPABASE_KEY=<your-supabase-key>
+CORS_ORIGINS=https://aiventa-crm.vercel.app,https://aiventa-g3al310q6-brian-dubles-projects.vercel.app
 ```
-
-The Express server reads `CORS_ORIGIN` and `PORT` if you wish to
-customize the allowed frontend origin or port number.
-
-The frontend expects `VITE_API_BASE_URL` in `frontend/.env` to point to
-the backend API. This file is also ignored by Git.
