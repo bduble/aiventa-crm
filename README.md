@@ -27,11 +27,5 @@ available. Create a `.env` file in the project root:
 ```env
 SUPABASE_URL=<your-supabase-url>
 SUPABASE_KEY=<your-supabase-key>
+CORS_ORIGINS=https://aiventa-crm.vercel.app
 ```
-
-The Express server reads `CORS_ORIGIN` and `PORT` if you wish to
-customize the allowed frontend origin or port number.
-
-## License
-
-All rights reserved. See the [LICENSE](LICENSE) file for details.

@@ -5,9 +5,11 @@ import floorTrafficRouter from './routes/floorTraffic.js';
 
 const app = express();
 
-// Allow requests from your frontend (adjust origin as needed)
+// Allow requests from configured origins
+const originsEnv = process.env.CORS_ORIGINS || 'https://aiventa-crm.vercel.app';
+const allowedOrigins = originsEnv.split(',').map(o => o.trim()).filter(Boolean);
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',  
+  origin: allowedOrigins,
   methods: ['GET','POST','OPTIONS'],
 }));
 
