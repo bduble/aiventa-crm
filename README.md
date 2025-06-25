@@ -29,4 +29,3 @@ SUPABASE_URL=<your-supabase-url>
 SUPABASE_KEY=<your-supabase-key>
 CORS_ORIGINS=https://aiventa-crm.vercel.app
 ```
-
