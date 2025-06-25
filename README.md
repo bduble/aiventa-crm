@@ -31,3 +31,7 @@ SUPABASE_KEY=<your-supabase-key>
 
 The Express server reads `CORS_ORIGIN` and `PORT` if you wish to
 customize the allowed frontend origin or port number.
+
+## License
+
+All rights reserved. See the [LICENSE](LICENSE) file for details.
