@@ -30,6 +30,3 @@ SUPABASE_KEY=<your-supabase-key>
 CORS_ORIGINS=https://aiventa-crm.vercel.app
 ```
 
-Both API servers read `CORS_ORIGINS` (comma separated) to control which
-domains may access the APIs. Set it to your deployed frontend URL.  They
-also respect `PORT` if you wish to customize the port number.
