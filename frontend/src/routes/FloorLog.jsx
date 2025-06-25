@@ -1,10 +1,8 @@
-// frontend/src/routes/FloorLog.jsx
 import React, { useEffect, useState } from 'react';
 
 export default function FloorLog() {
   const [logs, setLogs] = useState([]);
 
-  // In development, proxy /api → localhost; in production, call your Render API directly
   const API_BASE = import.meta.env.DEV
     ? '/api'
     : 'https://aiventa-crm.onrender.com/api';
@@ -16,10 +14,7 @@ export default function FloorLog() {
         return res.json();
       })
       .then(setLogs)
-      .catch(err => {
-        console.error(err);
-        setLogs([]); // fail silently with empty list
-      });
+      .catch(() => setLogs([]));
   }, [API_BASE]);
 
   const headers = [
@@ -37,10 +32,13 @@ export default function FloorLog() {
   ];
 
   return (
+    /* 1) Outer page-container */
     <div className="w-full min-h-screen bg-offwhite dark:bg-gray-800 p-4">
       <h1 className="text-2xl lg:text-3xl font-bold text-gray-800 dark:text-gray-100 mb-6">
         Today’s Floor Log
       </h1>
+
+      {/* 2) Scrollable table wrapper */}
       <div className="w-full bg-white dark:bg-gray-900 shadow-lg rounded-lg p-4 lg:p-6 overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead className="bg-electricblue dark:bg-darkblue sticky top-0 z-10 text-white">
@@ -55,6 +53,7 @@ export default function FloorLog() {
               ))}
             </tr>
           </thead>
+
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {logs.length > 0 ? (
               logs.map((log, idx) => {
@@ -64,6 +63,7 @@ export default function FloorLog() {
                   : log.timeOut
                     ? 'bg-gray-50 dark:bg-gray-800'
                     : 'bg-white dark:bg-gray-900';
+
                 return (
                   <tr
                     key={idx}
@@ -99,7 +99,8 @@ export default function FloorLog() {
             )}
           </tbody>
         </table>
-      </div>
-    </div>
+      </div> {/* ← closes scrollable-wrapper */}
+
+    </div> {/* ← closes outer page-container */}
   );
 }
