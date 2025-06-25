@@ -1,10 +1,8 @@
-// frontend/src/routes/FloorLog.jsx
 import React, { useEffect, useState } from 'react';
 
 export default function FloorLog() {
   const [logs, setLogs] = useState([]);
 
-  // In development, proxy /api → localhost; in production, call your Render API directly
   const API_BASE = import.meta.env.DEV
     ? '/api'
     : 'https://aiventa-crm.onrender.com/api';
@@ -16,24 +14,21 @@ export default function FloorLog() {
         return res.json();
       })
       .then(setLogs)
-      .catch(err => {
-        console.error(err);
-        setLogs([]); // fail silently with empty list
-      });
+      .catch(() => setLogs([]));
   }, [API_BASE]);
 
   const headers = [
-    { key: 'timeIn',       label: 'In'     },
-    { key: 'timeOut',      label: 'Out'    },
-    { key: 'salesperson',  label: 'Sales'  },
-    { key: 'customerName', label: 'Cust'   },
-    { key: 'vehicle',      label: 'Veh'    },
-    { key: 'trade',        label: 'Trade'  },
-    { key: 'demo',         label: 'Demo'   },
-    { key: 'writeUp',      label: 'WriteUp'},
-    { key: 'customerOffer',label: 'Offer'  },
-    { key: 'mgrTO',        label: 'MgrTO'  },
-    { key: 'origin',       label: 'Orig'   },
+    { key: 'timeIn', label: 'In' },
+    { key: 'timeOut', label: 'Out' },
+    { key: 'salesperson', label: 'Sales' },
+    { key: 'customerName', label: 'Cust' },
+    { key: 'vehicle', label: 'Veh' },
+    { key: 'trade', label: 'Trade' },
+    { key: 'demo', label: 'Demo' },
+    { key: 'writeUp', label: 'WriteUp' },
+    { key: 'customerOffer', label: 'Offer' },
+    { key: 'mgrTO', label: 'MgrTO' },
+    { key: 'origin', label: 'Orig' },
   ];
 
   return (
@@ -62,8 +57,8 @@ export default function FloorLog() {
                 const rowBg = isOpen
                   ? 'bg-yellow-100 dark:bg-yellow-900'
                   : log.timeOut
-                    ? 'bg-gray-50 dark:bg-gray-800'
-                    : 'bg-white dark:bg-gray-900';
+                  ? 'bg-gray-50 dark:bg-gray-800'
+                  : 'bg-white dark:bg-gray-900';
                 return (
                   <tr
                     key={idx}
@@ -74,11 +69,11 @@ export default function FloorLog() {
                         key={key}
                         className="px-2 py-2 whitespace-nowrap text-xs sm:text-sm md:text-base text-gray-700 dark:text-gray-200"
                       >
-                        {['timeIn','timeOut'].includes(key)
+                        {['timeIn', 'timeOut'].includes(key)
                           ? log[key]
                             ? new Date(log[key]).toLocaleTimeString([], {
                                 hour: '2-digit',
-                                minute: '2-digit'
+                                minute: '2-digit',
                               })
                             : ''
                           : String(log[key] ?? '')}
