@@ -1,6 +1,7 @@
 # app/main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import os
 from fastapi.staticfiles import StaticFiles
 
 from app.routers.leads           import router as leads_router
@@ -13,10 +14,12 @@ from app.routers.activities      import router as activities_router
 
 app = FastAPI(title="aiVenta CRM API")
 
-# 1️⃣ CORS: allow your Vercel front-end
+# 1️⃣ CORS: allow origins from env or default to production domain
+origins_env = os.environ.get("CORS_ORIGINS", "https://aiventa-crm.vercel.app")
+allowed_origins = [o.strip() for o in origins_env.split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://aiventa-crm.vercel.app"],  # production URL
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
