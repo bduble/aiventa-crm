@@ -24,7 +24,7 @@ def test_get_today_floor_traffic():
     mock_supabase.table.return_value = mock_table
 
     with patch("app.routers.floor_traffic.supabase", mock_supabase):
-        response = client.get("/today")
+        response = client.get("/api/floor-traffic/today")
 
     assert response.status_code == 200
     assert response.json() == sample
