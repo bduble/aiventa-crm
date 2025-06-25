@@ -42,7 +42,7 @@ export default function FloorLog() {
         Today’s Floor Log
       </h1>
       <div className="w-full bg-white dark:bg-gray-900 shadow-lg rounded-lg p-4 lg:p-6 overflow-x-auto">
-
+        <table className="table-fixed w-full divide-y divide-gray-200 dark:divide-gray-700">
         <table className="table-fixed min-w-full divide-y divide-gray-200 dark:divide-gray-700">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead className="bg-electricblue dark:bg-darkblue sticky top-0 z-10 text-white">
