@@ -42,13 +42,17 @@ export default function FloorLog() {
         Today’s Floor Log
       </h1>
       <div className="w-full bg-white dark:bg-gray-900 shadow-lg rounded-lg p-4 lg:p-6 overflow-x-auto">
+
         <table className="table-fixed min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead className="bg-electricblue dark:bg-darkblue sticky top-0 z-10 text-white">
             <tr>
               {headers.map(({ label }) => (
                 <th
                   key={label}
+
                   style={{ width: `${100 / headers.length}%` }}
+                  main
                   className="px-2 py-2 text-left font-semibold uppercase whitespace-nowrap text-xs sm:text-sm lg:text-base"
                 >
                   {label}
@@ -74,6 +78,7 @@ export default function FloorLog() {
                       <td
                         key={key}
                         style={{ width: `${100 / headers.length}%` }}
+
                         className="px-2 py-2 whitespace-nowrap text-xs sm:text-sm md:text-base text-gray-700 dark:text-gray-200"
                       >
                         {['timeIn','timeOut'].includes(key)
