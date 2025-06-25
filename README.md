@@ -29,8 +29,7 @@ npm run dev
 ## Environment Variables
 
 The FastAPI services expect `SUPABASE_URL` and `SUPABASE_KEY` to be
-available. The `CORS_ORIGINS` variable can include multiple domains
-separated by commas. Create a `.env` file in the project root:
+
 
 ```env
 SUPABASE_URL=<your-supabase-url>

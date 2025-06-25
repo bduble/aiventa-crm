@@ -6,7 +6,7 @@ venv/
 __pycache__/
 
 # Env
-.env
+**/.env
 # ignore all dist folders…
 
 **/dist/
