@@ -60,9 +60,12 @@ class Client:
         self.follow_redirects = follow_redirects
         self.cookies = cookies
         self.app = app
+
+    def _merge_url(self, url: str) -> URL:
+        return self.base_url.join(url)
     def request(self, method, url, **kwargs):
-        joined = self.base_url.join(str(url))
-        full_url = str(joined)
+        merged = self._merge_url(str(url))
+        full_url = str(merged)
         req = Request(method, full_url, headers=kwargs.get("headers"), data=kwargs.get("content"))
         # Debug print
         # print('Request built', full_url, req.url.netloc)
