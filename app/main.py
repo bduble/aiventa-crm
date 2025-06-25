@@ -36,7 +36,6 @@ app.include_router(leads_router,         prefix="/api/leads",         tags=["lea
 app.include_router(users_router,         prefix="/api/users",         tags=["users"])
 app.include_router(                      # floor-traffic now at /api/floor-traffic
     floor_traffic_router,
-    prefix="/api/floor-traffic",
     tags=["floor-traffic"],
 )
 app.include_router(accounts_router,      prefix="/api/accounts",      tags=["accounts"])
