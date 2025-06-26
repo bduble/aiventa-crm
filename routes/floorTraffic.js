@@ -8,7 +8,7 @@ const router = express.Router();
  * GET /api/floor-traffic/today
  * Fetch today’s floor-traffic entries.
  */
-router.get('/floor-traffic/today', async (req, res, next) => {
+router.get('/floor-traffic', async (req, res, next) => {
   try {
     const todayLogs = await FloorTrafficModel.findToday();
     return res.json(todayLogs);
