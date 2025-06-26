@@ -18,17 +18,17 @@ export default function FloorLog() {
   }, [API_BASE]);
 
   const headers = [
-    { key: 'timeIn',       label: 'In'     },
-    { key: 'timeOut',      label: 'Out'    },
-    { key: 'salesperson',  label: 'Sales'  },
-    { key: 'customerName', label: 'Cust'   },
-    { key: 'vehicle',      label: 'Veh'    },
-    { key: 'trade',        label: 'Trade'  },
-    { key: 'demo',         label: 'Demo'   },
-    { key: 'writeUp',      label: 'WriteUp'},
-    { key: 'customerOffer',label: 'Offer'  },
-    { key: 'mgrTO',        label: 'MgrTO'  },
-    { key: 'origin',       label: 'Orig'   },
+    { key: 'timeIn', label: 'In' },
+    { key: 'timeOut', label: 'Out' },
+    { key: 'salesperson', label: 'Sales' },
+    { key: 'customerName', label: 'Cust' },
+    { key: 'vehicle', label: 'Veh' },
+    { key: 'trade', label: 'Trade' },
+    { key: 'demo', label: 'Demo' },
+    { key: 'writeUp', label: 'WriteUp' },
+    { key: 'customerOffer', label: 'Offer' },
+    { key: 'mgrTO', label: 'MgrTO' },
+    { key: 'origin', label: 'Orig' },
   ];
 
   return (
@@ -61,9 +61,14 @@ export default function FloorLog() {
                 const rowBg = isOpen
                   ? 'bg-yellow-100 dark:bg-yellow-900'
                   : log.timeOut
+bduble-patch-1
                     ? 'bg-gray-50 dark:bg-gray-800'
                     : 'bg-white dark:bg-gray-900';
 
+
+                  ? 'bg-gray-50 dark:bg-gray-800'
+                  : 'bg-white dark:bg-gray-900';
+main
                 return (
                   <tr
                     key={idx}
@@ -74,11 +79,11 @@ export default function FloorLog() {
                         key={key}
                         className="px-2 py-2 whitespace-nowrap text-xs sm:text-sm md:text-base text-gray-700 dark:text-gray-200"
                       >
-                        {['timeIn','timeOut'].includes(key)
+                        {['timeIn', 'timeOut'].includes(key)
                           ? log[key]
                             ? new Date(log[key]).toLocaleTimeString([], {
                                 hour: '2-digit',
-                                minute: '2-digit'
+                                minute: '2-digit',
                               })
                             : ''
                           : String(log[key] ?? '')}
