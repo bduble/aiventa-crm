@@ -56,9 +56,9 @@ export default function FloorLog() {
                 const isOpen = log.timeIn && !log.timeOut;
                 const rowBg = isOpen
                   ? 'bg-yellow-100 dark:bg-yellow-900'
-                  : log.timeOut
-                  ? 'bg-gray-50 dark:bg-gray-800'
-                  : 'bg-white dark:bg-gray-900';
+                  : (log.timeOut
+                      ? 'bg-gray-50 dark:bg-gray-800'
+                      : 'bg-white dark:bg-gray-900');
                 return (
                   <tr
                     key={idx}
