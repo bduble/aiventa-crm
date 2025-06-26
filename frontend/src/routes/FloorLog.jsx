@@ -104,7 +104,7 @@ main
             )}
           </tbody>
         </table>
-      </div> {/* ← closes scrollable-wrapper */}
+      </div>
 
     </div> {/* ← closes outer page-container */}
   );
