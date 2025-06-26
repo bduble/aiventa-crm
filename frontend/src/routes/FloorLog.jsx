@@ -67,7 +67,6 @@ export default function FloorLog() {
 
                   ? 'bg-gray-50 dark:bg-gray-800'
                   : 'bg-white dark:bg-gray-900';
-main
                 return (
                   <tr
                     key={idx}
