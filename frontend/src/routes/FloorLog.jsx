@@ -1,10 +1,8 @@
-// frontend/src/routes/FloorLog.jsx
 import React, { useEffect, useState } from 'react';
 
 export default function FloorLog() {
   const [logs, setLogs] = useState([]);
 
-  // In development, proxy /api → localhost; in production, call your Render API directly
   const API_BASE = import.meta.env.DEV
     ? '/api'
     : 'https://aiventa-crm.onrender.com/api';
@@ -16,24 +14,21 @@ export default function FloorLog() {
         return res.json();
       })
       .then(setLogs)
-      .catch(err => {
-        console.error(err);
-        setLogs([]); // fail silently with empty list
-      });
+      .catch(() => setLogs([]));
   }, [API_BASE]);
 
   const headers = [
-    { key: 'timeIn',       label: 'In'     },
-    { key: 'timeOut',      label: 'Out'    },
-    { key: 'salesperson',  label: 'Sales'  },
-    { key: 'customerName', label: 'Cust'   },
-    { key: 'vehicle',      label: 'Veh'    },
-    { key: 'trade',        label: 'Trade'  },
-    { key: 'demo',         label: 'Demo'   },
-    { key: 'writeUp',      label: 'WriteUp'},
-    { key: 'customerOffer',label: 'Offer'  },
-    { key: 'mgrTO',        label: 'MgrTO'  },
-    { key: 'origin',       label: 'Orig'   },
+    { key: 'timeIn', label: 'In' },
+    { key: 'timeOut', label: 'Out' },
+    { key: 'salesperson', label: 'Sales' },
+    { key: 'customerName', label: 'Cust' },
+    { key: 'vehicle', label: 'Veh' },
+    { key: 'trade', label: 'Trade' },
+    { key: 'demo', label: 'Demo' },
+    { key: 'writeUp', label: 'WriteUp' },
+    { key: 'customerOffer', label: 'Offer' },
+    { key: 'mgrTO', label: 'MgrTO' },
+    { key: 'origin', label: 'Orig' },
   ];
 
   return (
@@ -42,13 +37,13 @@ export default function FloorLog() {
         Today’s Floor Log
       </h1>
       <div className="w-full bg-white dark:bg-gray-900 shadow-lg rounded-lg p-4 lg:p-6 overflow-x-auto">
-        <table className="table-fixed w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead className="bg-gray-100 dark:bg-gray-700 sticky top-0 z-10">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead className="bg-electricblue dark:bg-darkblue sticky top-0 z-10 text-white">
             <tr>
               {headers.map(({ label }) => (
                 <th
                   key={label}
-                  className="px-2 py-1 text-left font-semibold text-gray-600 dark:text-gray-300 uppercase whitespace-nowrap text-[0.7rem] sm:text-xs lg:text-sm"
+                  className="px-2 py-2 text-left font-semibold uppercase whitespace-nowrap text-xs sm:text-sm lg:text-base"
                 >
                   {label}
                 </th>
@@ -62,20 +57,23 @@ export default function FloorLog() {
                 const rowBg = isOpen
                   ? 'bg-yellow-100 dark:bg-yellow-900'
                   : log.timeOut
-                    ? 'bg-gray-50 dark:bg-gray-800'
-                    : 'bg-white dark:bg-gray-900';
+                  ? 'bg-gray-50 dark:bg-gray-800'
+                  : 'bg-white dark:bg-gray-900';
                 return (
-                  <tr key={idx} className={rowBg}>
+                  <tr
+                    key={idx}
+                    className={`${rowBg} hover:bg-electricblue/10 dark:hover:bg-electricblue/20`}
+                  >
                     {headers.map(({ key }) => (
                       <td
                         key={key}
-                        className="px-2 py-1 whitespace-nowrap text-[0.75rem] sm:text-sm text-gray-700 dark:text-gray-200"
+                        className="px-2 py-2 whitespace-nowrap text-xs sm:text-sm md:text-base text-gray-700 dark:text-gray-200"
                       >
-                        {['timeIn','timeOut'].includes(key)
+                        {['timeIn', 'timeOut'].includes(key)
                           ? log[key]
                             ? new Date(log[key]).toLocaleTimeString([], {
                                 hour: '2-digit',
-                                minute: '2-digit'
+                                minute: '2-digit',
                               })
                             : ''
                           : String(log[key] ?? '')}

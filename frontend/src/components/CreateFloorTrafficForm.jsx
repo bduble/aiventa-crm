@@ -36,7 +36,9 @@ export default function CreateFloorTrafficForm() {
     e.preventDefault();
     setError("");
     try {
-      const res = await fetch(`${API_BASE}/floor-traffic`, {
+      // The FastAPI backend expects a trailing slash while Express
+      // tolerates it, so include the slash to work with both.
+      const res = await fetch(`${API_BASE}/floor-traffic/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),

@@ -8,6 +8,7 @@ import ActivityTimeline       from "./components/ActivityTimeline";
 import CreateLeadForm         from "./components/CreateLeadForm";
 import FloorLog               from "./routes/FloorLog";
 import CreateFloorTrafficForm from "./components/CreateFloorTrafficForm";
+import Home                   from "./routes/Home";
 
 export default function App() {
   // Track dark mode preference
@@ -52,11 +53,6 @@ export default function App() {
     color: isDark ? '#f7fafc' : '#1a202c',
     padding: '2rem',
   };
-  const headingStyle = {
-    fontSize: '1.5rem',
-    fontWeight: 600,
-    marginBottom: '1rem',
-  };
 
   return (
     <Router>
@@ -82,10 +78,7 @@ export default function App() {
       {/* CONTENT WRAPPER */}
       <div style={contentWrapperStyle}>
         <Routes>
-          <Route
-            path="/"
-            element={<h2 style={headingStyle}>Welcome to aiVenta!</h2>}
-          />
+          <Route path="/" element={<Home />} />
           <Route path="/leads" element={<Leads />} />
           <Route path="/leads/new" element={<CreateLeadForm />} />
           <Route path="/users" element={<Users />} />

@@ -4,10 +4,7 @@ from datetime import date, datetime, timedelta
 from app.db import supabase
 from app.models import FloorTrafficCustomer, FloorTrafficCustomerCreate
 
-router = APIRouter(
-    prefix="/api/floor-traffic",
-    tags=["floor-traffic"],
-)
+router = APIRouter()
 
 @router.get(
     "/today",
