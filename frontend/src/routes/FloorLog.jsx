@@ -32,13 +32,13 @@ export default function FloorLog() {
   ];
 
   return (
-    /* 1) Outer page-container */
+    /* Main container for the page */
     <div className="w-full min-h-screen bg-offwhite dark:bg-gray-800 p-4">
       <h1 className="text-2xl lg:text-3xl font-bold text-gray-800 dark:text-gray-100 mb-6">
         Today’s Floor Log
       </h1>
 
-      {/* 2) Scrollable table wrapper */}
+      {/* Wrapper for the scrollable table */}
       <div className="w-full bg-white dark:bg-gray-900 shadow-lg rounded-lg p-4 lg:p-6 overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead className="bg-electricblue dark:bg-darkblue sticky top-0 z-10 text-white">
