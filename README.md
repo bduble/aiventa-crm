@@ -34,5 +34,3 @@ The FastAPI services expect `SUPABASE_URL` and `SUPABASE_KEY` to be
 ```env
 SUPABASE_URL=<your-supabase-url>
 SUPABASE_KEY=<your-supabase-key>
-CORS_ORIGINS=https://aiventa-crm.vercel.app,https://aiventa-g3al310q6-brian-dubles-projects.vercel.app
-```
