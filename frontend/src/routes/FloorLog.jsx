@@ -61,7 +61,6 @@ export default function FloorLog() {
                 const rowBg = isOpen
                   ? 'bg-yellow-100 dark:bg-yellow-900'
                   : log.timeOut
-bduble-patch-1
                     ? 'bg-gray-50 dark:bg-gray-800'
                     : 'bg-white dark:bg-gray-900';
 
