@@ -31,3 +31,10 @@ SUPABASE_KEY=<your-supabase-key>
 
 The Express server reads `CORS_ORIGIN` and `PORT` if you wish to
 customize the allowed frontend origin or port number.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
+Access to the deployed API is restricted. Contact the maintainers for credentials or commercial licensing options.
+
