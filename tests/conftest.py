@@ -18,17 +18,22 @@ if 'supabase' not in sys.modules:
     supabase_module.create_client = create_client
     sys.modules['supabase'] = supabase_module
 
-# Provide stub httpx module if missing
-# Use the real 'httpx' library if available; otherwise fall back to the stub.
-if 'httpx' not in sys.modules:
-    try:
-        import httpx  # noqa: F401
-    except Exception:  # pragma: no cover - fallback only when httpx missing
-        import importlib
-        httpx_stub = importlib.import_module('tests.httpx_stub')
-        sys.modules['httpx'] = httpx_stub
-        sys.modules['httpx._client'] = httpx_stub._client
-        sys.modules['httpx._types'] = httpx_stub._types
+# Provide stub httpx module when the installed version does not support the
+# `app` parameter used by Starlette's TestClient. Older/lighter versions omit
+# this argument which causes our tests to fail. We detect this at import time
+# and swap in a minimal stub if needed so the tests can run without the real
+# dependency.
+try:
+    import httpx  # noqa: F401
+    import inspect
+    if 'app' not in inspect.signature(httpx.Client.__init__).parameters:
+        raise ImportError('httpx missing app support')
+except Exception:  # pragma: no cover - fallback when httpx unavailable/incompatible
+    import importlib
+    httpx_stub = importlib.import_module('tests.httpx_stub')
+    sys.modules['httpx'] = httpx_stub
+    sys.modules['httpx._client'] = httpx_stub._client
+    sys.modules['httpx._types'] = httpx_stub._types
 
 # Provide dummy email_validator module if missing
 # Use real 'email_validator' if available, otherwise minimal stub.

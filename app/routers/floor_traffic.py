@@ -7,6 +7,7 @@ from app.models import FloorTrafficCustomer, FloorTrafficCustomerCreate
 router = APIRouter()
 
 @router.get(
+    "/today",
     response_model=list[FloorTrafficCustomer],
     summary="Get today's floor-traffic entries",
 )
