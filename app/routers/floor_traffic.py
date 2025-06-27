@@ -1,5 +1,6 @@
 # app/routers/floor_traffic.py
 from fastapi import APIRouter, HTTPException, status
+from postgrest.exceptions import APIError
 from datetime import date, datetime, timedelta
 from app.db import supabase
 from app.models import FloorTrafficCustomer, FloorTrafficCustomerCreate
@@ -16,17 +17,18 @@ async def get_today_floor_traffic():
     start = datetime.combine(today, datetime.min.time())
     end = start + timedelta(days=1)
 
-    res = (
-        supabase
-        .table("floor_traffic_customers")
-        .select("*")
-        .gte("visit_time", start.isoformat())
-        .lt("visit_time", end.isoformat())
-        .order("visit_time", desc=False)
-        .execute()
-    )
-    if res.error:
-        raise HTTPException(status_code=500, detail=res.error.message)
+    try:
+        res = (
+            supabase
+            .table("floor_traffic_customers")
+            .select("*")
+            .gte("visit_time", start.isoformat())
+            .lt("visit_time", end.isoformat())
+            .order("visit_time", desc=False)
+            .execute()
+        )
+    except APIError as e:
+        raise HTTPException(status_code=500, detail=e.message)
     return res.data or []
 
 @router.get(
@@ -53,14 +55,15 @@ async def create_floor_traffic(entry: FloorTrafficCustomerCreate):
             detail="visit_time, salesperson & customer_name are required",
         )
 
-    res = (
-        supabase
-        .table("floor_traffic_customers")
-        .insert(payload)
-        .single()
-        .execute()
-    )
-    if res.error:
-        raise HTTPException(status_code=400, detail=res.error.message)
+    try:
+        res = (
+            supabase
+            .table("floor_traffic_customers")
+            .insert(payload)
+            .single()
+            .execute()
+        )
+    except APIError as e:
+        raise HTTPException(status_code=400, detail=e.message)
     return res.data
 
