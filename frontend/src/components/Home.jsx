@@ -1,7 +1,7 @@
 // frontend/src/components/Home.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';       // needed for your Get Started button
-import logo from 'frontend/src/assets/logo.png';         // ← this line must match your file name
+import logo from '../assets/logo.png';       // ← this line must match your file name
 
 export default function Home() {
   return (
