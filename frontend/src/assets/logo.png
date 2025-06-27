@@ -1,1 +1,2 @@
-"C:\Users\Brian\Downloads\Your paragraph text.png"
+import logo from 'import logo from '../assets/logo.png';
+
