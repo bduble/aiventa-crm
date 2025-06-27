@@ -69,3 +69,13 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* animated gradient background used on the home page */
+@keyframes gradient-move {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-move 8s ease infinite;
+}
