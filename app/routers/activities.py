@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, status
+from postgrest.exceptions import APIError
 from app.db import supabase
 from app.models import Activity, ActivityCreate, ActivityUpdate
 
@@ -24,9 +25,10 @@ def get_activity(act_id: int):
 
 @router.post("/", response_model=Activity, status_code=status.HTTP_201_CREATED)
 def create_activity(a: ActivityCreate):
-    res = supabase.table("activities").insert(a.dict()).execute()
-    if res.error:
-        raise HTTPException(status_code=400, detail=res.error.message)
+    try:
+        res = supabase.table("activities").insert(a.dict()).execute()
+    except APIError as e:
+        raise HTTPException(status_code=400, detail=e.message)
     return res.data[0]
 
 @router.patch("/{act_id}", response_model=Activity)
@@ -34,23 +36,25 @@ def update_activity(act_id: int, a: ActivityUpdate):
     payload = {k: v for k, v in a.dict().items() if v is not None}
     if not payload:
         raise HTTPException(status_code=400, detail="No fields to update")
-    res = (
-        supabase.table("activities")
-        .update(payload)
-        .eq("id", act_id)
-        .execute()
-    )
-    if res.error:
-        raise HTTPException(status_code=400, detail=res.error.message)
+    try:
+        res = (
+            supabase.table("activities")
+            .update(payload)
+            .eq("id", act_id)
+            .execute()
+        )
+    except APIError as e:
+        raise HTTPException(status_code=400, detail=e.message)
     if not res.data:
         raise HTTPException(status_code=404, detail="Activity not found")
     return res.data[0]
 
 @router.delete("/{act_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_activity(act_id: int):
-    res = supabase.table("activities").delete().eq("id", act_id).execute()
-    if res.error:
-        raise HTTPException(status_code=400, detail=res.error.message)
+    try:
+        res = supabase.table("activities").delete().eq("id", act_id).execute()
+    except APIError as e:
+        raise HTTPException(status_code=400, detail=e.message)
     if not res.data:
         raise HTTPException(status_code=404, detail="Activity not found")
     return

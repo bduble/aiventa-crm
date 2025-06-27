@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, status
+from postgrest.exceptions import APIError
 from app.db import supabase
 from app.models import Account, AccountCreate, AccountUpdate
 
@@ -28,9 +29,10 @@ def get_account(account_id: int):
 
 @router.post("/", response_model=Account, status_code=status.HTTP_201_CREATED)
 def create_account(a: AccountCreate):
-    res = supabase.table("accounts").insert(a.dict()).execute()
-    if res.error:
-        raise HTTPException(status_code=400, detail=res.error.message)
+    try:
+        res = supabase.table("accounts").insert(a.dict()).execute()
+    except APIError as e:
+        raise HTTPException(status_code=400, detail=e.message)
     # insert returns a list
     return res.data[0]
 
@@ -40,15 +42,16 @@ def update_account(account_id: int, a: AccountUpdate):
     payload = {k: v for k, v in a.dict().items() if v is not None}
     if not payload:
         raise HTTPException(status_code=400, detail="No fields to update")
-    res = (
-        supabase
-        .table("accounts")
-        .update(payload)
-        .eq("id", account_id)
-        .execute()
-    )
-    if res.error:
-        raise HTTPException(status_code=400, detail=res.error.message)
+    try:
+        res = (
+            supabase
+            .table("accounts")
+            .update(payload)
+            .eq("id", account_id)
+            .execute()
+        )
+    except APIError as e:
+        raise HTTPException(status_code=400, detail=e.message)
     if not res.data:
         raise HTTPException(status_code=404, detail="Account not found")
     return res.data[0]
@@ -56,15 +59,16 @@ def update_account(account_id: int, a: AccountUpdate):
 
 @router.delete("/{account_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_account(account_id: int):
-    res = (
-        supabase
-        .table("accounts")
-        .delete()
-        .eq("id", account_id)
-        .execute()
-    )
-    if res.error:
-        raise HTTPException(status_code=400, detail=res.error.message)
+    try:
+        res = (
+            supabase
+            .table("accounts")
+            .delete()
+            .eq("id", account_id)
+            .execute()
+        )
+    except APIError as e:
+        raise HTTPException(status_code=400, detail=e.message)
     if not res.data:
         raise HTTPException(status_code=404, detail="Account not found")
     return

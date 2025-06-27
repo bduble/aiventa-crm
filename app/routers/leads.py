@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Path
 from pydantic import BaseModel, EmailStr
 from typing import List
+from postgrest.exceptions import APIError
 from app.db import supabase
 
 router = APIRouter()
@@ -29,33 +30,36 @@ def get_lead(lead_id: int = Path(..., gt=0)):
 @router.post("/", response_model=Lead, status_code=201)
 def create_lead(lead: LeadCreate):
     payload = lead.dict()
-    res = supabase.table("leads").insert(payload).single().execute()
-    if hasattr(res, "error") and res.error:
-        raise HTTPException(400, res.error.message)
+    try:
+        res = supabase.table("leads").insert(payload).single().execute()
+    except APIError as e:
+        raise HTTPException(400, e.message)
     return res.data
 
 @router.put("/{lead_id}", response_model=Lead)
 def update_lead(lead_id: int = Path(..., gt=0), lead: LeadCreate = None):
     payload = lead.dict()
-    res = (
-        supabase.table("leads")
-        .update(payload)
-        .eq("id", lead_id)
-        .select("*")
-        .single()
-        .execute()
-    )
-    if hasattr(res, "error") and res.error:
-        raise HTTPException(400, res.error.message)
+    try:
+        res = (
+            supabase.table("leads")
+            .update(payload)
+            .eq("id", lead_id)
+            .select("*")
+            .single()
+            .execute()
+        )
+    except APIError as e:
+        raise HTTPException(400, e.message)
     if not res.data:
         raise HTTPException(404, f"Lead with id={lead_id} not found")
     return res.data
 
 @router.delete("/{lead_id}", status_code=204)
 def delete_lead(lead_id: int = Path(..., gt=0)):
-    res = supabase.table("leads").delete().eq("id", lead_id).execute()
-    if hasattr(res, "error") and res.error:
-        raise HTTPException(400, res.error.message)
+    try:
+        res = supabase.table("leads").delete().eq("id", lead_id).execute()
+    except APIError as e:
+        raise HTTPException(400, e.message)
     if res.count == 0:
         raise HTTPException(404, f"Lead with id={lead_id} not found")
     return
