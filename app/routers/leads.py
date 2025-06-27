@@ -16,7 +16,9 @@ class Lead(BaseModel):
     email: EmailStr
 
 @router.get("/", response_model=List[Lead])
+@router.get("", response_model=List[Lead], include_in_schema=False)
 def list_leads():
+    """Return all leads."""
     res = supabase.table("leads").select("*").execute()
     return res.data
 
