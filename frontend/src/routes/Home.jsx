@@ -2,13 +2,18 @@ import React from 'react';
 
 export default function Home() {
   return (
-    <section className="w-full min-h-screen bg-gradient-to-br from-electricblue via-neongreen to-darkblue flex items-center justify-center text-offwhite text-center px-4">
-      <div>
-        <h1 className="text-4xl sm:text-6xl font-bold mb-6 drop-shadow-lg">Welcome to aiVenta CRM</h1>
-        <p className="text-lg sm:text-2xl mb-8 max-w-2xl">Manage leads, users and floor traffic effortlessly in one modern interface.</p>
+    <section className="relative w-full min-h-screen overflow-hidden flex items-center justify-center text-offwhite text-center px-4 bg-darkblue">
+      <div className="absolute inset-0 bg-gradient-to-tr from-purple-700 via-electricblue to-neongreen opacity-60 animate-gradient" />
+      <div className="relative z-10">
+        <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight mb-6 drop-shadow-2xl">
+          aiVenta CRM
+        </h1>
+        <p className="text-xl sm:text-3xl mb-8 max-w-3xl font-medium">
+          Manage leads, users and floor traffic with next‑gen efficiency.
+        </p>
         <a
           href="/leads"
-          className="inline-block px-6 py-3 bg-offwhite text-darkblue font-semibold rounded shadow hover:bg-neongreen hover:text-slategray transition"
+          className="inline-block px-8 py-4 text-lg font-semibold text-darkblue bg-neongreen rounded-md shadow-xl hover:bg-offwhite hover:text-darkblue transition-colors"
         >
           Get Started
         </a>
