@@ -7,7 +7,10 @@ const app = express();
 
 // Allow requests from configured origins
 const originsEnv = process.env.CORS_ORIGINS || 'https://aiventa-crm.vercel.app';
-const allowedOrigins = originsEnv.split(',').map(o => o.trim()).filter(Boolean);
+const allowedOrigins = originsEnv
+  .split(',')
+  .map(o => o.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
 app.use(cors({
   origin: allowedOrigins,
   methods: ['GET','POST','OPTIONS'],
