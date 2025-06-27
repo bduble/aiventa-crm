@@ -51,6 +51,22 @@ class Response:
     def text(self):
         return self._content.decode()
 
+
+class Headers(dict):
+    pass
+
+
+class QueryParams(dict):
+    def add(self, key, value):
+        self[key] = value
+        return self
+
+
+class BasicAuth:
+    def __init__(self, username: str, password: str):
+        self.username = username
+        self.password = password
+
 class Client:
     def __init__(self, *, app=None, base_url="", headers=None, transport=None, follow_redirects=True, cookies=None):
         # mimic httpx.Client by storing URL object with join()
@@ -79,5 +95,49 @@ class Client:
     def delete(self, url, **kwargs):
         return self.request("DELETE", url, **kwargs)
 
-_client = SimpleNamespace(USE_CLIENT_DEFAULT=USE_CLIENT_DEFAULT, UseClientDefault=object, CookieTypes=object, TimeoutTypes=object)
-_types = SimpleNamespace(URLTypes=str, RequestContent=bytes, RequestFiles=object, QueryParamTypes=object, HeaderTypes=object, CookieTypes=object, AuthTypes=object)
+
+class AsyncClient(Client):
+    async def request(self, method, url, **kwargs):
+        return super().request(method, url, **kwargs)
+    async def get(self, url, **kwargs):
+        return await self.request("GET", url, **kwargs)
+    async def post(self, url, **kwargs):
+        return await self.request("POST", url, **kwargs)
+    async def put(self, url, **kwargs):
+        return await self.request("PUT", url, **kwargs)
+    async def delete(self, url, **kwargs):
+        return await self.request("DELETE", url, **kwargs)
+    async def __aenter__(self):
+        return self
+    async def __aexit__(self, exc_type, exc, tb):
+        pass
+
+
+class Timeout:
+    def __init__(self, *args, **kwargs):
+        self.connect = kwargs.get("connect")
+        self.read = kwargs.get("read")
+        self.write = kwargs.get("write")
+        self.pool = kwargs.get("pool")
+
+_client = SimpleNamespace(
+    USE_CLIENT_DEFAULT=USE_CLIENT_DEFAULT,
+    UseClientDefault=object,
+    CookieTypes=object,
+    Timeout=Timeout,
+    TimeoutTypes=object,
+    Headers=Headers,
+    QueryParams=QueryParams,
+    BasicAuth=BasicAuth,
+)
+_types = SimpleNamespace(
+    URLTypes=str,
+    RequestContent=bytes,
+    RequestFiles=object,
+    QueryParamTypes=object,
+    HeaderTypes=object,
+    CookieTypes=object,
+    AuthTypes=object,
+    TimeoutTypes=object,
+    BasicAuth=BasicAuth,
+)
