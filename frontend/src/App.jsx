@@ -8,7 +8,7 @@ import ActivityTimeline       from "./components/ActivityTimeline";
 import CreateLeadForm         from "./components/CreateLeadForm";
 import FloorLog               from "./routes/FloorLog";
 import CreateFloorTrafficForm from "./components/CreateFloorTrafficForm";
-import Home                   from "./routes/Home";
+import Home                   from "./components/Home";
 
 export default function App() {
   // Track dark mode preference
