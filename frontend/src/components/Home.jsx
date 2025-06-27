@@ -1,21 +1,28 @@
 // frontend/src/components/Home.jsx
 import React from 'react';
-import logo from '../assets/logo.png';   // adjust extension if yours is .svg or .jpg
+import { Link } from 'react-router-dom';       // needed for your Get Started button
+import logo from 'frontend/src/assets/logo.png';         // ← this line must match your file name
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center justify-center h-full pt-16">
-      <img
-        src={logo}
-        alt="aiVenta Logo"
-        className="h-24 w-auto mb-6"
-      />
-      <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">
-        Welcome to aiVenta!
-      </h1>
-      <p className="mt-2 text-gray-600 dark:text-gray-300">
-        The Smart CRM for your dealership.
-      </p>
-    </div>
+    <section className="relative w-full min-h-screen flex items-center justify-center text-center px-4 bg-blue-900 text-white">
+      <div className="absolute inset-0 bg-gradient-to-tr from-purple-700 via-blue-500 to-green-400 opacity-60" />
+      <div className="relative z-10 space-y-6">
+        <img
+          src={logo}
+          alt="aiVenta Logo"
+          className="mx-auto h-24 w-auto drop-shadow-xl"
+        />
+        <p className="text-xl sm:text-3xl font-medium max-w-2xl mx-auto">
+          Manage leads, users and floor traffic with next-gen efficiency.
+        </p>
+        <Link
+          to="/leads"
+          className="inline-block px-8 py-4 text-lg font-semibold bg-green-400 text-blue-900 rounded-md hover:bg-white hover:text-blue-900 transition-colors"
+        >
+          Get Started
+        </Link>
+      </div>
+    </section>
   );
 }
