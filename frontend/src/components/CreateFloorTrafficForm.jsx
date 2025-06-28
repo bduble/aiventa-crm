@@ -38,10 +38,17 @@ export default function CreateFloorTrafficForm() {
     try {
       // The FastAPI backend expects a trailing slash while Express
       // tolerates it, so include the slash to work with both.
+      let visitTime = form.timeIn;
+      // If the value is just HH:MM, combine with today's date
+      if (visitTime && !visitTime.includes('T')) {
+        const today = new Date().toISOString().slice(0, 10);
+        visitTime = `${today}T${visitTime}`;
+      }
+
       const payload = {
         ...form,
         // Include aliases expected by the FastAPI backend
-        visit_time: form.timeIn,
+        visit_time: visitTime,
         customer_name: form.customerName,
       };
       const res = await fetch(`${API_BASE}/floor-traffic/`, {
