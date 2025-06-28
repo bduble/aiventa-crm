@@ -79,3 +79,28 @@ button:focus-visible {
   background-size: 200% 200%;
   animation: gradient-move 8s ease infinite;
 }
+
+/* sheen effect for prominent links */
+.sheen-link {
+  position: relative;
+  overflow: hidden;
+}
+
+.sheen-link::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(120deg, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.0) 100%);
+  transform: skewX(-25deg);
+}
+
+.sheen-link:hover::after {
+  animation: sheen-move 0.7s forwards;
+}
+
+@keyframes sheen-move {
+  to { left: 200%; }
+}

@@ -14,7 +14,7 @@ export default function Home() {
         </p>
         <a
           href="/leads"
-          className="inline-block px-8 py-4 text-lg font-semibold text-darkblue bg-neongreen rounded-md shadow-xl hover:bg-offwhite hover:text-darkblue transition-colors"
+          className="sheen-link inline-block px-8 py-4 text-lg font-semibold text-darkblue bg-neongreen rounded-md shadow-xl hover:bg-offwhite hover:text-darkblue transition-colors"
         >
           Get Started
         </a>
