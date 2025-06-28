@@ -11,8 +11,24 @@ const allowedOrigins = originsEnv
   .split(',')
   .map(o => o.trim().replace(/\/+$/, ''))
   .filter(Boolean);
+
+// Support wildcard subdomains for Vercel preview URLs
+function isOriginAllowed(origin) {
+  if (!origin) return true; // allow same-origin or non-browser requests
+  if (allowedOrigins.includes(origin)) return true;
+  return allowedOrigins.some(o =>
+    o.endsWith('.vercel.app') && origin.endsWith('.vercel.app')
+  );
+}
+
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    if (isOriginAllowed(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET','POST','OPTIONS'],
 }));
 
