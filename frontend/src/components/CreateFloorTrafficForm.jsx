@@ -58,7 +58,10 @@ export default function CreateFloorTrafficForm() {
       }
       if (res.status === 422) {
         const payload = await res.json();
-        throw new Error(payload.message || "Validation failed");
+        const msg =
+          payload.message ||
+          (typeof payload.detail === "string" ? payload.detail : undefined);
+        throw new Error(msg || "Validation failed");
       }
       if (!res.ok) {
         throw new Error("Failed to save, please try again.");
