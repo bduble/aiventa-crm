@@ -48,6 +48,12 @@ export default function CreateFloorTrafficForm() {
       if (timeOut && !timeOut.includes('T')) {
         timeOut = `${today}T${timeOut}`;
       }
+=======
+      // If the value is just HH:MM, combine with today's date
+      if (visitTime && !visitTime.includes('T')) {
+        const today = new Date().toISOString().slice(0, 10);
+        visitTime = `${today}T${visitTime}`;
+      }
 
       const payload = {
         ...form,
