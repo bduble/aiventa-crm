@@ -39,6 +39,7 @@ export default function CreateFloorTrafficForm() {
       // The FastAPI backend expects a trailing slash while Express
       // tolerates it, so include the slash to work with both.
       let visitTime = form.timeIn;
+ 76u4to-codex/fix-404-error-for-favicon.ico-and-422-post-request
       let timeOut = form.timeOut;
       const today = new Date().toISOString().slice(0, 10);
       // If the value is just HH:MM, combine with today's date
@@ -48,6 +49,13 @@ export default function CreateFloorTrafficForm() {
       if (timeOut && !timeOut.includes('T')) {
         timeOut = `${today}T${timeOut}`;
       }
+
+      // If the value is just HH:MM, combine with today's date
+      if (visitTime && !visitTime.includes('T')) {
+        const today = new Date().toISOString().slice(0, 10);
+        visitTime = `${today}T${visitTime}`;
+      }
+ main
 
       const payload = {
         ...form,
