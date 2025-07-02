@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import floorTrafficRouter from '../routes/floorTraffic.js';
 import leadsRouter from '../routes/leads.js';
+import usersRouter from '../routes/users.js';
 import { startAdfIngestJob } from './jobs/adfIngestJob.js';
 
 const app = express();
@@ -35,7 +36,7 @@ const corsOptions = {
       callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ['GET', 'POST', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
@@ -52,6 +53,7 @@ app.get('/health', (req, res) => {
 // Mount API routes
 app.use('/api', floorTrafficRouter);
 app.use('/api', leadsRouter);
+app.use('/api', usersRouter);
 
 // Fallback for unknown routes
 app.use((req, res) => {
