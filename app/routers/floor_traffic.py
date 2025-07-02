@@ -29,7 +29,11 @@ async def get_today_floor_traffic():
         )
     except APIError as e:
         raise HTTPException(status_code=500, detail=e.message)
-    return res.data or []
+
+    data = res.data or []
+    if not isinstance(data, list):
+        data = []
+    return data
 
 @router.get(
     "/",
