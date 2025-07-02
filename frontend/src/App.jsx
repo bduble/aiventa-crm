@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 
-import Leads                  from "./routes/Leads";
+import LeadLog                from "./routes/LeadLog";
 import Users                  from "./routes/Users";
 import ActivityTimeline       from "./components/ActivityTimeline";
 import CreateLeadForm         from "./components/CreateLeadForm";
@@ -79,7 +79,7 @@ export default function App() {
       <div style={contentWrapperStyle}>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/leads" element={<Leads />} />
+          <Route path="/leads" element={<LeadLog />} />
           <Route path="/leads/new" element={<CreateLeadForm />} />
           <Route path="/users" element={<Users />} />
           <Route path="/activities" element={<ActivityTimeline />} />
