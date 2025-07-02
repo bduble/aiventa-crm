@@ -3,7 +3,7 @@ let users = [];
 
 export default class UserModel {
   static async findAll() {
-    return users;
+    return [...users];
   }
 
   static async findById(id) {
