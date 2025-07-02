@@ -5,11 +5,9 @@ export default function LeadLog() {
   const [leads, setLeads] = useState([]);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [loading, setLoading] = useState(false);
   const [modal, setModal] = useState({ open: false, lead: null, channel: 'email' });
 
   const fetchLeads = async () => {
-    setLoading(true);
     const params = new URLSearchParams();
     if (startDate) params.append('startDate', startDate);
     if (endDate) params.append('endDate', endDate);
@@ -21,7 +19,7 @@ export default function LeadLog() {
       console.error('Failed to fetch leads', err);
       setLeads([]);
     } finally {
-      setLoading(false);
+      /* loading indicator not used */
     }
   };
 
