@@ -33,7 +33,7 @@ class Request:
     def __init__(self, method, url, headers=None, data=None):
         self.method = method
         self.url = URL(url)
-        self.headers = headers or {}
+        self.headers = Headers(headers or {})
         self._data = data or b""
     def read(self):
         return self._data
@@ -53,7 +53,13 @@ class Response:
 
 
 class Headers(dict):
-    pass
+    def multi_items(self):
+        for k, v in self.items():
+            if isinstance(v, list):
+                for item in v:
+                    yield k, item
+            else:
+                yield k, v
 
 
 class QueryParams(dict):

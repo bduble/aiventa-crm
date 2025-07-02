@@ -1,6 +1,7 @@
 // frontend/src/components/Home.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';
+import Logo from './Logo';
 
 export default function Home() {
   return (
@@ -9,12 +10,10 @@ export default function Home() {
       <div className="absolute inset-0 bg-gradient-to-tr from-purple-700 via-blue-500 to-green-400 opacity-60" />
       {/* content */}
       <div className="relative z-10 space-y-6">
-        {/* point directly to /logo.png in public/ */}
-        <img
-          src="/logo.png"
-          alt="aiVenta Logo"
-          className="mx-auto h-24 w-auto drop-shadow-xl"
-        />
+
+        {/* display logo with brand text */}
+        <Logo className="mx-auto" />
+
 
         <p className="text-xl sm:text-3xl font-medium max-w-2xl mx-auto">
           Manage leads, users and floor traffic with next-gen efficiency.
