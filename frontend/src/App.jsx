@@ -3,7 +3,8 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 
 import LeadLog                from "./routes/LeadLog";
-import Users                  from "./routes/Users";
+import UsersPage              from "./routes/UsersPage";
+import { Toaster }            from 'react-hot-toast';
 import ActivityTimeline       from "./components/ActivityTimeline";
 import CreateLeadForm         from "./components/CreateLeadForm";
 import FloorLog               from "./routes/FloorLog";
@@ -57,6 +58,7 @@ export default function App() {
 
   return (
     <Router>
+      <Toaster position="top-right" />
       {/* FIXED TOP NAV */}
       <nav style={navStyle}>
         <div style={navInnerStyle}>
@@ -85,7 +87,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/leads" element={<LeadLog />} />
           <Route path="/leads/new" element={<CreateLeadForm />} />
-          <Route path="/users" element={<Users />} />
+          <Route path="/users" element={<UsersPage />} />
           <Route path="/activities" element={<ActivityTimeline />} />
           <Route path="/floor-traffic" element={<FloorLog />} />
           <Route path="/floor-traffic/new" element={<CreateFloorTrafficForm />} />
