@@ -6,8 +6,6 @@ export default function Logo({ className = '' }) {
 
       <img src="/logo.png" alt="aiVenta logo" className="h-24 w-auto md:h-28" />
 
-      <img src="/logo.png" alt="aiVenta logo" className="h-12 w-auto md:h-14" />
-
     </span>
   );
 }
