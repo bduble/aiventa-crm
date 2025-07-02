@@ -1,4 +1,5 @@
 import React from 'react';
+import Logo from '../components/Logo';
 
 export default function Home() {
   return (
@@ -6,7 +7,7 @@ export default function Home() {
       <div className="absolute inset-0 bg-gradient-to-tr from-purple-700 via-electricblue to-neongreen opacity-60 animate-gradient" />
       <div className="relative z-10">
         <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight mb-6 drop-shadow-2xl">
-          <img src="/logo.png" alt="aiVenta Logo" />
+          <Logo className="mx-auto" />
         </h1>
         <p className="text-xl sm:text-3xl mb-8 max-w-3xl font-medium">
           Manage leads, users and floor traffic with next‑gen efficiency.
