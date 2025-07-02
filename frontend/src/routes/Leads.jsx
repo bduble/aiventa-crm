@@ -13,7 +13,11 @@ export default function Leads() {
 
   return (
     <div>
-      <h2>Leads</h2>
+      <h2>Lead Log</h2>
+      <p className="mb-4 text-sm text-gray-600">
+        Leads are potential customers who have submitted their information
+        online or over the phone.
+      </p>
       <ul>
         {leads.map(l => (
           <li key={l.id}>
