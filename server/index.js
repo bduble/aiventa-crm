@@ -23,7 +23,11 @@ function isOriginAllowed(origin) {
   );
 }
 
-app.use(cors({
+// Configure CORS so the React frontend hosted on Vercel can talk to this API
+// when deployed to platforms like Render. By default we allow the production
+// domain and any Vercel preview URLs. Additional domains can be supplied via
+// the `CORS_ORIGINS` environment variable.
+const corsOptions = {
   origin: (origin, callback) => {
     if (isOriginAllowed(origin)) {
       callback(null, true);
@@ -31,8 +35,11 @@ app.use(cors({
       callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ['GET','POST','OPTIONS'],
-}));
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+app.use(cors(corsOptions));
 
 // Built-in middleware to parse JSON
 app.use(express.json());
