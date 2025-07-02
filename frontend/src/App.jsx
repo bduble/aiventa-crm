@@ -9,6 +9,7 @@ import CreateLeadForm         from "./components/CreateLeadForm";
 import FloorLog               from "./routes/FloorLog";
 import CreateFloorTrafficForm from "./components/CreateFloorTrafficForm";
 import Home                   from "./routes/Home";
+import Logo                   from "./components/Logo";
 
 export default function App() {
   // Track dark mode preference
@@ -59,6 +60,9 @@ export default function App() {
       {/* FIXED TOP NAV */}
       <nav style={navStyle}>
         <div style={navInnerStyle}>
+          <Link to="/" style={{ marginRight: '1rem' }}>
+            <Logo />
+          </Link>
           {[
             ['/', 'Home'],
             ['/leads', 'Leads'],
