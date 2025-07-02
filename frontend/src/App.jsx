@@ -61,7 +61,7 @@ export default function App() {
         <div style={navInnerStyle}>
           {[
             ['/', 'Home'],
-            ['/leads', 'Leads'],
+            ['/leads', 'Lead Log'],
             ['/leads/new', 'New Lead'],
             ['/users', 'Users'],
             ['/activities', 'Activities'],

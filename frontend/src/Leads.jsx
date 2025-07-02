@@ -41,7 +41,11 @@ export default function Leads() {
   return (
     <div className="p-8 bg-white rounded shadow space-y-6 overflow-auto">
       <Toaster position="top-right" />
-      <h2 className="text-2xl font-bold">Leads</h2>
+      <h2 className="text-2xl font-bold">Lead Log</h2>
+      <p className="text-sm text-gray-600">
+        Leads are potential customers who submitted their details online or
+        via phone call.
+      </p>
 
       {/* Form */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
