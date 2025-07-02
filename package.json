@@ -1,20 +1,20 @@
-{
-  "name": "aiventa-crm",
-  "version": "1.0.0",
-  "type": "module",
-  "main": "index.js",
-  "scripts": {
-    "start": "node index.js"
-  },
-  "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^4.21.2",
-    "mailparser": "^3.7.4",
-    "node-imap": "^0.9.6",
-    "pg": "^8.16.3",
-    "sequelize": "^6.37.7",
-    "sqlite3": "^5.1.6",
-    "winston": "^3.17.0",
-    "xml2js": "^0.6.2"
-  }
-}
+ {
+   "name": "aiventa-crm",
+   "version": "1.0.0",
+   "type": "module",
+   "main": "index.js",
+   "scripts": {
+     "start": "node index.js"
+   },
+   "dependencies": {
+     "cors": "^2.8.5",
+     "express": "^4.21.2",
+     "mailparser": "^3.7.4",
+     "node-imap": "^0.9.6",
+     "pg": "^8.16.3",
+     "sequelize": "^6.37.7",
+     "sqlite3": "^5.1.6",
+     "winston": "^3.17.0",
+     "xml2js": "^0.6.2"
+   }
+ }
