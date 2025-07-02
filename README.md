@@ -26,6 +26,10 @@ npm install
 npm run dev
 ```
 
+Tailwind CSS is built locally using PostCSS, so running `npm install` will also
+install the necessary dev dependencies (`tailwindcss`, `postcss` and
+`autoprefixer`).
+
 ## Environment Variables
 
 The FastAPI services expect `SUPABASE_URL` and `SUPABASE_KEY` to be set. `CORS_ORIGINS` controls the allowed origins for both servers.

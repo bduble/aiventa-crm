@@ -1,5 +1,5 @@
 export default {
-  content: ["./frontend/src/**/*.{js,jsx,ts,tsx}"],
+  content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
   darkMode: 'media', // respect OS setting; or 'class' to toggle manually
   theme: {
     extend: {
