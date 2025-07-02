@@ -2,6 +2,7 @@
 import express from 'express';
 import cors from 'cors';
 import floorTrafficRouter from './routes/floorTraffic.js';
+import leadsRouter from './routes/leads.js';
 
 const app = express();
 
@@ -40,8 +41,9 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-// Mount floor-traffic routes under /api
+// Mount API routes
 app.use('/api', floorTrafficRouter);
+app.use('/api', leadsRouter);
 
 // Fallback for unknown routes
 app.use((req, res) => {
