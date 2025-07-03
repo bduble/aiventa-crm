@@ -5,6 +5,7 @@ from pydantic import BaseModel, EmailStr
 from postgrest.exceptions import APIError
 from app.db import supabase
 
+# Allow both trailing-slash and non-slash versions of the endpoints
 router = APIRouter()
 
 # ─── Pydantic models ──────────────────────────────────────────────────────────────
@@ -26,6 +27,11 @@ def list_users():
     except APIError as e:
         raise HTTPException(500, detail=e.message)
     return res.data
+
+# Support '/api/users' without trailing slash
+@router.get("", response_model=list[User], include_in_schema=False)
+def list_users_noslash():
+    return list_users()
 
 @router.get("/{user_id}", response_model=User)
 def get_user(user_id: int = Path(..., description="The ID of the user to retrieve")):
@@ -56,6 +62,11 @@ def create_user(user: UserCreate):
     # Supabase may return a list for inserts
     created = res.data[0] if isinstance(res.data, list) else res.data
     return created
+
+# Support '/api/users' POST without trailing slash
+@router.post("", response_model=User, status_code=201, include_in_schema=False)
+def create_user_noslash(user: UserCreate):
+    return create_user(user)
 
 @router.put("/{user_id}", response_model=User)
 def update_user(user_id: int, user: UserCreate):
