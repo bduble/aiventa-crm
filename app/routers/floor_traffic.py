@@ -1,5 +1,6 @@
 # app/routers/floor_traffic.py
 from fastapi import APIRouter, HTTPException, status
+from fastapi.encoders import jsonable_encoder
 from postgrest.exceptions import APIError
 from datetime import date, datetime, timedelta
 from app.db import supabase
@@ -41,7 +42,6 @@ async def get_today_floor_traffic():
     summary="Alias for today's entries",
 )
 async def get_today_alias():
-    # Simply forward to the same logic
     return await get_today_floor_traffic()
 
 @router.post(
@@ -51,7 +51,8 @@ async def get_today_alias():
     summary="Log a new visitor",
 )
 async def create_floor_traffic(entry: FloorTrafficCustomerCreate):
-    payload = entry.dict(exclude_unset=True)
+    payload = jsonable_encoder(entry)
+
     # Basic validation
     if not payload.get("visit_time") or not payload.get("salesperson") or not payload.get("customer_name"):
         raise HTTPException(
@@ -68,6 +69,5 @@ async def create_floor_traffic(entry: FloorTrafficCustomerCreate):
         )
     except APIError as e:
         raise HTTPException(status_code=400, detail=e.message)
-    # `.insert()` returns a list of inserted rows
-    return res.data[0] if isinstance(res.data, list) and res.data else res.data
 
+    return res.data[0] if isinstance(res.data, list) and res.data else res.data
