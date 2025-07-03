@@ -11,7 +11,7 @@ from app.routers.accounts        import router as accounts_router
 from app.routers.contacts        import router as contacts_router
 from app.routers.opportunities   import router as opportunities_router
 from app.routers.activities      import router as activities_router
-from app.routers import inventory
+from app.routers import inventory  # inventory router mounted under /api/inventory
 
 app = FastAPI(title="aiVenta CRM API")
 
