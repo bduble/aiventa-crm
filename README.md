@@ -41,3 +41,16 @@ CORS_ORIGINS=https://aiventa-crm.vercel.app,https://aiventa-g3al310q6-brian-dubl
 ```
 
 Be sure to omit any trailing slashes from the origins.
+
+## Using the Supabase API
+
+When calling Supabase REST endpoints directly, include both the `apikey` and
+`Authorization` headers. The value for each should be your `SUPABASE_KEY`.
+
+```bash
+curl -H "apikey: $SUPABASE_KEY" \
+     -H "Authorization: Bearer $SUPABASE_KEY" \
+     "https://<your-supabase-url>/rest/v1/floor_traffic_customers"
+```
+
+This ensures requests authenticate correctly and avoids 401/400 errors.
