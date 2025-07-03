@@ -6,12 +6,12 @@ from fastapi.staticfiles import StaticFiles
 
 from app.routers.leads           import router as leads_router
 from app.routers.users           import router as users_router
-from app.routers.floor_traffic   import router as floor_traffic_router
+from app.routers import floor_traffic
 from app.routers.accounts        import router as accounts_router
 from app.routers.contacts        import router as contacts_router
 from app.routers.opportunities   import router as opportunities_router
 from app.routers.activities      import router as activities_router
-from app.routers.inventory       import router as inventory_router
+from app.routers import inventory
 
 app = FastAPI(title="aiVenta CRM API")
 
@@ -43,8 +43,9 @@ async def health_check():
 # 3️⃣ Mount API routers under /api/*
 app.include_router(leads_router,         prefix="/api/leads",         tags=["leads"])
 app.include_router(users_router,         prefix="/api/users",         tags=["users"])
-app.include_router(                      # floor-traffic now at /api/floor-traffic
-    floor_traffic_router,
+# mount floor-traffic as before
+app.include_router(
+    floor_traffic.router,
     prefix="/api/floor-traffic",
     tags=["floor-traffic"],
 )
@@ -52,7 +53,12 @@ app.include_router(accounts_router,      prefix="/api/accounts",      tags=["acc
 app.include_router(contacts_router,      prefix="/api/contacts",      tags=["contacts"])
 app.include_router(opportunities_router, prefix="/api/opportunities", tags=["opportunities"])
 app.include_router(activities_router,    prefix="/api/activities",    tags=["activities"])
-app.include_router(inventory_router,     prefix="/api/inventory",    tags=["inventory"])
+# now include your inventory router
+app.include_router(
+    inventory.router,
+    prefix="/api/inventory",
+    tags=["inventory"],
+)
 
 # 4️⃣ Serve your React app for all other GETs
 app.mount(
