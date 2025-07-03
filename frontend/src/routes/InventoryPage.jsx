@@ -59,7 +59,7 @@ export default function InventoryPage() {
 
   useEffect(() => { fetchInventory() }, [])
 
-  const applyFilters = () => {
+  const filtered = React.useMemo(() => {
     let list = [...vehicles]
     if (debounced) {
       const t = debounced.toLowerCase()
