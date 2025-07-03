@@ -31,7 +31,8 @@ export default function LeadLog() {
     try {
       const res = await fetch(`${API_BASE}/prioritized`);
       setPrioritized(await res.json());
-    } catch (e) {
+    } catch (err) {
+      console.error(err);
       setPrioritized([]);
     }
   };
@@ -40,7 +41,8 @@ export default function LeadLog() {
     try {
       const res = await fetch(`${API_BASE}/awaiting-response`);
       setAwaiting(await res.json());
-    } catch (e) {
+    } catch (err) {
+      console.error(err);
       setAwaiting([]);
     }
   };
@@ -49,7 +51,8 @@ export default function LeadLog() {
     try {
       const res = await fetch(`${API_BASE}/metrics`);
       setMetrics(await res.json());
-    } catch (e) {
+    } catch (err) {
+      console.error(err);
       setMetrics(null);
     }
   };
@@ -64,7 +67,8 @@ export default function LeadLog() {
       });
       const data = await res.json();
       setAnswer(data.answer || 'No response');
-    } catch (e) {
+    } catch (err) {
+      console.error(err);
       setAnswer('Failed to get response');
     }
   };
@@ -72,10 +76,12 @@ export default function LeadLog() {
   useEffect(() => { fetchLeads(); }, [startDate, endDate]);
   useEffect(() => { fetchPrioritized(); fetchAwaiting(); fetchMetrics(); }, []);
 
+  const formatDate = d => (d ? new Date(d).toLocaleDateString() : '');
+
   return (
-    <div className="space-y-8 p-4">
-      <section>
-        <h2 className="text-2xl font-bold mb-2">AI‑Powered Leads Prioritization</h2>
+    <div className="p-4 grid gap-6 md:grid-cols-2">
+      <section className="bg-white shadow rounded p-4 space-y-2">
+        <h2 className="text-2xl font-bold">AI‑Powered Leads Prioritization</h2>
         <div className="mb-4 flex gap-2">
           <input
             type="text"
@@ -102,6 +108,8 @@ export default function LeadLog() {
               <tr>
                 <th className="p-2 text-left">Name</th>
                 <th className="p-2 text-left">Email</th>
+                <th className="p-2 text-left">Last Lead Response</th>
+                <th className="p-2 text-left">Last Staff Response</th>
               </tr>
             </thead>
             <tbody>
@@ -109,6 +117,8 @@ export default function LeadLog() {
                 <tr key={l.id}>
                   <td className="p-2 whitespace-nowrap">{l.name}</td>
                   <td className="p-2 whitespace-nowrap">{l.email}</td>
+                  <td className="p-2 whitespace-nowrap">{formatDate(l.last_lead_response_at)}</td>
+                  <td className="p-2 whitespace-nowrap">{formatDate(l.last_staff_response_at)}</td>
                 </tr>
               ))}
             </tbody>
@@ -116,8 +126,8 @@ export default function LeadLog() {
         </div>
       </section>
 
-      <section>
-        <h2 className="text-2xl font-bold mb-2">Lead Log</h2>
+      <section className="bg-white shadow rounded p-4 space-y-2">
+        <h2 className="text-2xl font-bold">Lead Log</h2>
         <div className="flex gap-4 items-end mb-2">
           <div>
             <label className="block text-sm" htmlFor="start">Start</label>
@@ -135,6 +145,8 @@ export default function LeadLog() {
               <tr>
                 <th className="p-2 text-left">Name</th>
                 <th className="p-2 text-left">Email</th>
+                <th className="p-2 text-left">Created</th>
+                <th className="p-2 text-left">Last Lead Response</th>
               </tr>
             </thead>
             <tbody>
@@ -142,6 +154,8 @@ export default function LeadLog() {
                 <tr key={l.id}>
                   <td className="p-2 whitespace-nowrap">{l.name}</td>
                   <td className="p-2 whitespace-nowrap">{l.email}</td>
+                  <td className="p-2 whitespace-nowrap">{formatDate(l.created_at)}</td>
+                  <td className="p-2 whitespace-nowrap">{formatDate(l.last_lead_response_at)}</td>
                 </tr>
               ))}
             </tbody>
@@ -149,14 +163,15 @@ export default function LeadLog() {
         </div>
       </section>
 
-      <section>
-        <h2 className="text-2xl font-bold mb-2">Awaiting Response</h2>
+      <section className="bg-white shadow rounded p-4 space-y-2">
+        <h2 className="text-2xl font-bold">Awaiting Response</h2>
         <div className="overflow-x-auto">
           <table className="min-w-full border divide-y">
             <thead className="bg-slategray text-white">
               <tr>
                 <th className="p-2 text-left">Name</th>
                 <th className="p-2 text-left">Email</th>
+                <th className="p-2 text-left">Last Lead Response</th>
               </tr>
             </thead>
             <tbody>
@@ -164,6 +179,7 @@ export default function LeadLog() {
                 <tr key={l.id} className="bg-red-100">
                   <td className="p-2 whitespace-nowrap">{l.name}</td>
                   <td className="p-2 whitespace-nowrap">{l.email}</td>
+                  <td className="p-2 whitespace-nowrap">{formatDate(l.last_lead_response_at)}</td>
                 </tr>
               ))}
             </tbody>
@@ -171,8 +187,8 @@ export default function LeadLog() {
         </div>
       </section>
 
-      <section>
-        <h2 className="text-2xl font-bold mb-2">Sales Performance Metrics</h2>
+      <section className="bg-white shadow rounded p-4 space-y-2">
+        <h2 className="text-2xl font-bold">Sales Performance Metrics</h2>
         {metrics && (
           <ul className="list-disc pl-5">
             <li>Total leads: {metrics.total_leads}</li>
