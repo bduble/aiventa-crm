@@ -39,7 +39,23 @@ export default function VehicleModal({ isOpen, onClose, onSubmit, initialData })
         photos: []
       })
     } else {
-      setForm(f => ({ ...f, photos: [] }))
+      setForm({
+        stockNumber: '',
+        vin: '',
+        year: '',
+        make: '',
+        model: '',
+        trim: '',
+        price: '',
+        mileage: '',
+        color: '',
+        condition: '',
+        fuelType: '',
+        drivetrain: '',
+        videoUrls: '',
+        historyReport: '',
+        photos: []
+      })
     }
   }, [initialData])
 
