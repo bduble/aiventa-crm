@@ -28,7 +28,7 @@ def list_leads():
     res = supabase.table("leads").select("*").execute()
     return res.data
 
-@router.get("/{lead_id}", response_model=Lead)
+@router.get("/{lead_id:int}", response_model=Lead)
 def get_lead(lead_id: int = Path(..., gt=0)):
     res = supabase.table("leads").select("*").eq("id", lead_id).single().execute()
     if not res.data:
@@ -44,7 +44,7 @@ def create_lead(lead: LeadCreate):
         raise HTTPException(400, e.message)
     return res.data
 
-@router.put("/{lead_id}", response_model=Lead)
+@router.put("/{lead_id:int}", response_model=Lead)
 def update_lead(lead_id: int = Path(..., gt=0), lead: LeadCreate = None):
     payload = lead.dict()
     try:
@@ -62,7 +62,7 @@ def update_lead(lead_id: int = Path(..., gt=0), lead: LeadCreate = None):
         raise HTTPException(404, f"Lead with id={lead_id} not found")
     return res.data
 
-@router.delete("/{lead_id}", status_code=204)
+@router.delete("/{lead_id:int}", status_code=204)
 def delete_lead(lead_id: int = Path(..., gt=0)):
     try:
         res = supabase.table("leads").delete().eq("id", lead_id).execute()
