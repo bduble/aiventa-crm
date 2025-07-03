@@ -1,8 +1,14 @@
 from fastapi import APIRouter, HTTPException, Path
 from pydantic import BaseModel, EmailStr
-from typing import List
+from typing import List, Optional
 from postgrest.exceptions import APIError
 from app.db import supabase
+import os
+import openai
+from datetime import datetime
+import json
+
+openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 router = APIRouter()
 
@@ -65,3 +71,114 @@ def delete_lead(lead_id: int = Path(..., gt=0)):
     if res.count == 0:
         raise HTTPException(404, f"Lead with id={lead_id} not found")
     return
+
+
+# ── Additional AI/analytics endpoints ─────────────────────────────────────────
+
+def _fetch_all_leads():
+    res = supabase.table("leads").select("*").execute()
+    return res.data or []
+
+
+@router.get("/awaiting-response", response_model=List[Lead])
+def leads_awaiting_response():
+    """Leads who have responded but haven't received a follow-up."""
+    leads = _fetch_all_leads()
+    pending = [
+        l
+        for l in leads
+        if l.get("last_lead_response_at")
+        and (
+            not l.get("last_staff_response_at")
+            or l.get("last_staff_response_at") < l.get("last_lead_response_at")
+        )
+    ]
+    return pending
+
+
+@router.get("/prioritized", response_model=List[Lead])
+async def prioritized_leads():
+    """Return top 10 leads ranked by ChatGPT."""
+    leads = _fetch_all_leads()
+    if not leads:
+        return []
+
+    if not openai.api_key:
+        # simple heuristic fallback
+        leads.sort(key=lambda l: l.get("last_lead_response_at") or "", reverse=True)
+        return leads[:10]
+
+    prompt = (
+        "Rank the following leads by likelihood to convert soon. "
+        "Return a JSON array of lead ids ordered from highest to lowest priority.\n"
+        f"Leads: {json.dumps(leads)}"
+    )
+    try:
+        chat = await openai.ChatCompletion.acreate(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0,
+        )
+        content = chat.choices[0].message.content
+        ids = json.loads(content)
+    except Exception:
+        leads.sort(key=lambda l: l.get("last_lead_response_at") or "", reverse=True)
+        return leads[:10]
+
+    ordered = [next((l for l in leads if l["id"] == i), None) for i in ids]
+    ordered = [l for l in ordered if l]
+    return ordered[:10]
+
+
+class AskPayload(BaseModel):
+    question: str
+    lead_id: Optional[int] = None
+
+
+@router.post("/ask")
+async def ask_lead_question(payload: AskPayload):
+    """Allow users to ask questions or generate messages about a lead."""
+    leads = _fetch_all_leads()
+    lead = next((l for l in leads if l["id"] == payload.lead_id), None)
+    context = f"Lead info: {json.dumps(lead)}" if lead else ""
+    prompt = f"{payload.question}\n{context}"
+    try:
+        chat = await openai.ChatCompletion.acreate(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3,
+        )
+        return {"answer": chat.choices[0].message.content}
+    except Exception as e:
+        raise HTTPException(500, str(e))
+
+
+@router.get("/metrics")
+def lead_metrics():
+    """Return simple sales KPIs."""
+    leads = _fetch_all_leads()
+    total = len(leads)
+
+    engaged = [l for l in leads if l.get("last_lead_response_at")]
+    engagement_rate = round(len(engaged) / total * 100, 2) if total else 0.0
+
+    response_deltas = []
+    for l in engaged:
+        if l.get("last_staff_response_at"):
+            try:
+                la = datetime.fromisoformat(l["last_lead_response_at"])
+                sa = datetime.fromisoformat(l["last_staff_response_at"])
+                response_deltas.append((sa - la).total_seconds())
+            except Exception:
+                pass
+
+    avg_response_time = sum(response_deltas) / len(response_deltas) if response_deltas else 0.0
+
+    conversion_rate = round(len(engaged) / total * 100, 2) if total else 0.0
+
+    return {
+        "total_leads": total,
+        "conversion_rate": conversion_rate,
+        "average_response_time": avg_response_time,
+        "lead_engagement_rate": engagement_rate,
+    }

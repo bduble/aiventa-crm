@@ -23,6 +23,10 @@ class BaseTransport:
     def handle_request(self, request):
         raise NotImplementedError()
 
+class AsyncBaseTransport(BaseTransport):
+    async def handle_async_request(self, request):
+        return self.handle_request(request)
+
 class ByteStream:
     def __init__(self, data=b""):
         self._data = data
@@ -72,6 +76,15 @@ class BasicAuth:
     def __init__(self, username: str, password: str):
         self.username = username
         self.password = password
+
+class Proxy:
+    def __init__(self, *args, **kwargs):
+        self.url = args[0] if args else None
+
+class Limits:
+    def __init__(self, *args, **kwargs):
+        self.max_connections = kwargs.get('max_connections')
+        self.max_keepalive_connections = kwargs.get('max_keepalive_connections')
 
 class Client:
     def __init__(self, *, app=None, base_url="", headers=None, transport=None, follow_redirects=True, cookies=None):
