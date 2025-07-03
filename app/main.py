@@ -15,7 +15,7 @@ from app.routers.activities      import router as activities_router
 app = FastAPI(title="aiVenta CRM API")
 
 # 1️⃣ CORS: allow origins from env or default to production domain
-origins_env = os.environ.get("CORS_ORIGINS", "https://aiventa-crm.vercel.app")
+origins_env = os.environ.get("CORS_ORIGINS", "https://aiventa-crm.vercel.app, http://localhost:3000")
 allowed_origins = [
     o.strip().rstrip("/")
     for o in origins_env.split(",")
