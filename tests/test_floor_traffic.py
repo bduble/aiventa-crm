@@ -47,9 +47,9 @@ def test_create_floor_traffic():
         "created_at": "2024-01-01T10:00:00",
     }
 
-    exec_result = MagicMock(data=sample, error=None)
+    exec_result = MagicMock(data=[sample], error=None)
     mock_table = MagicMock()
-    mock_table.insert.return_value.single.return_value.execute.return_value = exec_result
+    mock_table.insert.return_value.execute.return_value = exec_result
     mock_supabase = MagicMock()
     mock_supabase.table.return_value = mock_table
 

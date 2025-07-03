@@ -64,10 +64,10 @@ async def create_floor_traffic(entry: FloorTrafficCustomerCreate):
             supabase
             .table("floor_traffic_customers")
             .insert(payload)
-            .single()
             .execute()
         )
     except APIError as e:
         raise HTTPException(status_code=400, detail=e.message)
-    return res.data
+    # `.insert()` returns a list of inserted rows
+    return res.data[0] if isinstance(res.data, list) and res.data else res.data
 
