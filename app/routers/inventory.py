@@ -3,12 +3,18 @@ from postgrest.exceptions import APIError
 from app.db import supabase
 from app.models import InventoryItem, InventoryItemCreate, InventoryItemUpdate
 
+# Allow trailing slash optional on endpoints
 router = APIRouter()
 
 @router.get("/", response_model=list[InventoryItem])
 def list_inventory():
     res = supabase.table("inventory").select("*").execute()
     return res.data
+
+# Support '/api/inventory' without trailing slash
+@router.get("", response_model=list[InventoryItem], include_in_schema=False)
+def list_inventory_noslash():
+    return list_inventory()
 
 @router.get("/{item_id}", response_model=InventoryItem)
 def get_inventory_item(item_id: int):
@@ -31,6 +37,11 @@ def create_inventory_item(item: InventoryItemCreate):
     except APIError as e:
         raise HTTPException(status_code=400, detail=e.message)
     return res.data[0]
+
+# Support '/api/inventory' POST without trailing slash
+@router.post("", response_model=InventoryItem, status_code=status.HTTP_201_CREATED, include_in_schema=False)
+def create_inventory_item_noslash(item: InventoryItemCreate):
+    return create_inventory_item(item)
 
 @router.put("/{item_id}", response_model=InventoryItem)
 def update_inventory_item(item_id: int, item: InventoryItemUpdate):
