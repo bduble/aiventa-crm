@@ -145,3 +145,60 @@ class FloorTrafficCustomerUpdate(BaseModel):
 
 # … your existing Contact, Opportunity, etc. …
 
+
+# ── Inventory ─────────────────────────────────────────────────────────────────
+
+class InventoryItem(BaseModel):
+    id: int
+    stockNumber: Optional[str] = None
+    vin: Optional[str] = None
+    year: Optional[int] = None
+    make: Optional[str] = None
+    model: Optional[str] = None
+    trim: Optional[str] = None
+    price: Optional[float] = None
+    mileage: Optional[int] = None
+    color: Optional[str] = None
+    condition: Optional[str] = None
+    fuelType: Optional[str] = None
+    drivetrain: Optional[str] = None
+    active: Optional[bool] = True
+    videoUrls: Optional[list[str]] = None
+    historyReport: Optional[str] = None
+
+
+class InventoryItemCreate(BaseModel):
+    stockNumber: Optional[str] = None
+    vin: Optional[str] = None
+    year: Optional[int] = None
+    make: Optional[str] = None
+    model: Optional[str] = None
+    trim: Optional[str] = None
+    price: Optional[float] = None
+    mileage: Optional[int] = None
+    color: Optional[str] = None
+    condition: Optional[str] = None
+    fuelType: Optional[str] = None
+    drivetrain: Optional[str] = None
+    active: Optional[bool] = True
+    videoUrls: Optional[list[str]] = None
+    historyReport: Optional[str] = None
+
+
+class InventoryItemUpdate(BaseModel):
+    stockNumber: Optional[str] = None
+    vin: Optional[str] = None
+    year: Optional[int] = None
+    make: Optional[str] = None
+    model: Optional[str] = None
+    trim: Optional[str] = None
+    price: Optional[float] = None
+    mileage: Optional[int] = None
+    color: Optional[str] = None
+    condition: Optional[str] = None
+    fuelType: Optional[str] = None
+    drivetrain: Optional[str] = None
+    active: Optional[bool] = None
+    videoUrls: Optional[list[str]] = None
+    historyReport: Optional[str] = None
+
