@@ -59,6 +59,7 @@ export default function InventoryPage() {
 
   useEffect(() => { fetchInventory() }, [])
 
+  // Apply search, filter, and sort options to the vehicles list
   const applyFilters = () => {
     let list = [...vehicles]
     if (debounced) {
