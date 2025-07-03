@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 
 import LeadLog                from "./routes/LeadLog";
 import UsersPage              from "./routes/UsersPage";
+import InventoryPage          from "./routes/InventoryPage";
 import { Toaster }            from 'react-hot-toast';
 import ActivityTimeline       from "./components/ActivityTimeline";
 import CreateLeadForm         from "./components/CreateLeadForm";
@@ -70,6 +71,7 @@ export default function App() {
             ['/leads', 'Lead Log'],
             ['/leads/new', 'New Lead'],
             ['/users', 'Users'],
+            ['/inventory', 'Inventory'],
             ['/activities', 'Activities'],
             ['/floor-traffic', "Today's Floor Log"],
             ['/floor-traffic/new', 'Log a Visitor'],
@@ -88,6 +90,7 @@ export default function App() {
           <Route path="/leads" element={<LeadLog />} />
           <Route path="/leads/new" element={<CreateLeadForm />} />
           <Route path="/users" element={<UsersPage />} />
+          <Route path="/inventory" element={<InventoryPage />} />
           <Route path="/activities" element={<ActivityTimeline />} />
           <Route path="/floor-traffic" element={<FloorLog />} />
           <Route path="/floor-traffic/new" element={<CreateFloorTrafficForm />} />
