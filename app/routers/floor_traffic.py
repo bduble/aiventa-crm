@@ -70,4 +70,10 @@ async def create_floor_traffic(entry: FloorTrafficCustomerCreate):
     except APIError as e:
         raise HTTPException(status_code=400, detail=e.message)
 
-    return res.data[0] if isinstance(res.data, list) and res.data else res.data
+    if not res.data:
+        raise HTTPException(
+            status_code=500,
+            detail="Database insertion failed, no data returned."
+        )
+
+    return res.data[0]
