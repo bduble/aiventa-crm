@@ -148,9 +148,21 @@ class FloorTrafficCustomerUpdate(BaseModel):
 
 # ── Inventory ─────────────────────────────────────────────────────────────────
 
-class InventoryItem(BaseModel):
+class CamelModel(BaseModel):
+    """Base model that converts snake_case fields to camelCase aliases."""
+
+    class Config:
+        allow_population_by_field_name = True
+
+        @staticmethod
+        def alias_generator(string: str) -> str:
+            parts = string.split("_")
+            return parts[0] + "".join(word.capitalize() for word in parts[1:])
+
+
+class InventoryItem(CamelModel):
     id: int
-    stockNumber: Optional[str] = None
+    stock_number: Optional[str] = None
     vin: Optional[str] = None
     year: Optional[int] = None
     make: Optional[str] = None
@@ -160,15 +172,15 @@ class InventoryItem(BaseModel):
     mileage: Optional[int] = None
     color: Optional[str] = None
     condition: Optional[str] = None
-    fuelType: Optional[str] = None
+    fuel_type: Optional[str] = None
     drivetrain: Optional[str] = None
     active: Optional[bool] = True
-    videoUrls: Optional[list[str]] = None
-    historyReport: Optional[str] = None
+    video_urls: Optional[list[str]] = None
+    history_report: Optional[str] = None
 
 
-class InventoryItemCreate(BaseModel):
-    stockNumber: Optional[str] = None
+class InventoryItemCreate(CamelModel):
+    stock_number: Optional[str] = None
     vin: Optional[str] = None
     year: Optional[int] = None
     make: Optional[str] = None
@@ -178,15 +190,15 @@ class InventoryItemCreate(BaseModel):
     mileage: Optional[int] = None
     color: Optional[str] = None
     condition: Optional[str] = None
-    fuelType: Optional[str] = None
+    fuel_type: Optional[str] = None
     drivetrain: Optional[str] = None
     active: Optional[bool] = True
-    videoUrls: Optional[list[str]] = None
-    historyReport: Optional[str] = None
+    video_urls: Optional[list[str]] = None
+    history_report: Optional[str] = None
 
 
-class InventoryItemUpdate(BaseModel):
-    stockNumber: Optional[str] = None
+class InventoryItemUpdate(CamelModel):
+    stock_number: Optional[str] = None
     vin: Optional[str] = None
     year: Optional[int] = None
     make: Optional[str] = None
@@ -196,9 +208,9 @@ class InventoryItemUpdate(BaseModel):
     mileage: Optional[int] = None
     color: Optional[str] = None
     condition: Optional[str] = None
-    fuelType: Optional[str] = None
+    fuel_type: Optional[str] = None
     drivetrain: Optional[str] = None
     active: Optional[bool] = None
-    videoUrls: Optional[list[str]] = None
-    historyReport: Optional[str] = None
+    video_urls: Optional[list[str]] = None
+    history_report: Optional[str] = None
 
