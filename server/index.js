@@ -4,6 +4,7 @@ import cors from 'cors';
 import floorTrafficRouter from '../routes/floorTraffic.js';
 import leadsRouter from '../routes/leads.js';
 import usersRouter from '../routes/users.js';
+import inventoryRouter from '../backend/routes/inventory.js';
 import { startAdfIngestJob } from './jobs/adfIngestJob.js';
 
 const app = express();
@@ -58,6 +59,7 @@ app.get('/health', (req, res) => {
 app.use('/api', floorTrafficRouter);
 app.use('/api', leadsRouter);
 app.use('/api', usersRouter);
+app.use('/api/inventory', inventoryRouter);
 
 // Fallback for unknown routes
 app.use((req, res) => {
