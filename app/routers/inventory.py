@@ -44,7 +44,10 @@ def list_inventory(
     if drivetrain:
         query = query.eq("drivetrain", drivetrain)
 
-    res = query.execute()
+    try:
+        res = query.execute()
+    except APIError as e:
+        raise HTTPException(status_code=400, detail=e.message)
     return res.data
 
 # Support '/api/inventory' without trailing slash
