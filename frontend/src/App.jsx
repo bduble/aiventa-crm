@@ -8,7 +8,7 @@ import InventoryPage          from "./routes/InventoryPage";
 import { Toaster }            from 'react-hot-toast';
 import ActivityTimeline       from "./components/ActivityTimeline";
 import CreateLeadForm         from "./components/CreateLeadForm";
-import FloorLog               from "./routes/FloorLog";
+import FloorTrafficPage       from "./pages/FloorTrafficPage";
 import CreateFloorTrafficForm from "./components/CreateFloorTrafficForm";
 import Home                   from "./routes/Home";
 import Logo                   from "./components/Logo";
@@ -92,7 +92,7 @@ export default function App() {
           <Route path="/users" element={<UsersPage />} />
           <Route path="/inventory" element={<InventoryPage />} />
           <Route path="/activities" element={<ActivityTimeline />} />
-          <Route path="/floor-traffic" element={<FloorLog />} />
+          <Route path="/floor-traffic" element={<FloorTrafficPage />} />
           <Route path="/floor-traffic/new" element={<CreateFloorTrafficForm />} />
         </Routes>
       </div>
