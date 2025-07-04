@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import toast from 'react-hot-toast'
 import FilterPanel from '../components/FilterPanel'
 import Pagination from '../components/Pagination'
@@ -14,14 +14,14 @@ export default function InventoryPage() {
   const [search, setSearch] = useState('')
   const [debounced, setDebounced] = useState('')
   const [filters, setFilters] = useState({
-    make: '',
-    model: '',
+    make: [],
+    model: [],
     yearMin: '',
     yearMax: '',
     priceMin: '',
     priceMax: '',
     mileageMax: '',
-    condition: '',
+    condition: [],
     color: '',
     fuelType: '',
     drivetrain: ''
@@ -34,6 +34,30 @@ export default function InventoryPage() {
   const [error, setError] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState(null)
+
+  const makeOptions = useMemo(
+    () => Array.from(new Set(vehicles.map(v => v.make).filter(Boolean))).sort(),
+    [vehicles]
+  )
+
+  const modelsByMake = useMemo(() => {
+    const map = {}
+    vehicles.forEach(v => {
+      if (!v.make || !v.model) return
+      if (!map[v.make]) map[v.make] = new Set()
+      map[v.make].add(v.model)
+    })
+    const result = {}
+    Object.keys(map).forEach(k => {
+      result[k] = Array.from(map[k]).sort()
+    })
+    return result
+  }, [vehicles])
+
+  const allModels = useMemo(
+    () => Array.from(new Set(vehicles.map(v => v.model).filter(Boolean))).sort(),
+    [vehicles]
+  )
 
   // debounce search
   useEffect(() => {
@@ -71,14 +95,17 @@ export default function InventoryPage() {
         `${v.make} ${v.model}`.toLowerCase().includes(t)
       )
     }
-    if (filters.make) list = list.filter(v => v.make?.toLowerCase().includes(filters.make.toLowerCase()))
-    if (filters.model) list = list.filter(v => v.model?.toLowerCase().includes(filters.model.toLowerCase()))
+    if (filters.make?.length)
+      list = list.filter(v => filters.make.includes(v.make))
+    if (filters.model?.length)
+      list = list.filter(v => filters.model.includes(v.model))
     if (filters.yearMin) list = list.filter(v => Number(v.year) >= Number(filters.yearMin))
     if (filters.yearMax) list = list.filter(v => Number(v.year) <= Number(filters.yearMax))
     if (filters.priceMin) list = list.filter(v => Number(v.price) >= Number(filters.priceMin))
     if (filters.priceMax) list = list.filter(v => Number(v.price) <= Number(filters.priceMax))
     if (filters.mileageMax) list = list.filter(v => Number(v.mileage) <= Number(filters.mileageMax))
-    if (filters.condition) list = list.filter(v => String(v.condition).toLowerCase() === filters.condition.toLowerCase())
+    if (filters.condition?.length)
+      list = list.filter(v => filters.condition.includes(String(v.condition)))
     if (filters.color) list = list.filter(v => v.color?.toLowerCase().includes(filters.color.toLowerCase()))
     if (filters.fuelType) list = list.filter(v => v.fuelType?.toLowerCase().includes(filters.fuelType.toLowerCase()))
     if (filters.drivetrain) list = list.filter(v => v.drivetrain?.toLowerCase().includes(filters.drivetrain.toLowerCase()))
@@ -161,7 +188,7 @@ export default function InventoryPage() {
         <div className="flex gap-2 items-center">
           <input
             type="text"
-            placeholder="Search..."
+            placeholder="Keyword"
             className="border rounded px-3 py-2 w-64"
             value={search}
             onChange={e => setSearch(e.target.value)}
@@ -182,7 +209,11 @@ export default function InventoryPage() {
         </button>
       </div>
 
-      <FilterPanel filters={filters} onChange={setFilters} />
+      <FilterPanel
+        filters={filters}
+        onChange={setFilters}
+        options={{ makes: makeOptions, modelsByMake, allModels }}
+      />
 
       <div className="text-sm text-gray-600 dark:text-gray-300">
         Showing {filtered.length} vehicles
