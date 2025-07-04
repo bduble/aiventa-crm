@@ -48,6 +48,7 @@ export default function InventoryPage() {
       const res = await fetch(`${API_BASE}/inventory`)
       if (!res.ok) throw new Error('Failed to load inventory')
       const data = await res.json()
+      console.log(data)
       setVehicles(data)
     } catch (err) {
       console.error(err)
