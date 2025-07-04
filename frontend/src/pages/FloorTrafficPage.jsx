@@ -5,7 +5,22 @@ import FloorTrafficTable from '../components/FloorTrafficTable';
 export default function FloorTrafficPage() {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
-  const supabase = createClient(supabaseUrl, supabaseKey);
+
+  // Gracefully handle missing env vars to avoid runtime errors
+  const supabase =
+    supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+
+  if (!supabase) {
+    return (
+      <div className="p-4">
+        <h1 className="text-3xl font-bold">Floor Traffic</h1>
+        <p className="mt-4 text-red-600">
+          Supabase is not configured. Please set VITE_SUPABASE_URL and
+          VITE_SUPABASE_KEY.
+        </p>
+      </div>
+    );
+  }
 
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
