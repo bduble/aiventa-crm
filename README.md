@@ -32,12 +32,15 @@ install the necessary dev dependencies (`tailwindcss`, `postcss` and
 
 ## Environment Variables
 
-The FastAPI services expect `SUPABASE_URL` and `SUPABASE_KEY` to be set. `CORS_ORIGINS` controls the allowed origins for both servers.
+The FastAPI services expect `SUPABASE_URL` and `SUPABASE_KEY` to be set. `CORS_ORIGINS` controls the allowed origins for both servers. The React frontend looks for `VITE_API_BASE_URL`, `VITE_SUPABASE_URL` and `VITE_SUPABASE_KEY`.
 
 ```env
 SUPABASE_URL=<your-supabase-url>
 SUPABASE_KEY=<your-supabase-key>
 CORS_ORIGINS=https://aiventa-crm.vercel.app,https://aiventa-g3al310q6-brian-dubles-projects.vercel.app
+VITE_API_BASE_URL=http://localhost:8000
+VITE_SUPABASE_URL=<your-supabase-url>
+VITE_SUPABASE_KEY=<your-supabase-key>
 ```
 
 Be sure to omit any trailing slashes from the origins.
