@@ -15,18 +15,21 @@ from app.routers import inventory  # inventory router mounted under /api/invento
 
 app = FastAPI(title="aiVenta CRM API")
 
-# 1️⃣ CORS: allow origins from env or default to production domain
-origins_env = os.environ.get("CORS_ORIGINS", "https://aiventa-crm.vercel.app, http://localhost:3000")
-allowed_origins = [
-    o.strip().rstrip("/")
-    for o in origins_env.split(",")
-    if o.strip()
-]
+# 1️⃣ CORS: allow origins from env or fall back to permissive defaults
+origins_env = os.environ.get("CORS_ORIGINS", "")
+if origins_env:
+    allowed_origins = [o.strip().rstrip("/") for o in origins_env.split(",") if o.strip()]
+else:
+    allowed_origins = ["*"]  # open during local/dev if not configured
+
+allow_credentials = False if "*" in allowed_origins else True
+allow_regex = None if "*" in allowed_origins else r"https://.*\.vercel\.app$"
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_origin_regex=r"https://.*\.vercel\.app$",
-    allow_credentials=True,
+    allow_origin_regex=allow_regex,
+    allow_credentials=allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
 )
