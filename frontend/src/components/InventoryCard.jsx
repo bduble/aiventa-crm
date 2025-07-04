@@ -2,15 +2,25 @@ import React, { useState } from 'react'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 
 export default function InventoryCard({ vehicle, onEdit, onToggle }) {
-  const images = [
-    vehicle.photos?.[0],
-    ...(vehicle.photos?.slice(1) || [])
-  ].filter(Boolean)
+  const images = vehicle.photos?.length
+    ? vehicle.photos
+    : [
+        vehicle.image_url ||
+        vehicle.imageUrl ||
+        vehicle.photoUrl ||
+        vehicle.photo_url,
+      ].filter(Boolean)
   const [current, setCurrent] = useState(0)
   const [open, setOpen] = useState(false)
 
   const prevImage = () => setCurrent(i => (i === 0 ? images.length - 1 : i - 1))
   const nextImage = () => setCurrent(i => (i === images.length - 1 ? 0 : i + 1))
+
+  const price =
+    vehicle.internet_price ?? vehicle.selling_price ?? vehicle.price
+  const mileage = vehicle.mileage
+  const color = vehicle.color
+  const status = vehicle.status ?? (vehicle.active ? 'In Stock' : 'Sold')
 
   return (
     <div className="rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300">
@@ -18,7 +28,7 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
         {images.length > 0 && (
           <img
             src={images[current]}
-            alt={`${vehicle.make} ${vehicle.model}`}
+            alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
             className="w-full h-48 object-cover cursor-pointer"
             onClick={() => setOpen(true)}
           />
@@ -54,10 +64,10 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
         <h3 className="text-xl font-semibold">
           {vehicle.year} {vehicle.make} {vehicle.model}
         </h3>
-        <p className="text-gray-600">${vehicle.price?.toLocaleString?.() || vehicle.price}</p>
-        <p className="text-sm text-gray-500">Mileage: {vehicle.mileage?.toLocaleString?.()}</p>
-        <p className="text-sm text-gray-500">Color: {vehicle.color}</p>
-        <p className="text-sm text-gray-500">Status: {vehicle.active ? 'In Stock' : 'Sold'}</p>
+        <p className="text-gray-600">${price?.toLocaleString?.() || price}</p>
+        <p className="text-sm text-gray-500">Mileage: {mileage?.toLocaleString?.()}</p>
+        <p className="text-sm text-gray-500">Color: {color}</p>
+        <p className="text-sm text-gray-500">Status: {status}</p>
         {(onEdit || onToggle) && (
           <div className="flex justify-end gap-2 pt-2">
             {onEdit && (
@@ -79,7 +89,7 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
           <div className="relative">
             <img
               src={images[current]}
-              alt={`${vehicle.make} ${vehicle.model}`}
+              alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
               className="max-h-[80vh] object-contain"
             />
             <button
