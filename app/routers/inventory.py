@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Query
 from postgrest.exceptions import APIError
 from app.db import supabase
 from app.models import InventoryItem, InventoryItemCreate, InventoryItemUpdate
@@ -7,8 +7,44 @@ from app.models import InventoryItem, InventoryItemCreate, InventoryItemUpdate
 router = APIRouter()
 
 @router.get("/", response_model=list[InventoryItem])
-def list_inventory():
-    res = supabase.table("inventory").select("*").execute()
+def list_inventory(
+    make: str | None = Query(None),
+    model: str | None = Query(None),
+    year_min: int | None = Query(None),
+    year_max: int | None = Query(None),
+    price_min: float | None = Query(None),
+    price_max: float | None = Query(None),
+    mileage_max: int | None = Query(None),
+    condition: str | None = Query(None),
+    color: str | None = Query(None),
+    fuel_type: str | None = Query(None, alias="fuelType"),
+    drivetrain: str | None = Query(None),
+):
+    query = supabase.table("inventory").select("*")
+    if make:
+        query = query.ilike("make", f"%{make}%")
+    if model:
+        query = query.ilike("model", f"%{model}%")
+    if year_min is not None:
+        query = query.gte("year", year_min)
+    if year_max is not None:
+        query = query.lte("year", year_max)
+    if price_min is not None:
+        query = query.gte("price", price_min)
+    if price_max is not None:
+        query = query.lte("price", price_max)
+    if mileage_max is not None:
+        query = query.lte("mileage", mileage_max)
+    if condition:
+        query = query.eq("condition", condition)
+    if color:
+        query = query.ilike("color", f"%{color}%")
+    if fuel_type:
+        query = query.eq("fuel_type", fuel_type)
+    if drivetrain:
+        query = query.eq("drivetrain", drivetrain)
+
+    res = query.execute()
     return res.data
 
 # Support '/api/inventory' without trailing slash
