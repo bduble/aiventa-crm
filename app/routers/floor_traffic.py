@@ -3,7 +3,11 @@ from fastapi.encoders import jsonable_encoder
 from postgrest.exceptions import APIError
 from datetime import date, datetime, timedelta
 from app.db import supabase
-from app.models import FloorTrafficCustomer, FloorTrafficCustomerCreate
+from app.models import (
+    FloorTrafficCustomer,
+    FloorTrafficCustomerCreate,
+    FloorTrafficCustomerUpdate,
+)
 
 router = APIRouter()
 
@@ -82,4 +86,25 @@ async def create_floor_traffic(entry: FloorTrafficCustomerCreate):
             detail="Database insertion failed, no data returned."
         )
 
+    return res.data[0]
+
+
+@router.put("/{entry_id}", response_model=FloorTrafficCustomer)
+def update_floor_traffic(entry_id: int, entry: FloorTrafficCustomerUpdate):
+    payload = {
+        k: v for k, v in jsonable_encoder(entry).items() if v is not None
+    }
+    if not payload:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    try:
+        res = (
+            supabase.table("floor_traffic_customers")
+            .update(payload)
+            .eq("id", entry_id)
+            .execute()
+        )
+    except APIError as e:
+        raise HTTPException(status_code=400, detail=e.message)
+    if not res.data:
+        raise HTTPException(status_code=404, detail="Entry not found")
     return res.data[0]

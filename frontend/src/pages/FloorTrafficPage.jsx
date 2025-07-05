@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import FloorTrafficTable from '../components/FloorTrafficTable';
+import FloorTrafficModal from '../components/FloorTrafficModal';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
@@ -17,6 +18,8 @@ export default function FloorTrafficPage() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
   const [activity, setActivity] = useState({
     salesCalls: 0,
     textMessages: 0,
@@ -108,6 +111,53 @@ export default function FloorTrafficPage() {
   const worksheetCount = rows.filter(
     r => r.writeUp || r.worksheet || r.worksheet_complete || r.worksheetComplete || r.write_up
   ).length;
+  const offerCount = rows.filter(r => r.customer_offer || r.customerOffer).length;
+
+  const handleToggle = async (id, field, value) => {
+    setRows(prev => prev.map(r => (r.id === id ? { ...r, [field]: value } : r)));
+    const payload = { [field]: value };
+    try {
+      if (supabase) {
+        const { error: err } = await supabase
+          .from('floor_traffic_customers')
+          .update(payload)
+          .eq('id', id);
+        if (err) throw err;
+      } else {
+        await fetch(`${API_BASE}/floor-traffic/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleSubmit = async data => {
+    if (!editing) return;
+    try {
+      if (supabase) {
+        const { error: err } = await supabase
+          .from('floor_traffic_customers')
+          .update(data)
+          .eq('id', editing.id);
+        if (err) throw err;
+      } else {
+        await fetch(`${API_BASE}/floor-traffic/${editing.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+      }
+      setRows(prev => prev.map(r => (r.id === editing.id ? { ...r, ...data } : r)));
+      setModalOpen(false);
+      setEditing(null);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const pct = count => (totalCustomers ? Math.round((count / totalCustomers) * 100) : 0);
 
@@ -140,6 +190,9 @@ export default function FloorTrafficPage() {
             <li>
               {worksheetCount} worksheets ({pct(worksheetCount)}%)
             </li>
+            <li>
+              {offerCount} offers ({pct(offerCount)}%)
+            </li>
           </ul>
         </div>
         <div className={kpiClass}>
@@ -166,8 +219,25 @@ export default function FloorTrafficPage() {
       {loading ? (
         <div className="p-4">Loading…</div>
       ) : (
-        <FloorTrafficTable rows={rows} />
+        <FloorTrafficTable
+          rows={rows}
+          onEdit={row => {
+            setEditing(row);
+            setModalOpen(true);
+          }}
+          onToggle={handleToggle}
+        />
       )}
+
+      <FloorTrafficModal
+        isOpen={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          setEditing(null);
+        }}
+        onSubmit={handleSubmit}
+        initialData={editing}
+      />
     </div>
   );
 }
