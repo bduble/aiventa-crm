@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from typing import Optional
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, validator
 
 # ── Leads ──────────────────────────────────────────────────────────────────────
 
@@ -132,6 +132,13 @@ class FloorTrafficCustomerCreate(BaseModel):
     phone: Optional[str] = None
     notes: Optional[str] = None
 
+    @validator('email', pre=True, always=True)
+    def empty_string_to_none(cls, v):
+        # Convert empty strings to None so EmailStr validation is skipped
+        if v in (None, ''):
+            return None
+        return v
+
 class FloorTrafficCustomerUpdate(BaseModel):
     salesperson: Optional[str] = None
     first_name: Optional[str] = None
@@ -174,7 +181,6 @@ class InventoryItem(CamelModel):
     video_urls: Optional[list[str]] = None
     history_report: Optional[str] = None
 
-
 class InventoryItemCreate(CamelModel):
     stock_number: Optional[str] = None
     vin: Optional[str] = None
@@ -191,7 +197,6 @@ class InventoryItemCreate(CamelModel):
     active: Optional[bool] = True
     video_urls: Optional[list[str]] = None
     history_report: Optional[str] = None
-
 
 class InventoryItemUpdate(CamelModel):
     stock_number: Optional[str] = None
