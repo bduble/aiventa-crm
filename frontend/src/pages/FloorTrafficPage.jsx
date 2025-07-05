@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import FloorTrafficTable from '../components/FloorTrafficTable';
 import FloorTrafficModal from '../components/FloorTrafficModal';
+import { Users, MailCheck, Activity } from 'lucide-react';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
@@ -163,7 +164,7 @@ export default function FloorTrafficPage() {
   const pct = count => (totalCustomers ? Math.round((count / totalCustomers) * 100) : 0);
 
   const kpiClass =
-    'flex-1 bg-white shadow rounded-2xl p-4 hover:-translate-y-1 transition-transform';
+    'flex-1 rounded-3xl p-6 bg-gradient-to-br from-electricblue via-darkblue to-slategray text-white shadow-lg hover:shadow-xl hover:-translate-y-1 transition-transform';
 
   return (
     <div className="p-4 space-y-6">
@@ -179,10 +180,15 @@ export default function FloorTrafficPage() {
 
       <div className="flex flex-col sm:flex-row gap-4">
         <div className={kpiClass}>
-          <p className="text-gray-500">Total Visitors Today</p>
-          <p className="text-2xl font-semibold">{totalCustomers}</p>
-          <p className="text-sm text-gray-600">{inStoreCount} currently in store</p>
-          <ul className="mt-2 space-y-1 text-sm text-gray-600">
+          <div className="flex items-center gap-2 opacity-90">
+            <Users className="w-5 h-5" />
+            <p className="uppercase tracking-wider text-sm font-medium">
+              Total Visitors Today
+            </p>
+          </div>
+          <p className="text-3xl font-bold mt-2">{totalCustomers}</p>
+          <p className="text-sm text-white/80">{inStoreCount} currently in store</p>
+          <ul className="mt-2 space-y-1 text-sm text-white/90">
             <li>
               {totalCustomers} customers ({pct(totalCustomers)}%)
             </li>
@@ -198,15 +204,23 @@ export default function FloorTrafficPage() {
           </ul>
         </div>
         <div className={kpiClass}>
-          <p className="text-gray-500">Leads</p>
-          <ul className="mt-2 space-y-1 text-sm text-gray-600">
+          <div className="flex items-center gap-2 opacity-90">
+            <MailCheck className="w-5 h-5" />
+            <p className="uppercase tracking-wider text-sm font-medium">Leads</p>
+          </div>
+          <ul className="mt-4 space-y-1 text-sm text-white/90">
             <li>{responded} responded</li>
             <li>{unresponded} unresponded</li>
           </ul>
         </div>
         <div className={kpiClass}>
-          <p className="text-gray-500">Today's Activity</p>
-          <ul className="mt-2 space-y-1 text-sm text-gray-600">
+          <div className="flex items-center gap-2 opacity-90">
+            <Activity className="w-5 h-5" />
+            <p className="uppercase tracking-wider text-sm font-medium">
+              Today's Activity
+            </p>
+          </div>
+          <ul className="mt-4 space-y-1 text-sm text-white/90">
             <li>{activity.salesCalls} Sales Calls</li>
             <li>{activity.textMessages} Text Messages</li>
             <li>{activity.appointmentsSet} Appointments Set</li>
