@@ -2,20 +2,28 @@ import React, { useState } from 'react'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 
 export default function InventoryCard({ vehicle, onEdit, onToggle }) {
-  const images = Array.isArray(vehicle.photos)
-    ? vehicle.photos
-    : vehicle.photos
-    ? [vehicle.photos]
-    : [
-        vehicle.image_url ||
-        vehicle.imageUrl ||
-        vehicle.image_link ||
-        vehicle.imageLink ||
-        vehicle.photoUrl ||
-        vehicle.photo_url,
-      ].filter(Boolean)
+  // Build images array from Supabase fields
+  let images = [];
+
+  if (Array.isArray(vehicle.photos) && vehicle.photos.length) {
+    images = vehicle.photos;
+  } else {
+    images = [
+      vehicle.image_link,
+      vehicle.additional_image_link,
+    ]
+      .filter(Boolean)                  // drop null/undefined
+      .flatMap(link => link.split(',')) // split comma-separated lists
+      .map(u => u.trim());              // trim whitespace
+  }
+
+  // Fallback placeholder (ensure placeholder-car.jpg is in /public/images)
+  if (images.length === 0) {
+    images = ['/images/placeholder-car.jpg'];
+  }
+
   const [current, setCurrent] = useState(0)
-  const [open, setOpen] = useState(false)
+  const [open, setOpen]       = useState(false)
 
   const prevImage = () => setCurrent(i => (i === 0 ? images.length - 1 : i - 1))
   const nextImage = () => setCurrent(i => (i === images.length - 1 ? 0 : i + 1))
@@ -103,16 +111,6 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
               </a>
             </p>
           )}
-          {(vehicle.image_link || vehicle.imageLink) && (
-            <div>
-              <span className="font-semibold text-gray-700">Photo:</span>
-              <img
-                src={vehicle.image_link || vehicle.imageLink}
-                alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                className="mt-1 w-full h-32 object-cover rounded"
-              />
-            </div>
-          )}
         </div>
         <p className="text-gray-600">${price?.toLocaleString?.() || price}</p>
         <p className="text-sm text-gray-500">Mileage: {mileage?.toLocaleString?.()}</p>
@@ -126,7 +124,8 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
               </button>
             )}
             {onToggle && (
-              <button onClick={() => onToggle(vehicle)} className={`px-2 py-1 rounded ${vehicle.active ? 'bg-green-600 text-white' : 'bg-gray-300'}`}>
+              <button onClick={() => onToggle(vehicle)} className={`px-2 py-1 rounded ${vehicle.active ? 'bg-green-600 text-white' : 'bg-gray-300'}`}
+              >
                 {vehicle.active ? 'Disable' : 'Activate'}
               </button>
             )}
@@ -158,7 +157,7 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
                 </button>
                 <button
                   onClick={nextImage}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-3 bg-white rounded-full shadow-lg hover:bg-gray-100"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-3 bg-whiteRounded-full shadow-lg hover:bg-gray-100"
                 >
                   <ChevronRight size={24} />
                 </button>
