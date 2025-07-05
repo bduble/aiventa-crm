@@ -120,6 +120,7 @@ class FloorTrafficCustomer(BaseModel):
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
     visit_time: datetime
+    time_out: Optional[datetime] = None
     demo: Optional[bool] = None
     worksheet: Optional[bool] = None
     customer_offer: Optional[bool] = None
@@ -137,6 +138,7 @@ class FloorTrafficCustomerCreate(BaseModel):
     worksheet: Optional[bool] = None
     customer_offer: Optional[bool] = None
     notes: Optional[str] = None
+    time_out: Optional[datetime] = None
 
     @validator('email', pre=True, always=True)
     def empty_string_to_none(cls, v):
@@ -152,6 +154,7 @@ class FloorTrafficCustomerUpdate(BaseModel):
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
     visit_time: Optional[datetime] = None
+    time_out: Optional[datetime] = None
     demo: Optional[bool] = None
     worksheet: Optional[bool] = None
     customer_offer: Optional[bool] = None
