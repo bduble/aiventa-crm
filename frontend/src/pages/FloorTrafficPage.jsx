@@ -58,6 +58,14 @@ export default function FloorTrafficPage() {
   const responded = rows.filter(r => r.last_response_time).length;
   const unresponded = rows.length - responded;
 
+  const totalCustomers = rows.length;
+  const demoCount = rows.filter(r => r.demo).length;
+  const worksheetCount = rows.filter(
+    r => r.writeUp || r.worksheet || r.worksheet_complete || r.worksheetComplete || r.write_up
+  ).length;
+
+  const pct = count => (totalCustomers ? Math.round((count / totalCustomers) * 100) : 0);
+
   const kpiClass =
     'flex-1 bg-white shadow rounded-2xl p-4 hover:-translate-y-1 transition-transform';
 
@@ -76,7 +84,18 @@ export default function FloorTrafficPage() {
       <div className="flex flex-col sm:flex-row gap-4">
         <div className={kpiClass}>
           <p className="text-gray-500">Total Visitors Today</p>
-          <p className="text-2xl font-semibold">{rows.length}</p>
+          <p className="text-2xl font-semibold">{totalCustomers}</p>
+          <ul className="mt-2 space-y-1 text-sm text-gray-600">
+            <li>
+              {totalCustomers} customers ({pct(totalCustomers)}%)
+            </li>
+            <li>
+              {demoCount} demos ({pct(demoCount)}%)
+            </li>
+            <li>
+              {worksheetCount} worksheets ({pct(worksheetCount)}%)
+            </li>
+          </ul>
         </div>
         <div className={kpiClass}>
           <p className="text-gray-500">Responded Leads</p>
