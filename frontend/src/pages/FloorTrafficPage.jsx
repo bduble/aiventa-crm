@@ -10,6 +10,19 @@ export default function FloorTrafficPage() {
   const supabase =
     supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
+
+  if (!supabase) {
+    return (
+      <div className="p-4">
+        <h1 className="text-3xl font-bold">Floor Traffic</h1>
+        <p className="mt-4 text-red-600">
+          Supabase is not configured. Please set VITE_SUPABASE_URL and
+          VITE_SUPABASE_KEY.
+        </p>
+      </div>
+    );
+  }
+
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
