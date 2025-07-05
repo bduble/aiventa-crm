@@ -112,7 +112,7 @@ export default function LeadLog() {
                 <th className="p-2 text-left">Last Staff Response</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="text-slategray">
               {prioritized.map(l => (
                 <tr key={l.id} className="odd:bg-gray-50 hover:bg-gray-100">
                   <td className="p-2 whitespace-nowrap">{l.name}</td>
@@ -149,7 +149,7 @@ export default function LeadLog() {
                 <th className="p-2 text-left">Last Lead Response</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="text-slategray">
               {leads.map(l => (
                 <tr key={l.id} className="odd:bg-gray-50 hover:bg-gray-100">
                   <td className="p-2 whitespace-nowrap">{l.name}</td>
@@ -174,7 +174,7 @@ export default function LeadLog() {
                 <th className="p-2 text-left">Last Lead Response</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="text-slategray">
               {awaiting.map(l => (
                 <tr key={l.id} className="bg-red-100 odd:bg-red-50 hover:bg-red-200">
                   <td className="p-2 whitespace-nowrap">{l.name}</td>

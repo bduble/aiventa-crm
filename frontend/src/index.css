@@ -31,6 +31,15 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  color: #213547; /* keep text readable regardless of OS theme */
+  background-color: #F7FAFC;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    color: #213547; /* override Tailwind's dark mode white text */
+    background-color: #F7FAFC;
+  }
 }
 
 #root {
