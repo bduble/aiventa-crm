@@ -27,14 +27,12 @@ export default function FloorTrafficTable({ rows }) {
   });
 
   const headers = [
-    { key: 'Visit Time', label: 'Visit Time' },
-    { key: 'Salesperson', label: 'Salesperson' },
-    { key: 'Customer Name', label: 'Customer' },
-    { key: 'Vehicle Type', label: 'Type' },
-    { key: 'Vehicle', label: 'Vehicle' },
-    { key: 'Notes', label: 'Notes' },
-    { key: 'Phone', label: 'Phone' },
-    { key: 'Source', label: 'Source' }
+    { key: 'visit_time', label: 'Visit Time' },
+    { key: 'salesperson', label: 'Salesperson' },
+    { key: 'customer_name', label: 'Customer' },
+    { key: 'vehicle', label: 'Vehicle' },
+    { key: 'notes', label: 'Notes' },
+    { key: 'phone', label: 'Phone' }
   ];
 
   const handleRowClick = id => {
