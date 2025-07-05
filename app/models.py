@@ -5,7 +5,7 @@ from pydantic import BaseModel, EmailStr, validator
 # ── Leads ──────────────────────────────────────────────────────────────────────
 
 class Lead(BaseModel):
-    id: int
+    id: str
     name: str
     email: Optional[str]
 
@@ -17,7 +17,7 @@ class LeadCreate(BaseModel):
 # ── Contacts ───────────────────────────────────────────────────────────────────
 
 class Contact(BaseModel):
-    id: int
+    id: str
     lead_id: Optional[int]
     account_id: Optional[int]
     name: str
@@ -25,15 +25,15 @@ class Contact(BaseModel):
     phone: Optional[str]
 
 class ContactCreate(BaseModel):
-    lead_id: Optional[int]
-    account_id: Optional[int]
+    lead_id: Optional[str]
+    account_id: Optional[str]
     name: str
     email: Optional[str]
     phone: Optional[str]
 
 class ContactUpdate(BaseModel):
-    lead_id: Optional[int]
-    account_id: Optional[int]
+    lead_id: Optional[str]
+    account_id: Optional[str]
     name: Optional[str]
     email: Optional[str]
     phone: Optional[str]
@@ -42,7 +42,7 @@ class ContactUpdate(BaseModel):
 # ── Accounts ───────────────────────────────────────────────────────────────────
 
 class Account(BaseModel):
-    id: int
+    id: str
     name: str
     industry: Optional[str]
 
@@ -58,14 +58,14 @@ class AccountUpdate(BaseModel):
 # ── Opportunities ──────────────────────────────────────────────────────────────
 
 class Opportunity(BaseModel):
-    id: int
-    account_id: int
+    id: str
+    account_id: str
     name: str
     stage: str   # e.g. "Prospecting", "Negotiation", "Closed Won", etc.
     amount: Optional[float]
 
 class OpportunityCreate(BaseModel):
-    account_id: int
+    account_id: str
     name: str
     stage: str
     amount: Optional[float]
@@ -82,7 +82,7 @@ class OpportunityUpdate(BaseModel):
 # ── Activities ─────────────────────────────────────────────────────────────────
 
 class Activity(BaseModel):
-    id: int
+    id: str
     type: str        # e.g. "call", "email", "task"
     subject: str
     note: Optional[str]
@@ -101,8 +101,8 @@ class ActivityCreate(BaseModel):
     related_opportunity_id: Optional[int]
 
 class ActivityUpdate(BaseModel):
-    contact_id: Optional[int]
-    opportunity_id: Optional[int]
+    contact_id: Optional[str]
+    opportunity_id: Optional[str]
     type: Optional[str]
     subject: Optional[str]
     note: Optional[str]
