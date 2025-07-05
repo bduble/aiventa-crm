@@ -1,4 +1,3 @@
-# app/routers/floor_traffic.py
 from fastapi import APIRouter, HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from postgrest.exceptions import APIError
@@ -32,9 +31,7 @@ async def get_today_floor_traffic():
         raise HTTPException(status_code=500, detail=e.message)
 
     data = res.data or []
-    if not isinstance(data, list):
-        data = []
-    return data
+    return data if isinstance(data, list) else []
 
 @router.get(
     "/",
@@ -53,12 +50,21 @@ async def get_today_alias():
 async def create_floor_traffic(entry: FloorTrafficCustomerCreate):
     payload = jsonable_encoder(entry)
 
-    # Basic validation
-    if not payload.get("visit_time") or not payload.get("salesperson") or not payload.get("customer_name"):
+    # Required fields
+    if not payload.get("visit_time") or not payload.get("salesperson"):
         raise HTTPException(
             status_code=422,
-            detail="visit_time, salesperson & customer_name are required",
+            detail="visit_time and salesperson are required",
         )
+    # Build customer_name from first_name and last_name
+    first = payload.get("first_name")
+    last = payload.get("last_name")
+    if not first or not last:
+        raise HTTPException(
+            status_code=422,
+            detail="first_name and last_name are required",
+        )
+    payload["customer_name"] = f"{first.strip()} {last.strip()}"
 
     try:
         res = (
