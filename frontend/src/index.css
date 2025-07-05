@@ -7,7 +7,6 @@
   line-height: 1.5;
   font-weight: 400;
 
-  /* Force light theme colors so text remains visible on white sections */
   color-scheme: light;
   color: #213547;
   background-color: #F7FAFC; /* light gray for subtle contrast */
@@ -16,6 +15,14 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    color: #F7FAFC;
+    background-color: #1a202c;
+  }
 }
 
 a {
