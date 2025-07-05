@@ -7,9 +7,10 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* Force light theme colors so text remains visible on white sections */
+  color-scheme: light;
+  color: #213547;
+  background-color: #F7FAFC; /* light gray for subtle contrast */
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
