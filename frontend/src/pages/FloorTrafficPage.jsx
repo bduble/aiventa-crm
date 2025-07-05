@@ -40,7 +40,7 @@ export default function FloorTrafficPage() {
       const end = new Date(start);
       end.setDate(end.getDate() + 1);
       const { data, error: err } = await supabase
-        .from('floor_traffic')
+        .from('floor_traffic_customers')
         .select('*')
         .gte('visit_time', start.toISOString())
         .lt('visit_time', end.toISOString())
