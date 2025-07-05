@@ -51,7 +51,7 @@ export default function CustomersPage() {
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y">
-            <thead className="bg-slategray text-white">
+            <thead className="bg-slate-700 text-white">
               <tr>
                 <th className="p-2 text-left">Name</th>
                 <th className="p-2 text-left">Email</th>
