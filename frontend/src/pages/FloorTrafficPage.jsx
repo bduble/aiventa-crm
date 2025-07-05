@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import FloorTrafficTable from '../components/FloorTrafficTable';
 
@@ -10,8 +10,11 @@ export default function FloorTrafficPage() {
     : '/api';
 
   // Gracefully handle missing env vars to avoid runtime errors
-  const supabase =
-    supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+  const supabase = useMemo(
+    () =>
+      supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null,
+    [supabaseUrl, supabaseKey]
+  );
 
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
