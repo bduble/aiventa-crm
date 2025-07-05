@@ -112,7 +112,7 @@ class ActivityUpdate(BaseModel):
 # ── Floor Log ─────────────────────────────────────────────────────────────────
 
 class FloorTrafficCustomer(BaseModel):
-    id: int
+    id: str
     salesperson: str
     customer_name: str
     first_name: Optional[str] = None
@@ -123,7 +123,7 @@ class FloorTrafficCustomer(BaseModel):
     notes: Optional[str] = None
     created_at: datetime
 
-class FloorTrafficCustomerCreate(BaseModel):
+class FloorTrafficCustomerCreate(BaseModel):(BaseModel):
     visit_time: datetime
     salesperson: str
     first_name: str
