@@ -5,13 +5,20 @@ import FloorTrafficTable from '../components/FloorTrafficTable';
 export default function FloorTrafficPage() {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
-  const supabase = createClient(supabaseUrl, supabaseKey);
+
+  // Gracefully handle missing env vars to avoid runtime errors
+  const supabase =
+    supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    if (!supabase) {
+      return;
+    }
+
     const fetchToday = async () => {
       setLoading(true);
       setError('');
@@ -47,6 +54,14 @@ export default function FloorTrafficPage() {
   return (
     <div className="p-4 space-y-6">
       <h1 className="text-3xl font-bold">Floor Traffic</h1>
+
+      {!supabase && (
+        <p className="mt-4 text-red-600">
+          Supabase is not configured. Please set VITE_SUPABASE_URL and
+          VITE_SUPABASE_KEY.
+        </p>
+      )}
+
       <div className="flex flex-col sm:flex-row gap-4">
         <div className={kpiClass}>
           <p className="text-gray-500">Total Visitors Today</p>
