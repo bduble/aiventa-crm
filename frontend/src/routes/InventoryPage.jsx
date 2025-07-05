@@ -5,9 +5,9 @@ import Pagination from '../components/Pagination'
 import InventoryGrid from '../components/InventoryGrid'
 import InventoryTable from '../components/InventoryTable'
 import VehicleModal from '../components/VehicleModal'
+import { apiUrl } from '../api'
 
 export default function InventoryPage() {
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api'
 
   const [vehicles, setVehicles] = useState([])
   const [filtered, setFiltered] = useState([])
@@ -69,7 +69,7 @@ export default function InventoryPage() {
     setIsLoading(true)
     setError('')
     try {
-      const res = await fetch(`${API_BASE}/inventory/`)
+      const res = await fetch(apiUrl('inventory/'))
       if (!res.ok) throw new Error('Failed to load inventory')
       const data = await res.json()
       console.log(data)
@@ -132,7 +132,7 @@ export default function InventoryPage() {
     setVehicles(prev => prev.map(v => v.id === vehicle.id ? updated : v))
     setFiltered(prev => prev.map(v => v.id === vehicle.id ? updated : v))
     try {
-      const res = await fetch(`${API_BASE}/inventory/${vehicle.id}`, {
+      const res = await fetch(apiUrl(`inventory/${vehicle.id}`), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ active: updated.active })
@@ -153,7 +153,7 @@ export default function InventoryPage() {
   const handleSubmit = async data => {
     const isEdit = !!editing
     try {
-      const url = `${API_BASE}/inventory${isEdit ? '/' + editing.id : '/'}`
+      const url = apiUrl(`inventory${isEdit ? '/' + editing.id : '/'}`)
       const method = isEdit ? 'PUT' : 'POST'
       const res = await fetch(url, {
         method,
