@@ -64,6 +64,52 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
         <h3 className="text-xl font-semibold">
           {vehicle.year} {vehicle.make} {vehicle.model}
         </h3>
+        <div className="space-y-1 text-sm text-gray-500">
+          {vehicle.stockNumber && (
+            <p>
+              <span className="font-semibold text-gray-700">Stock Number:</span>{' '}
+              {vehicle.stockNumber}
+            </p>
+          )}
+          {vehicle.year && (
+            <p>
+              <span className="font-semibold text-gray-700">Year:</span> {vehicle.year}
+            </p>
+          )}
+          {vehicle.make && (
+            <p>
+              <span className="font-semibold text-gray-700">Make:</span> {vehicle.make}
+            </p>
+          )}
+          {vehicle.model && (
+            <p>
+              <span className="font-semibold text-gray-700">Model:</span> {vehicle.model}
+            </p>
+          )}
+          {vehicle.link && (
+            <p>
+              <span className="font-semibold text-gray-700">VDP:</span>{' '}
+              <a
+                href={vehicle.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                {vehicle.link}
+              </a>
+            </p>
+          )}
+          {(vehicle.image_link || vehicle.imageLink) && (
+            <div>
+              <span className="font-semibold text-gray-700">Photo:</span>
+              <img
+                src={vehicle.image_link || vehicle.imageLink}
+                alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                className="mt-1 w-full h-32 object-cover rounded"
+              />
+            </div>
+          )}
+        </div>
         <p className="text-gray-600">${price?.toLocaleString?.() || price}</p>
         <p className="text-sm text-gray-500">Mileage: {mileage?.toLocaleString?.()}</p>
         <p className="text-sm text-gray-500">Color: {color}</p>
