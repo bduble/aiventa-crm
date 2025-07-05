@@ -112,7 +112,7 @@ class ActivityUpdate(BaseModel):
 # ── Floor Log ─────────────────────────────────────────────────────────────────
 
 class FloorTrafficCustomer(BaseModel):
-    id: int
+    id: str
     salesperson: str
     customer_name: str
     first_name: Optional[str] = None
