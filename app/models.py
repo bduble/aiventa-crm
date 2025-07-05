@@ -61,7 +61,7 @@ class Opportunity(BaseModel):
     id: int
     account_id: int
     name: str
-    stage: str  # e.g. "Prospecting", "Negotiation", "Closed Won", etc.
+    stage: str   # e.g. "Prospecting", "Negotiation", "Closed Won", etc.
     amount: Optional[float]
 
 class OpportunityCreate(BaseModel):
@@ -101,11 +101,11 @@ class ActivityCreate(BaseModel):
     related_opportunity_id: Optional[int]
 
 class ActivityUpdate(BaseModel):
-    opportunity_id: Optional[int]
     contact_id: Optional[int]
+    opportunity_id: Optional[int]
     type: Optional[str]
     subject: Optional[str]
-    notes: Optional[str]
+    note: Optional[str]
     date: Optional[date]
 
 
@@ -120,7 +120,7 @@ class FloorTrafficCustomer(BaseModel):
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
     visit_time: datetime
-    notes: Optional[str]
+    notes: Optional[str] = None
     created_at: datetime
 
 class FloorTrafficCustomerCreate(BaseModel):
@@ -159,9 +159,8 @@ class CamelModel(BaseModel):
 
         @staticmethod
         def alias_generator(string: str) -> str:
-            parts = string.split("_")
-            return parts[0] + "".join(word.capitalize() for word in parts[1:])
-
+            parts = string.split('_')
+            return parts[0] + ''.join(word.capitalize() for word in parts[1:])
 
 class InventoryItem(CamelModel):
     id: int
