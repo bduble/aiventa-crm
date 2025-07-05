@@ -2,18 +2,26 @@ import React, { useState } from 'react'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 
 export default function InventoryCard({ vehicle, onEdit, onToggle }) {
-  const images = Array.isArray(vehicle.photos)
-    ? vehicle.photos
-    : vehicle.photos
-    ? [vehicle.photos]
-    : [
-        vehicle.image_url ||
-        vehicle.imageUrl ||
-        vehicle.image_link ||
-        vehicle.imageLink ||
-        vehicle.photoUrl ||
-        vehicle.photo_url,
-      ].filter(Boolean)
+  let images = []
+
+  if (Array.isArray(vehicle.photos)) {
+    images = vehicle.photos
+  } else if (typeof vehicle.photos === 'string' && vehicle.photos) {
+    images = [vehicle.photos]
+  } else if (Array.isArray(vehicle.image_link)) {
+    images = vehicle.image_link
+  } else if (Array.isArray(vehicle.imageLink)) {
+    images = vehicle.imageLink
+  } else {
+    images = [
+      vehicle.image_link ||
+      vehicle.imageLink ||
+      vehicle.image_url ||
+      vehicle.imageUrl ||
+      vehicle.photoUrl ||
+      vehicle.photo_url,
+    ].filter(Boolean)
+  }
   const [current, setCurrent] = useState(0)
   const [open, setOpen] = useState(false)
 
