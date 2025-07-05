@@ -17,6 +17,11 @@ export default function FloorTrafficPage() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [activity, setActivity] = useState({
+    salesCalls: 0,
+    textMessages: 0,
+    appointmentsSet: 0,
+  });
 
   useEffect(() => {
     const fetchToday = async () => {
@@ -53,6 +58,46 @@ export default function FloorTrafficPage() {
     };
 
     fetchToday();
+  }, [API_BASE]);
+
+  useEffect(() => {
+    const fetchActivityMetrics = async () => {
+      try {
+        if (supabase) {
+          const today = new Date();
+          const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+          const end = new Date(start);
+          end.setDate(end.getDate() + 1);
+          const { data, error: err } = await supabase
+            .from('activities')
+            .select('type')
+            .gte('created_at', start.toISOString())
+            .lt('created_at', end.toISOString());
+          if (err) throw err;
+          const counts = { salesCalls: 0, textMessages: 0, appointmentsSet: 0 };
+          for (const row of data || []) {
+            const t = String(row.type || '').toLowerCase();
+            if (t.includes('call')) counts.salesCalls++;
+            else if (t.includes('text')) counts.textMessages++;
+            else if (t.includes('appointment')) counts.appointmentsSet++;
+          }
+          setActivity(counts);
+        } else {
+          const res = await fetch(`${API_BASE}/activities/today-metrics`);
+          if (!res.ok) throw new Error('Failed to load activity metrics');
+          const data = await res.json();
+          setActivity({
+            salesCalls: data.sales_calls ?? data.salesCalls ?? 0,
+            textMessages: data.text_messages ?? data.textMessages ?? 0,
+            appointmentsSet: data.appointments_set ?? data.appointmentsSet ?? 0,
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchActivityMetrics();
   }, [API_BASE]);
 
   const responded = rows.filter(r => r.last_response_time).length;
@@ -98,12 +143,19 @@ export default function FloorTrafficPage() {
           </ul>
         </div>
         <div className={kpiClass}>
-          <p className="text-gray-500">Responded Leads</p>
-          <p className="text-2xl font-semibold">{responded}</p>
+          <p className="text-gray-500">Leads</p>
+          <ul className="mt-2 space-y-1 text-sm text-gray-600">
+            <li>{responded} responded</li>
+            <li>{unresponded} unresponded</li>
+          </ul>
         </div>
         <div className={kpiClass}>
-          <p className="text-gray-500">Unresponded Leads</p>
-          <p className="text-2xl font-semibold">{unresponded}</p>
+          <p className="text-gray-500">Today's Activity</p>
+          <ul className="mt-2 space-y-1 text-sm text-gray-600">
+            <li>{activity.salesCalls} Sales Calls</li>
+            <li>{activity.textMessages} Text Messages</li>
+            <li>{activity.appointmentsSet} Appointments Set</li>
+          </ul>
         </div>
       </div>
 
