@@ -2,11 +2,15 @@ import React, { useState } from 'react'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 
 export default function InventoryCard({ vehicle, onEdit, onToggle }) {
-  const images = vehicle.photos?.length
+  const images = Array.isArray(vehicle.photos)
     ? vehicle.photos
+    : vehicle.photos
+    ? [vehicle.photos]
     : [
         vehicle.image_url ||
         vehicle.imageUrl ||
+        vehicle.image_link ||
+        vehicle.imageLink ||
         vehicle.photoUrl ||
         vehicle.photo_url,
       ].filter(Boolean)
