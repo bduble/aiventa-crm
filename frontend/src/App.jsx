@@ -12,6 +12,7 @@ import FloorTrafficPage       from "./pages/FloorTrafficPage";
 import CreateFloorTrafficForm from "./components/CreateFloorTrafficForm";
 import Home                   from "./routes/Home";
 import Logo                   from "./components/Logo";
+import ReconPage              from "./pages/ReconPage";
 
 export default function App() {
   // Track dark mode preference
@@ -72,6 +73,7 @@ export default function App() {
             ['/leads/new', 'New Lead'],
             ['/users', 'Users'],
             ['/inventory', 'Inventory'],
+            ['/recon', 'Recon'],
             ['/activities', 'Activities'],
             ['/floor-traffic', "Today's Floor Log"],
             ['/floor-traffic/new', 'Log a Visitor'],
@@ -91,6 +93,7 @@ export default function App() {
           <Route path="/leads/new" element={<CreateLeadForm />} />
           <Route path="/users" element={<UsersPage />} />
           <Route path="/inventory" element={<InventoryPage />} />
+          <Route path="/recon" element={<ReconPage />} />
           <Route path="/activities" element={<ActivityTimeline />} />
           <Route path="/floor-traffic" element={<FloorTrafficPage />} />
           <Route path="/floor-traffic/new" element={<CreateFloorTrafficForm />} />
