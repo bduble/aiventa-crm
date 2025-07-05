@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Phone, MessageCircle, Mail } from 'lucide-react';
-
-export default function FloorTrafficTable({ rows }) {
+import { Phone, MessageCircle, Mail, Pencil } from 'lucide-react';
+export default function FloorTrafficTable({ rows, onEdit, onToggle }) {
   const [sortConfig, setSortConfig] = useState({ key: 'visit_time', direction: 'ascending' });
   const [acknowledged, setAcknowledged] = useState(new Set());
 
@@ -31,6 +30,9 @@ export default function FloorTrafficTable({ rows }) {
     { key: 'salesperson', label: 'Salesperson' },
     { key: 'customer_name', label: 'Customer' },
     { key: 'vehicle', label: 'Vehicle' },
+    { key: 'demo', label: 'Demo' },
+    { key: 'worksheet', label: 'Worksheet' },
+    { key: 'customer_offer', label: 'Customer Offer' },
     { key: 'notes', label: 'Notes' },
     { key: 'phone', label: 'Phone' }
   ];
@@ -46,7 +48,20 @@ export default function FloorTrafficTable({ rows }) {
       <tr key={row.id} className={rowClasses} role="row" onClick={() => handleRowClick(row.id)}>
         {headers.map(h => (
           <td key={h.key} className="p-2" role="cell" data-label={h.label}>
-            {h.key === 'visit_time' ? new Date(row[h.key]).toLocaleTimeString() : String(row[h.key] ?? '')}
+            {h.key === 'visit_time' ? (
+              new Date(row[h.key]).toLocaleTimeString()
+            ) : h.key === 'demo' || h.key === 'worksheet' || h.key === 'customer_offer' ? (
+              <input
+                type="checkbox"
+                checked={Boolean(row[h.key])}
+                onChange={e => {
+                  e.stopPropagation();
+                  onToggle && onToggle(row.id, h.key, e.target.checked);
+                }}
+              />
+            ) : (
+              String(row[h.key] ?? '')
+            )}
           </td>
         ))}
         <td className="p-2 space-x-1" role="cell">
@@ -79,6 +94,16 @@ export default function FloorTrafficTable({ rows }) {
             }}
           >
             <Mail className="h-4 w-4" />
+          </button>
+          <button
+            aria-label="Edit"
+            className="rounded-full p-2 hover:bg-gray-100 transition"
+            onClick={e => {
+              e.stopPropagation();
+              onEdit && onEdit(row);
+            }}
+          >
+            <Pencil className="h-4 w-4" />
           </button>
         </td>
       </tr>

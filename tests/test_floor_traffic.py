@@ -8,7 +8,7 @@ client = TestClient(app)
 
 def test_get_today_floor_traffic():
     sample = [{
-        "id": 1,
+        "id": "1",
         "salesperson": "Bob",
         "customer_name": "Alice",
         "first_name": None,
@@ -16,6 +16,9 @@ def test_get_today_floor_traffic():
         "email": None,
         "phone": None,
         "visit_time": "2024-01-01T09:00:00",
+        "demo": None,
+        "worksheet": None,
+        "customer_offer": None,
         "notes": None,
         "created_at": "2024-01-01T09:00:00"
     }]
@@ -35,7 +38,7 @@ def test_get_today_floor_traffic():
 
 def test_create_floor_traffic():
     sample = {
-        "id": 1,
+        "id": "1",
         "salesperson": "Bob",
         "customer_name": "Alice",
         "first_name": None,
@@ -43,6 +46,9 @@ def test_create_floor_traffic():
         "email": None,
         "phone": None,
         "visit_time": "2024-01-01T10:00:00",
+        "demo": None,
+        "worksheet": None,
+        "customer_offer": None,
         "notes": None,
         "created_at": "2024-01-01T10:00:00",
     }
@@ -59,6 +65,8 @@ def test_create_floor_traffic():
         "customerName": sample["customer_name"],
         "visit_time": sample["visit_time"],
         "customer_name": sample["customer_name"],
+        "first_name": "Alice",
+        "last_name": "Smith",
     }
 
     with patch("app.routers.floor_traffic.supabase", mock_supabase):
@@ -69,4 +77,38 @@ def test_create_floor_traffic():
         )
 
     assert response.status_code == 201
+    assert response.json() == sample
+
+
+def test_update_floor_traffic():
+    sample = {
+        "id": "1",
+        "salesperson": "Bob",
+        "customer_name": "Alice",
+        "first_name": None,
+        "last_name": None,
+        "email": None,
+        "phone": None,
+        "visit_time": "2024-01-01T10:00:00",
+        "demo": None,
+        "worksheet": None,
+        "customer_offer": None,
+        "notes": "Updated",
+        "created_at": "2024-01-01T10:00:00",
+    }
+
+    exec_result = MagicMock(data=[sample], error=None)
+    mock_table = MagicMock()
+    mock_table.update.return_value.eq.return_value.execute.return_value = exec_result
+    mock_supabase = MagicMock()
+    mock_supabase.table.return_value = mock_table
+
+    with patch("app.routers.floor_traffic.supabase", mock_supabase):
+        response = client.put(
+            "/api/floor-traffic/1",
+            content=json.dumps({"notes": "Updated"}),
+            headers={"Content-Type": "application/json"},
+        )
+
+    assert response.status_code == 200
     assert response.json() == sample

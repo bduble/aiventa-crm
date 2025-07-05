@@ -120,6 +120,9 @@ class FloorTrafficCustomer(BaseModel):
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
     visit_time: datetime
+    demo: Optional[bool] = None
+    worksheet: Optional[bool] = None
+    customer_offer: Optional[bool] = None
     notes: Optional[str] = None
     created_at: datetime
 
@@ -130,6 +133,9 @@ class FloorTrafficCustomerCreate(BaseModel):
     last_name: str
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
+    demo: Optional[bool] = None
+    worksheet: Optional[bool] = None
+    customer_offer: Optional[bool] = None
     notes: Optional[str] = None
 
     @validator('email', pre=True, always=True)
@@ -146,6 +152,9 @@ class FloorTrafficCustomerUpdate(BaseModel):
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
     visit_time: Optional[datetime] = None
+    demo: Optional[bool] = None
+    worksheet: Optional[bool] = None
+    customer_offer: Optional[bool] = None
     notes: Optional[str] = None
 
 
