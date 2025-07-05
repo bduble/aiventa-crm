@@ -10,17 +10,14 @@ export default function CreateFloorTrafficForm() {
     : "/api";
 
   const [form, setForm] = useState({
-    timeIn: "",
-    timeOut: "",
-    salesperson: "",
-    customerName: "",
-    vehicle: "",
-    trade: "",
-    demo: false,
-    writeUp: "",
-    customerOffer: "",
-    mgrTO: "",
-    origin: "",
+    Visit_Time: "",
+    Salesperson: "",
+    Customer_Name: "",
+    Vehicle: "",
+    Vehicle_Type: "",
+    Source: "",
+    Notes: "",
+    Phone: "",
   });
   const [error, setError] = useState("");
 
