@@ -12,7 +12,8 @@ export default function CreateFloorTrafficForm() {
   const [form, setForm] = useState({
     Visit_Time: "",
     Salesperson: "",
-    Customer_Name: "",
+    First_Name: "",
+    Last_Name: "",
     Vehicle: "",
     Vehicle_Type: "",
     Source: "",
