@@ -45,6 +45,10 @@ VITE_SUPABASE_KEY=<your-supabase-key>
 
 Be sure to omit any trailing slashes from the origins.
 
+If `VITE_SUPABASE_URL` and `VITE_SUPABASE_KEY` are not provided, the
+floor-traffic page will automatically fall back to fetching data from the API
+server at `/api/floor-traffic`.
+
 ## Using the Supabase API
 
 When calling Supabase REST endpoints directly, include both the `apikey` and
