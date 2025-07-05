@@ -51,10 +51,35 @@ export default function CreateFloorTrafficForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+
       if (!res.ok) {
+        // Attempt to parse JSON error body
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.detail || 'Failed to save visitor');
+
+        // Default message
+        let msg = 'Failed to save visitor';
+
+        // If FastAPI sent a detail payload
+        if (errData.detail) {
+          if (Array.isArray(errData.detail)) {
+            // Join multiple validation errors
+            msg = errData.detail
+              .map((e) => e.msg || JSON.stringify(e))
+              .join('; ');
+          } else if (typeof errData.detail === 'string') {
+            msg = errData.detail;
+          }
+        }
+        // HTTP-specific fallbacks
+        else if (res.status === 404) {
+          msg = 'Endpoint not found (404)';
+        } else if (res.status === 422) {
+          msg = 'Validation failed (422)';
+        }
+
+        throw new Error(msg);
       }
+
       navigate('/floor-traffic');
     } catch (err) {
       console.error(err);
@@ -64,7 +89,9 @@ export default function CreateFloorTrafficForm() {
 
   return (
     <div className="w-full max-w-xl mx-auto bg-white shadow rounded-lg p-6 mt-8 dark:bg-gray-800 dark:border dark:border-gray-700">
-      <h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Log a Visitor</h2>
+      <h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
+        Log a Visitor
+      </h2>
 
       {error && (
         <div className="mb-4 text-red-600 bg-red-100 border border-red-200 p-2 rounded dark:bg-red-900 dark:border-red-600 dark:text-red-200">
@@ -75,7 +102,9 @@ export default function CreateFloorTrafficForm() {
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Visit Time */}
         <div>
-          <label className="block font-medium text-gray-700 dark:text-gray-200">Visit Time</label>
+          <label className="block font-medium text-gray-700 dark:text-gray-200">
+            Visit Time
+          </label>
           <input
             type="datetime-local"
             name="visit_time"
@@ -88,7 +117,9 @@ export default function CreateFloorTrafficForm() {
 
         {/* Salesperson */}
         <div>
-          <label className="block font-medium text-gray-700 dark:text-gray-200">Salesperson</label>
+          <label className="block font-medium text-gray-700 dark:text-gray-200">
+            Salesperson
+          </label>
           <input
             name="salesperson"
             value={form.salesperson}
@@ -98,54 +129,64 @@ export default function CreateFloorTrafficForm() {
           />
         </div>
 
-        {/* First Name */}
-        <div>
-          <label className="block font-medium text-gray-700 dark:text-gray-200">First Name</label>
-          <input
-            name="first_name"
-            value={form.first_name}
-            onChange={handleChange}
-            className="mt-1 block w-full bg-white border border-gray-300 rounded-md dark:bg-gray-900 dark:border-gray-600"
-          />
+        {/* First Name & Last Name */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block font-medium text-gray-700 dark:text-gray-200">
+              First Name
+            </label>
+            <input
+              name="first_name"
+              value={form.first_name}
+              onChange={handleChange}
+              className="mt-1 block w-full bg-white border border-gray-300 rounded-md dark:bg-gray-900 dark:border-gray-600"
+            />
+          </div>
+          <div>
+            <label className="block font-medium text-gray-700 dark:text-gray-200">
+              Last Name
+            </label>
+            <input
+              name="last_name"
+              value={form.last_name}
+              onChange={handleChange}
+              className="mt-1 block w-full bg-white border border-gray-300 rounded-md dark:bg-gray-900 dark:border-gray-600"
+            />
+          </div>
         </div>
 
-        {/* Last Name */}
-        <div>
-          <label className="block font-medium text-gray-700 dark:text-gray-200">Last Name</label>
-          <input
-            name="last_name"
-            value={form.last_name}
-            onChange={handleChange}
-            className="mt-1 block w-full bg-white border border-gray-300 rounded-md dark:bg-gray-900 dark:border-gray-600"
-          />
-        </div>
-
-        {/* Email */}
-        <div>
-          <label className="block font-medium text-gray-700 dark:text-gray-200">Email</label>
-          <input
-            type="email"
-            name="email"
-            value={form.email}
-            onChange={handleChange}
-            className="mt-1 block w-full bg-white border border-gray-300 rounded-md dark:bg-gray-900 dark:border-gray-600"
-          />
-        </div>
-
-        {/* Phone */}
-        <div>
-          <label className="block font-medium text-gray-700 dark:text-gray-200">Phone</label>
-          <input
-            name="phone"
-            value={form.phone}
-            onChange={handleChange}
-            className="mt-1 block w-full bg-white border border-gray-300 rounded-md dark:bg-gray-900 dark:border-gray-600"
-          />
+        {/* Email & Phone */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block font-medium text-gray-700 dark:text-gray-200">
+              Email
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              className="mt-1 block w-full bg-white border border-gray-300 rounded-md dark:bg-gray-900 dark:border-gray-600"
+            />
+          </div>
+          <div>
+            <label className="block font-medium text-gray-700 dark:text-gray-200">
+              Phone
+            </label>
+            <input
+              name="phone"
+              value={form.phone}
+              onChange={handleChange}
+              className="mt-1 block w-full bg-white border border-gray-300 rounded-md dark:bg-gray-900 dark:border-gray-600"
+            />
+          </div>
         </div>
 
         {/* Vehicle */}
         <div>
-          <label className="block font-medium text-gray-700 dark:text-gray-200">Vehicle</label>
+          <label className="block font-medium text-gray-700 dark:text-gray-200">
+            Vehicle
+          </label>
           <input
             name="vehicle"
             value={form.vehicle}
@@ -156,7 +197,9 @@ export default function CreateFloorTrafficForm() {
 
         {/* Trade */}
         <div>
-          <label className="block font-medium text-gray-700 dark:text-gray-200">Trade</label>
+          <label className="block font-medium text-gray-700 dark:text-gray-200">
+            Trade
+          </label>
           <input
             name="trade"
             value={form.trade}
@@ -174,12 +217,16 @@ export default function CreateFloorTrafficForm() {
             onChange={handleChange}
             className="h-4 w-4 text-indigo-600 border-gray-300 rounded dark:border-gray-600"
           />
-          <label className="ml-2 font-medium text-gray-700 dark:text-gray-200">Demo</label>
+          <label className="ml-2 font-medium text-gray-700 dark:text-gray-200">
+            Demo
+          </label>
         </div>
 
         {/* Notes */}
         <div>
-          <label className="block font-medium text-gray-700 dark:text-gray-200">Notes</label>
+          <label className="block font-medium text-gray-700 dark:text-gray-200">
+            Notes
+          </label>
           <textarea
             name="notes"
             value={form.notes}
@@ -198,3 +245,4 @@ export default function CreateFloorTrafficForm() {
       </form>
     </div>
   );
+}
