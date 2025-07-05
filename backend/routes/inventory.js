@@ -1,8 +1,9 @@
 // backend/routes/inventory.js
-const express = require('express');
-const router  = express.Router();
-// assume you have a `db` module to talk to Postgres:
-const db      = require('../db');  
+import express from 'express';
+// Simple db wrapper (currently an in-memory stub)
+import db from '../db.js';
+
+const router = express.Router();
 
 // GET /api/inventory → list all vehicles
 router.get('/', async (req, res) => {
@@ -53,4 +54,4 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
