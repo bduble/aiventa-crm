@@ -69,7 +69,7 @@ export default function InventoryPage() {
     setIsLoading(true)
     setError('')
     try {
-      const res = await fetch(`${API_BASE}/inventory`)
+      const res = await fetch(`${API_BASE}/inventory/`)
       if (!res.ok) throw new Error('Failed to load inventory')
       const data = await res.json()
       console.log(data)
@@ -153,7 +153,7 @@ export default function InventoryPage() {
   const handleSubmit = async data => {
     const isEdit = !!editing
     try {
-      const url = `${API_BASE}/inventory${isEdit ? '/' + editing.id : ''}`
+      const url = `${API_BASE}/inventory${isEdit ? '/' + editing.id : '/'}`
       const method = isEdit ? 'PUT' : 'POST'
       const res = await fetch(url, {
         method,
