@@ -12,6 +12,7 @@ export default function FloorTrafficModal({ isOpen, onClose, onSubmit, initialDa
     demo: false,
     worksheet: false,
     customer_offer: false,
+    sold: false,
     notes: '',
   });
 
@@ -33,6 +34,7 @@ export default function FloorTrafficModal({ isOpen, onClose, onSubmit, initialDa
           !!initialData.worksheetComplete ||
           !!initialData.write_up,
         customer_offer: !!initialData.customer_offer || !!initialData.customerOffer,
+        sold: !!initialData.sold,
         notes: initialData.notes || '',
       });
     }
@@ -99,6 +101,9 @@ export default function FloorTrafficModal({ isOpen, onClose, onSubmit, initialDa
               </label>
               <label className="flex items-center gap-2">
                 <input type="checkbox" name="customer_offer" checked={form.customer_offer} onChange={handleChange} /> Offer
+              </label>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" name="sold" checked={form.sold} onChange={handleChange} /> Sold
               </label>
             </div>
           </div>

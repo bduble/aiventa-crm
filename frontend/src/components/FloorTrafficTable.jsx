@@ -34,6 +34,7 @@ export default function FloorTrafficTable({ rows, onEdit, onToggle }) {
     { key: 'demo', label: 'Demo' },
     { key: 'worksheet', label: 'Worksheet' },
     { key: 'customer_offer', label: 'Customer Offer' },
+    { key: 'sold', label: 'Sold' },
     { key: 'notes', label: 'Notes' },
     { key: 'phone', label: 'Phone' }
   ];
@@ -44,7 +45,10 @@ export default function FloorTrafficTable({ rows, onEdit, onToggle }) {
 
   const renderRow = row => {
     const isUnresponded = !row.last_response_time && !acknowledged.has(row.id);
-    const rowClasses = `flex flex-col sm:table-row ${isUnresponded ? 'animate-pulse bg-red-50' : ''}`;
+    let rowClasses = 'flex flex-col sm:table-row';
+    if (isUnresponded) rowClasses += ' animate-pulse bg-red-50';
+    if (row.time_out) rowClasses += ' bg-yellow-100';
+    if (row.sold) rowClasses += ' bg-green-100';
     return (
       <tr key={row.id} className={rowClasses} role="row" onClick={() => handleRowClick(row.id)}>
         {headers.map(h => (
@@ -63,7 +67,7 @@ export default function FloorTrafficTable({ rows, onEdit, onToggle }) {
                   }}
                 />
               )
-            ) : h.key === 'demo' || h.key === 'worksheet' || h.key === 'customer_offer' ? (
+            ) : h.key === 'demo' || h.key === 'worksheet' || h.key === 'customer_offer' || h.key === 'sold' ? (
               <input
                 type="checkbox"
                 checked={Boolean(row[h.key])}

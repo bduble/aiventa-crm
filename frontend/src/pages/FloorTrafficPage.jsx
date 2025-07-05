@@ -107,6 +107,7 @@ export default function FloorTrafficPage() {
   const unresponded = rows.length - responded;
 
   const totalCustomers = rows.length;
+  const inStoreCount = rows.filter(r => !r.time_out).length;
   const demoCount = rows.filter(r => r.demo).length;
   const worksheetCount = rows.filter(
     r => r.writeUp || r.worksheet || r.worksheet_complete || r.worksheetComplete || r.write_up
@@ -180,6 +181,7 @@ export default function FloorTrafficPage() {
         <div className={kpiClass}>
           <p className="text-gray-500">Total Visitors Today</p>
           <p className="text-2xl font-semibold">{totalCustomers}</p>
+          <p className="text-sm text-gray-600">{inStoreCount} currently in store</p>
           <ul className="mt-2 space-y-1 text-sm text-gray-600">
             <li>
               {totalCustomers} customers ({pct(totalCustomers)}%)
