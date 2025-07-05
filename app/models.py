@@ -76,7 +76,7 @@ class OpportunityUpdate(BaseModel):
     contact_id: Optional[int]
     stage: Optional[str]
     amount: Optional[float]
-    close_date: Optional[date]    
+    close_date: Optional[date]
 
 
 # ── Activities ─────────────────────────────────────────────────────────────────
@@ -108,6 +108,7 @@ class ActivityUpdate(BaseModel):
     notes: Optional[str]
     date: Optional[date]
 
+
 # ── Floor Log ─────────────────────────────────────────────────────────────────
 
 class FloorTrafficCustomer(BaseModel):
@@ -123,27 +124,22 @@ class FloorTrafficCustomer(BaseModel):
     created_at: datetime
 
 class FloorTrafficCustomerCreate(BaseModel):
+    visit_time: datetime
     salesperson: str
-    customer_name: str
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
+    first_name: str
+    last_name: str
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
-    visit_time: Optional[datetime] = None
     notes: Optional[str] = None
 
 class FloorTrafficCustomerUpdate(BaseModel):
     salesperson: Optional[str] = None
-    customer_name: Optional[str] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
     visit_time: Optional[datetime] = None
     notes: Optional[str] = None
-
-
-# … your existing Contact, Opportunity, etc. …
 
 
 # ── Inventory ─────────────────────────────────────────────────────────────────
@@ -213,4 +209,3 @@ class InventoryItemUpdate(CamelModel):
     active: Optional[bool] = None
     video_urls: Optional[list[str]] = None
     history_report: Optional[str] = None
-
