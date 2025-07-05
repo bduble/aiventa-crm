@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import LeadLog                from "./routes/LeadLog";
 import UsersPage              from "./routes/UsersPage";
 import InventoryPage          from "./routes/InventoryPage";
+import CustomersPage          from "./routes/CustomersPage";
 import { Toaster }            from 'react-hot-toast';
 import ActivityTimeline       from "./components/ActivityTimeline";
 import CreateLeadForm         from "./components/CreateLeadForm";
@@ -70,6 +71,7 @@ export default function App() {
             ['/', 'Home'],
             ['/leads', 'Lead Log'],
             ['/leads/new', 'New Lead'],
+            ['/customers', 'Customers'],
             ['/users', 'Users'],
             ['/inventory', 'Inventory'],
             ['/recon', 'Recon'],
@@ -90,6 +92,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/leads" element={<LeadLog />} />
           <Route path="/leads/new" element={<CreateLeadForm />} />
+          <Route path="/customers" element={<CustomersPage />} />
           <Route path="/users" element={<UsersPage />} />
           <Route path="/inventory" element={<InventoryPage />} />
           <Route path="/recon" element={<ReconPage />} />

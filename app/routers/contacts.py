@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Query
 from postgrest.exceptions import APIError
 from app.db import supabase
 from app.models import Contact, ContactCreate, ContactUpdate
@@ -6,8 +6,21 @@ from app.models import Contact, ContactCreate, ContactUpdate
 router = APIRouter()
 
 @router.get("/", response_model=list[Contact])
-def list_contacts():
-    res = supabase.table("contacts").select("*").execute()
+def list_contacts(
+    q: str | None = Query(None, description="Search term for name"),
+    email: str | None = Query(None, description="Filter by email"),
+    phone: str | None = Query(None, description="Filter by phone"),
+):
+    """List contacts with optional search filters."""
+    query = supabase.table("contacts").select("*")
+    if q:
+        query = query.ilike("name", f"%{q}%")
+    if email:
+        query = query.ilike("email", f"%{email}%")
+    if phone:
+        query = query.ilike("phone", f"%{phone}%")
+
+    res = query.execute()
     return res.data
 
 @router.get("/{contact_id}", response_model=Contact)
