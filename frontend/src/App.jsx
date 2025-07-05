@@ -41,8 +41,7 @@ export default function App() {
     display: 'flex',
     alignItems: 'center',
     gap: '1.5rem',
-    maxWidth: '1120px',
-    margin: '0 auto',
+    width: '100%',
     padding: '0.75rem 1.5rem',
   };
   const linkStyle = {
