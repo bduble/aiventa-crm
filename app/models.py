@@ -83,7 +83,7 @@ class OpportunityUpdate(BaseModel):
 
 class Activity(BaseModel):
     id: str
-    type: str        # e.g. "call", "email", "task"
+    activity_type: str        # e.g. "call", "email", "task"
     subject: str
     note: Optional[str]
     related_lead_id: Optional[int]
@@ -92,7 +92,7 @@ class Activity(BaseModel):
     related_opportunity_id: Optional[int]
 
 class ActivityCreate(BaseModel):
-    type: str
+    activity_type: str
     subject: str
     note: Optional[str]
     related_lead_id: Optional[int]
@@ -103,7 +103,7 @@ class ActivityCreate(BaseModel):
 class ActivityUpdate(BaseModel):
     contact_id: Optional[str]
     opportunity_id: Optional[str]
-    type: Optional[str]
+    activity_type: Optional[str]
     subject: Optional[str]
     note: Optional[str]
     date: Optional[date]
