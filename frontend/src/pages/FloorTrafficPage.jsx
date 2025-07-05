@@ -70,7 +70,7 @@ export default function FloorTrafficPage() {
           end.setDate(end.getDate() + 1);
           const { data, error: err } = await supabase
             .from('activities')
-            .select('type')
+            .select('activities_type')
             .gte('created_at', start.toISOString())
             .lt('created_at', end.toISOString());
           if (err) throw err;
