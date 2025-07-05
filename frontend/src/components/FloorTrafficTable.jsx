@@ -27,6 +27,7 @@ export default function FloorTrafficTable({ rows, onEdit, onToggle }) {
 
   const headers = [
     { key: 'visit_time', label: 'Visit Time' },
+    { key: 'time_out', label: 'Time Out' },
     { key: 'salesperson', label: 'Salesperson' },
     { key: 'customer_name', label: 'Customer' },
     { key: 'vehicle', label: 'Vehicle' },
@@ -50,6 +51,18 @@ export default function FloorTrafficTable({ rows, onEdit, onToggle }) {
           <td key={h.key} className="p-2" role="cell" data-label={h.label}>
             {h.key === 'visit_time' ? (
               new Date(row[h.key]).toLocaleTimeString()
+            ) : h.key === 'time_out' ? (
+              row[h.key] ? (
+                new Date(row[h.key]).toLocaleTimeString()
+              ) : (
+                <input
+                  type="checkbox"
+                  onChange={e => {
+                    e.stopPropagation();
+                    onToggle && onToggle(row.id, h.key, new Date().toISOString());
+                  }}
+                />
+              )
             ) : h.key === 'demo' || h.key === 'worksheet' || h.key === 'customer_offer' ? (
               <input
                 type="checkbox"
