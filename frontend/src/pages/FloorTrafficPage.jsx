@@ -2,16 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import FloorTrafficTable from '../components/FloorTrafficTable';
 
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
+
+// Create the client once at module load to avoid multiple instances
+const supabase =
+  supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+
 export default function FloorTrafficPage() {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
   const API_BASE = import.meta.env.PROD
     ? import.meta.env.VITE_API_BASE_URL
     : '/api';
-
-  // Gracefully handle missing env vars to avoid runtime errors
-  const supabase =
-    supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -52,7 +53,7 @@ export default function FloorTrafficPage() {
     };
 
     fetchToday();
-  }, [supabase, API_BASE]);
+  }, [API_BASE]);
 
   const responded = rows.filter(r => r.last_response_time).length;
   const unresponded = rows.length - responded;
