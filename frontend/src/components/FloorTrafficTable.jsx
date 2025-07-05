@@ -46,9 +46,10 @@ export default function FloorTrafficTable({ rows, onEdit, onToggle }) {
   const renderRow = row => {
     const isUnresponded = !row.last_response_time && !acknowledged.has(row.id);
     let rowClasses = 'flex flex-col sm:table-row';
-    if (isUnresponded) rowClasses += ' animate-pulse bg-red-50';
-    if (row.time_out) rowClasses += ' bg-yellow-100';
+    if (isUnresponded) rowClasses += ' animate-pulse';
     if (row.sold) rowClasses += ' bg-green-100';
+    else if (row.time_out) rowClasses += ' bg-yellow-100';
+    else rowClasses += ' bg-red-100';
     return (
       <tr key={row.id} className={rowClasses} role="row" onClick={() => handleRowClick(row.id)}>
         {headers.map(h => (
