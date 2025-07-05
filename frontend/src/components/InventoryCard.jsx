@@ -2,20 +2,30 @@ import React, { useState } from 'react'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 
 export default function InventoryCard({ vehicle, onEdit, onToggle }) {
-  const images = Array.isArray(vehicle.photos)
-    ? vehicle.photos
-    : vehicle.photos
-    ? [vehicle.photos]
-    : [
-        vehicle.image_url ||
-        vehicle.imageUrl ||
-        vehicle.image_link ||
-        vehicle.imageLink ||
-        vehicle.photoUrl ||
-        vehicle.photo_url,
-      ].filter(Boolean)
-  const [current, setCurrent] = useState(0)
-  const [open, setOpen] = useState(false)
+  // Build images array from Supabase fields
+  let images = [];
+
+  if (Array.isArray(vehicle.photos) && vehicle.photos.length) {
+    // If your API ever returns a photos array
+    images = vehicle.photos;
+  } else {
+    // Only use Supabase’s snake_case fields
+    images = [
+      vehicle.image_link,
+      vehicle.additional_image_link,
+    ]
+      .filter(Boolean)                  // drop null/undefined
+      .flatMap(link => link.split(',')) // split comma lists if needed
+      .map(u => u.trim());              // clean whitespace
+  }
+
+  // Fallback placeholder
+  if (images.length === 0) {
+    images = ['/images/placeholder-car.jpg'];
+  }
+
+  const [current, setCurrent] = useState(0);
+  const [open, setOpen]       = useState(false);
 
   const prevImage = () => setCurrent(i => (i === 0 ? images.length - 1 : i - 1))
   const nextImage = () => setCurrent(i => (i === images.length - 1 ? 0 : i + 1))
