@@ -114,7 +114,7 @@ export default function LeadLog() {
             </thead>
             <tbody>
               {prioritized.map(l => (
-                <tr key={l.id}>
+                <tr key={l.id} className="odd:bg-gray-50 hover:bg-gray-100">
                   <td className="p-2 whitespace-nowrap">{l.name}</td>
                   <td className="p-2 whitespace-nowrap">{l.email}</td>
                   <td className="p-2 whitespace-nowrap">{formatDate(l.last_lead_response_at)}</td>
@@ -151,7 +151,7 @@ export default function LeadLog() {
             </thead>
             <tbody>
               {leads.map(l => (
-                <tr key={l.id}>
+                <tr key={l.id} className="odd:bg-gray-50 hover:bg-gray-100">
                   <td className="p-2 whitespace-nowrap">{l.name}</td>
                   <td className="p-2 whitespace-nowrap">{l.email}</td>
                   <td className="p-2 whitespace-nowrap">{formatDate(l.created_at)}</td>
@@ -176,7 +176,7 @@ export default function LeadLog() {
             </thead>
             <tbody>
               {awaiting.map(l => (
-                <tr key={l.id} className="bg-red-100">
+                <tr key={l.id} className="bg-red-100 odd:bg-red-50 hover:bg-red-200">
                   <td className="p-2 whitespace-nowrap">{l.name}</td>
                   <td className="p-2 whitespace-nowrap">{l.email}</td>
                   <td className="p-2 whitespace-nowrap">{formatDate(l.last_lead_response_at)}</td>
