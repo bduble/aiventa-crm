@@ -3,7 +3,8 @@ from pydantic import BaseModel
 import os
 import openai
 
-openai.api_key = os.environ.get("OPENAI_API_KEY")
+api_key = os.environ.get("OPENAI_API_KEY")
+openai_client = openai.AsyncOpenAI(api_key=api_key) if api_key else None
 
 router = APIRouter()
 
@@ -12,10 +13,10 @@ class ChatRequest(BaseModel):
 
 @router.post("/")
 async def chat(req: ChatRequest):
-    if not openai.api_key:
+    if not openai_client:
         raise HTTPException(500, "OpenAI API key not configured")
     try:
-        resp = await openai.ChatCompletion.acreate(
+        resp = await openai_client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": req.message}],
             temperature=0.3,
