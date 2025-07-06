@@ -44,9 +44,14 @@ export default function FloorTrafficTable({ rows, onEdit, onToggle }) {
   };
 
   const renderRow = row => {
-    const isUnresponded = !row.last_response_time && !acknowledged.has(row.id);
+    const visitTime = row.visit_time ? new Date(row.visit_time) : null;
+    const hoursOnLog = visitTime
+      ? (Date.now() - visitTime.getTime()) / (1000 * 60 * 60)
+      : 0;
+    const needsAttention =
+      !row.time_out && hoursOnLog >= 4 && !acknowledged.has(row.id);
     let rowClasses = 'flex flex-col sm:table-row';
-    if (isUnresponded) rowClasses += ' animate-pulse';
+    if (needsAttention) rowClasses += ' animate-pulse';
     if (row.sold) rowClasses += ' bg-green-100';
     else if (row.time_out) rowClasses += ' bg-yellow-100';
     else rowClasses += ' bg-red-100';
