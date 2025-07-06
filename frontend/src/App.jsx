@@ -14,6 +14,7 @@ import CreateFloorTrafficForm from "./components/CreateFloorTrafficForm";
 import Home                   from "./routes/Home";
 import Logo                   from "./components/Logo";
 import ReconPage              from "./pages/ReconPage";
+import ChatGPTPrompt          from "./components/ChatGPTPrompt";
 
 export default function App() {
   // Track dark mode preference
@@ -83,6 +84,7 @@ export default function App() {
               {label}
             </Link>
           ))}
+          <ChatGPTPrompt />
         </div>
       </nav>
 
