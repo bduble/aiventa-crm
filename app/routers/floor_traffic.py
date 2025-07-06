@@ -99,8 +99,8 @@ async def create_floor_traffic(entry: FloorTrafficCustomerCreate):
                 "phone": created.get("phone"),
             }
         ).execute()
-    except APIError:
-        pass
+    except APIError as e:
+        logging.warning("Failed to insert contact record: %s", e)
 
     return created
 
