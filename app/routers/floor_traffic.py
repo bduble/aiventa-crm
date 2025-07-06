@@ -86,7 +86,23 @@ async def create_floor_traffic(entry: FloorTrafficCustomerCreate):
             detail="Database insertion failed, no data returned."
         )
 
-    return res.data[0]
+    created = res.data[0]
+
+    # Also create a contact record for the customer. Ignore errors so the
+    # floor-traffic entry is saved even if the contact already exists or the
+    # insert fails for some other reason.
+    try:
+        supabase.table("contacts").insert(
+            {
+                "name": created["customer_name"],
+                "email": created.get("email"),
+                "phone": created.get("phone"),
+            }
+        ).execute()
+    except APIError as e:
+        logging.warning("Failed to insert contact record: %s", e)
+
+    return created
 
 
 @router.put("/{entry_id}", response_model=FloorTrafficCustomer)

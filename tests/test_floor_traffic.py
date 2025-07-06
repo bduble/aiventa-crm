@@ -56,10 +56,24 @@ def test_create_floor_traffic():
     }
 
     exec_result = MagicMock(data=[sample], error=None)
-    mock_table = MagicMock()
-    mock_table.insert.return_value.execute.return_value = exec_result
+
+    mock_ft_table = MagicMock()
+    mock_ft_table.insert.return_value.execute.return_value = exec_result
+
+    mock_contacts_table = MagicMock()
+    mock_contacts_table.insert.return_value.execute.return_value = MagicMock(
+        data=[{"id": 99}], error=None
+    )
+
+    def table_side_effect(name):
+        if name == "floor_traffic_customers":
+            return mock_ft_table
+        elif name == "contacts":
+            return mock_contacts_table
+        return MagicMock()
+
     mock_supabase = MagicMock()
-    mock_supabase.table.return_value = mock_table
+    mock_supabase.table.side_effect = table_side_effect
 
     payload = {
         "timeIn": sample["visit_time"],
@@ -80,6 +94,7 @@ def test_create_floor_traffic():
 
     assert response.status_code == 201
     assert response.json() == sample
+    assert mock_contacts_table.insert.called
 
 
 def test_update_floor_traffic():
