@@ -12,6 +12,7 @@ from app.routers.contacts        import router as contacts_router
 from app.routers.opportunities   import router as opportunities_router
 from app.routers.activities      import router as activities_router
 from app.routers import inventory  # inventory router mounted under /api/inventory
+from app.routers.chat            import router as chat_router
 
 app = FastAPI(title="aiVenta CRM API")
 
@@ -62,6 +63,7 @@ app.include_router(
     prefix="/api/inventory",
     tags=["inventory"],
 )
+app.include_router(chat_router, prefix="/api/chat", tags=["chat"])
 
 # 4️⃣ Serve your React app for all other GETs
 app.mount(

@@ -6,6 +6,7 @@ import LeadLog                from "./routes/LeadLog";
 import UsersPage              from "./routes/UsersPage";
 import InventoryPage          from "./routes/InventoryPage";
 import CustomersPage          from "./routes/CustomersPage";
+import CustomerCard          from "./routes/CustomerCard";
 import { Toaster }            from 'react-hot-toast';
 import ActivityTimeline       from "./components/ActivityTimeline";
 import CreateLeadForm         from "./components/CreateLeadForm";
@@ -15,7 +16,8 @@ import Home                   from "./routes/Home";
 import Logo                   from "./components/Logo";
 import ReconPage              from "./pages/ReconPage";
 import ChatGPTPrompt          from "./components/ChatGPTPrompt";
-
+=======
+import ChatPage               from "./pages/ChatPage";
 export default function App() {
   // Track dark mode preference
   const [isDark, setIsDark] = useState(
@@ -76,6 +78,7 @@ export default function App() {
             ['/users', 'Users'],
             ['/inventory', 'Inventory'],
             ['/recon', 'Recon'],
+            ['/chat', 'AI Chat'],
             ['/activities', 'Activities'],
             ['/floor-traffic', "Today's Floor Log"],
             ['/floor-traffic/new', 'Log a Visitor'],
@@ -95,9 +98,11 @@ export default function App() {
           <Route path="/leads" element={<LeadLog />} />
           <Route path="/leads/new" element={<CreateLeadForm />} />
           <Route path="/customers" element={<CustomersPage />} />
+          <Route path="/customers/:id" element={<CustomerCard />} />
           <Route path="/users" element={<UsersPage />} />
           <Route path="/inventory" element={<InventoryPage />} />
           <Route path="/recon" element={<ReconPage />} />
+          <Route path="/chat" element={<ChatPage />} />
           <Route path="/activities" element={<ActivityTimeline />} />
           <Route path="/floor-traffic" element={<FloorTrafficPage />} />
           <Route path="/floor-traffic/new" element={<CreateFloorTrafficForm />} />

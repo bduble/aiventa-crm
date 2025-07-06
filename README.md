@@ -41,6 +41,7 @@ CORS_ORIGINS=https://aiventa-crm.vercel.app,https://aiventa-g3al310q6-brian-dubl
 VITE_API_BASE_URL=http://localhost:8000
 VITE_SUPABASE_URL=<your-supabase-url>
 VITE_SUPABASE_KEY=<your-supabase-key>
+OPENAI_API_KEY=<your-openai-key>
 ```
 
 Be sure to omit any trailing slashes from the origins.
