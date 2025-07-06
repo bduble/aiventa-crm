@@ -17,9 +17,9 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
       .map(u => u.trim());              // trim whitespace
   }
 
-  // Fallback placeholder (ensure placeholder-car.jpg is in /public/images)
+  // Fallback placeholder (SVG stored under /public/images)
   if (images.length === 0) {
-    images = ['/images/placeholder-car.jpg'];
+    images = ['/images/placeholder-car.svg'];
   }
 
   const [current, setCurrent] = useState(0)
