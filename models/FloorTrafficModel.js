@@ -20,12 +20,23 @@ export default class FloorTrafficModel {
    * Assigns it a simple incremental `id`.
    */
   static async create(entry) {
-    const newLog = { 
-      id: logs.length + 1, 
-      ...entry, 
-      createdAt: new Date().toISOString() 
+    const newLog = {
+      id: logs.length + 1,
+      ...entry,
+      createdAt: new Date().toISOString()
     };
     logs.push(newLog);
     return newLog;
+  }
+
+  /**
+   * Update an existing log entry by id.
+   * Returns the updated log or null if not found.
+   */
+  static async update(id, fields) {
+    const index = logs.findIndex(l => l.id === Number(id));
+    if (index === -1) return null;
+    logs[index] = { ...logs[index], ...fields };
+    return logs[index];
   }
 }

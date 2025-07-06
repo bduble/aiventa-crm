@@ -79,4 +79,18 @@ router.post('/floor-traffic', async (req, res, next) => {
   }
 });
 
+/**
+ * PUT /api/floor-traffic/:id
+ * Update an existing floor-traffic entry.
+ */
+router.put('/floor-traffic/:id', async (req, res, next) => {
+  try {
+    const updated = await FloorTrafficModel.update(req.params.id, req.body);
+    if (!updated) return res.status(404).json({ message: 'Not Found' });
+    return res.json(updated);
+  } catch (err) {
+    return next(err);
+  }
+});
+
 export default router;
