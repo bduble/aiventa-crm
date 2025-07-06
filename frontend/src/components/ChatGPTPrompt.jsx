@@ -30,6 +30,7 @@ export default function ChatGPTPrompt() {
         <input
           type="text"
           placeholder="Ask ChatGPT"
+          aria-label="Ask a question to ChatGPT"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           style={{ padding: '0.25rem 0.5rem', border: '1px solid #ccc', borderRadius: '4px' }}
