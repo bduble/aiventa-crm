@@ -12,9 +12,10 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
       vehicle.image_link,
       vehicle.additional_image_link,
     ]
-      .filter(Boolean)                  // drop null/undefined
+      .filter(Boolean)                  // drop null/undefined and empty strings
       .flatMap(link => link.split(',')) // split comma-separated lists
-      .map(u => u.trim());              // trim whitespace
+      .map(u => u.trim())               // trim whitespace
+      .filter(Boolean);                 // remove leftover empties
   }
 
   // Fallback placeholder (SVG stored under /public/images)
@@ -43,6 +44,10 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
             alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
             className="w-full h-48 object-cover cursor-pointer"
             onClick={() => setOpen(true)}
+            onError={e => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = '/images/placeholder-car.svg';
+            }}
           />
         )}
         {images.length > 1 && (
@@ -140,6 +145,10 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
               src={images[current]}
               alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
               className="max-h-[80vh] object-contain"
+              onError={e => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = '/images/placeholder-car.svg';
+              }}
             />
             <button
               onClick={() => setOpen(false)}
