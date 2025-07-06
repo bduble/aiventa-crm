@@ -19,3 +19,23 @@ def test_list_leads():
 
     assert response.status_code == 200
     assert response.json() == sample
+
+
+def test_ask_no_openai_key():
+    payload = {"question": "Hi"}
+    exec_result = MagicMock(data=[], error=None)
+    mock_table = MagicMock()
+    mock_table.select.return_value.execute.return_value = exec_result
+    mock_supabase = MagicMock()
+    mock_supabase.table.return_value = mock_table
+
+    with patch("app.routers.leads.supabase", mock_supabase), \
+         patch("app.routers.leads.openai.api_key", None):
+        response = client.post(
+            "/api/leads/ask",
+            content=b'{"question": "Hi"}',
+            headers={"Content-Type": "application/json"},
+        )
+
+    assert response.status_code == 200
+    assert response.json() == {"answer": "OpenAI API key not configured"}
