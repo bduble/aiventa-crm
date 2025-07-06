@@ -142,6 +142,8 @@ async def ask_lead_question(payload: AskPayload):
     lead = next((l for l in leads if l["id"] == payload.lead_id), None)
     context = f"Lead info: {json.dumps(lead)}" if lead else ""
     prompt = f"{payload.question}\n{context}"
+    if not openai.api_key:
+        return {"answer": "OpenAI API key not configured"}
     try:
         chat = await openai.ChatCompletion.acreate(
             model="gpt-3.5-turbo",
