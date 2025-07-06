@@ -79,32 +79,32 @@ export default function LeadLog() {
   const formatDate = d => (d ? new Date(d).toLocaleDateString() : '');
 
   return (
-    <div className="p-4 grid gap-6 md:grid-cols-2">
-      <section className="bg-white shadow rounded p-4 space-y-2">
-        <h2 className="text-2xl font-bold">AI‑Powered Leads Prioritization</h2>
+    <div className="w-full min-h-screen bg-offwhite dark:bg-gray-800 p-4 grid gap-6 md:grid-cols-2">
+      <section className="bg-white dark:bg-gray-900 shadow rounded p-4 space-y-2">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">AI‑Powered Leads Prioritization</h2>
         <div className="mb-4 flex gap-2">
           <input
             type="text"
             placeholder="Lead ID (optional)"
             value={leadId}
             onChange={e => setLeadId(e.target.value)}
-            className="border p-2 rounded"
+            className="border p-2 rounded dark:bg-gray-900 dark:border-gray-600"
           />
           <input
             type="text"
             placeholder="Ask a question or compose message"
             value={question}
             onChange={e => setQuestion(e.target.value)}
-            className="border flex-1 p-2 rounded"
+            className="border flex-1 p-2 rounded dark:bg-gray-900 dark:border-gray-600"
           />
           <button onClick={askQuestion} className="bg-electricblue text-white px-3 py-2 rounded">
             Ask ChatGPT
           </button>
         </div>
-        {answer && <p className="border p-2 rounded bg-gray-50 whitespace-pre-wrap">{answer}</p>}
+        {answer && <p className="border p-2 rounded bg-gray-50 dark:bg-gray-900 dark:border-gray-700 whitespace-pre-wrap">{answer}</p>}
         <div className="overflow-x-auto mt-4">
-          <table className="min-w-full border divide-y">
-            <thead className="bg-slategray text-white">
+          <table className="min-w-full border border-gray-200 dark:border-gray-700 divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-slategray dark:bg-slategray text-white">
               <tr>
                 <th className="p-2 text-left">Name</th>
                 <th className="p-2 text-left">Email</th>
@@ -114,7 +114,7 @@ export default function LeadLog() {
             </thead>
             <tbody>
               {prioritized.map(l => (
-                <tr key={l.id} className="odd:bg-gray-50 hover:bg-gray-100">
+                <tr key={l.id} className="odd:bg-gray-50 dark:odd:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700">
                   <td className="p-2 whitespace-nowrap">{l.name}</td>
                   <td className="p-2 whitespace-nowrap">{l.email}</td>
                   <td className="p-2 whitespace-nowrap">{formatDate(l.last_lead_response_at)}</td>
@@ -126,22 +126,22 @@ export default function LeadLog() {
         </div>
       </section>
 
-      <section className="bg-white shadow rounded p-4 space-y-2">
-        <h2 className="text-2xl font-bold">Lead Log</h2>
+      <section className="bg-white dark:bg-gray-900 shadow rounded p-4 space-y-2">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Lead Log</h2>
         <div className="flex gap-4 items-end mb-2">
           <div>
             <label className="block text-sm" htmlFor="start">Start</label>
-            <input id="start" type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="border p-2 rounded" />
+            <input id="start" type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="border p-2 rounded dark:bg-gray-900 dark:border-gray-600" />
           </div>
           <div>
             <label className="block text-sm" htmlFor="end">End</label>
-            <input id="end" type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="border p-2 rounded" />
+            <input id="end" type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="border p-2 rounded dark:bg-gray-900 dark:border-gray-600" />
           </div>
           <button onClick={fetchLeads} className="px-3 py-2 bg-electricblue text-white rounded">Filter</button>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full border divide-y">
-            <thead className="bg-slategray text-white">
+          <table className="min-w-full border border-gray-200 dark:border-gray-700 divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-slategray dark:bg-slategray text-white">
               <tr>
                 <th className="p-2 text-left">Name</th>
                 <th className="p-2 text-left">Email</th>
@@ -151,7 +151,7 @@ export default function LeadLog() {
             </thead>
             <tbody>
               {leads.map(l => (
-                <tr key={l.id} className="odd:bg-gray-50 hover:bg-gray-100">
+                <tr key={l.id} className="odd:bg-gray-50 dark:odd:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700">
                   <td className="p-2 whitespace-nowrap">{l.name}</td>
                   <td className="p-2 whitespace-nowrap">{l.email}</td>
                   <td className="p-2 whitespace-nowrap">{formatDate(l.created_at)}</td>
@@ -163,11 +163,11 @@ export default function LeadLog() {
         </div>
       </section>
 
-      <section className="bg-white shadow rounded p-4 space-y-2">
-        <h2 className="text-2xl font-bold">Awaiting Response</h2>
+      <section className="bg-white dark:bg-gray-900 shadow rounded p-4 space-y-2">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Awaiting Response</h2>
         <div className="overflow-x-auto">
-          <table className="min-w-full border divide-y">
-            <thead className="bg-slategray text-white">
+          <table className="min-w-full border border-gray-200 dark:border-gray-700 divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-slategray dark:bg-slategray text-white">
               <tr>
                 <th className="p-2 text-left">Name</th>
                 <th className="p-2 text-left">Email</th>
@@ -176,7 +176,7 @@ export default function LeadLog() {
             </thead>
             <tbody>
               {awaiting.map(l => (
-                <tr key={l.id} className="bg-red-100 odd:bg-red-50 hover:bg-red-200">
+                <tr key={l.id} className="bg-red-100 dark:bg-red-900 odd:bg-red-50 dark:odd:bg-red-800 hover:bg-red-200 dark:hover:bg-red-700">
                   <td className="p-2 whitespace-nowrap">{l.name}</td>
                   <td className="p-2 whitespace-nowrap">{l.email}</td>
                   <td className="p-2 whitespace-nowrap">{formatDate(l.last_lead_response_at)}</td>
@@ -187,8 +187,8 @@ export default function LeadLog() {
         </div>
       </section>
 
-      <section className="bg-white shadow rounded p-4 space-y-2">
-        <h2 className="text-2xl font-bold">Sales Performance Metrics</h2>
+      <section className="bg-white dark:bg-gray-900 shadow rounded p-4 space-y-2">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Sales Performance Metrics</h2>
         {metrics && (
           <ul className="list-disc pl-5">
             <li>Total leads: {metrics.total_leads}</li>
