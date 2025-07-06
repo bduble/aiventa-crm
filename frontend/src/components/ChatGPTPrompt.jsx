@@ -15,6 +15,9 @@ export default function ChatGPTPrompt() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question }),
       });
+      if (!res.ok) {
+        throw new Error(`Error: ${res.status} ${res.statusText}`);
+      }
       const data = await res.json();
       setAnswer(data.answer || 'No response');
     } catch (err) {
