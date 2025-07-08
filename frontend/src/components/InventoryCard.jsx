@@ -9,8 +9,8 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
     images = vehicle.photos;
   } else {
     images = [
-      vehicle.image_link,
-      vehicle.additional_image_link,
+      vehicle.imageLink,
+      vehicle.additionalImageLink,
     ]
       .filter(Boolean)                  // drop null/undefined and empty strings
       .flatMap(link => link.split(',')) // split comma-separated lists
