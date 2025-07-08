@@ -3,10 +3,16 @@ from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 from postgrest.exceptions import APIError
 from app.db import supabase
+import os
+import openai
+
+api_key = os.environ.get("OPENAI_API_KEY")
+openai_client = openai.AsyncOpenAI(api_key=api_key) if api_key else None
+from datetime import datetime
+import json
 from app.openai_client import get_openai_client
 from datetime import datetime
 import json
-
 router = APIRouter()
 
 class LeadCreate(BaseModel):
