@@ -42,6 +42,11 @@ VITE_API_BASE_URL=http://localhost:8000
 VITE_SUPABASE_URL=<your-supabase-url>
 VITE_SUPABASE_KEY=<your-supabase-key>
 OPENAI_API_KEY=<your-openai-key>
+TWILIO_ACCOUNT_SID=<twilio-account-sid>
+TWILIO_API_KEY_SID=<twilio-api-key-sid>
+TWILIO_API_KEY_SECRET=<twilio-api-key-secret>
+TWIML_APP_SID=<twiml-app-sid>
+TWILIO_AUTH_TOKEN=<twilio-auth-token>
 ```
 
 Be sure to omit any trailing slashes from the origins.
@@ -49,6 +54,14 @@ Be sure to omit any trailing slashes from the origins.
 If `VITE_SUPABASE_URL` and `VITE_SUPABASE_KEY` are not provided, the
 floor-traffic page will automatically fall back to fetching data from the API
 server at `/api/floor-traffic`.
+
+## Telephony Integration
+
+With Twilio credentials configured, the backend exposes simple endpoints for
+voice and SMS callbacks. Use `/api/telephony/token` to obtain a WebRTC token for
+your browser client. Configure your Twilio number webhooks to point at
+`/api/telephony/voice` for calls and `/api/telephony/sms` for incoming text
+messages.
 
 ## Using the Supabase API
 
