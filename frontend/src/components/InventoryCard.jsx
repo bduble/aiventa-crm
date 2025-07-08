@@ -1,5 +1,14 @@
 import React, { useState } from 'react'
-import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  X,
+  DollarSign,
+  Tag,
+  Droplet,
+  Palette,
+  ExternalLink,
+} from 'lucide-react'
 
 export default function InventoryCard({ vehicle, onEdit, onToggle }) {
   // Build images array from Supabase fields
@@ -29,11 +38,6 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
   const prevImage = () => setCurrent(i => (i === 0 ? images.length - 1 : i - 1))
   const nextImage = () => setCurrent(i => (i === images.length - 1 ? 0 : i + 1))
 
-  const price =
-    vehicle.internet_price ?? vehicle.selling_price ?? vehicle.price
-  const mileage = vehicle.mileage
-  const color = vehicle.color
-  const status = vehicle.status ?? (vehicle.active ? 'In Stock' : 'Sold')
 
   return (
     <div className="rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300">
@@ -81,46 +85,52 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
         <h3 className="text-xl font-semibold">
           {vehicle.year} {vehicle.make} {vehicle.model}
         </h3>
-        <div className="space-y-1 text-sm text-gray-500">
+        <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
           {vehicle.stockNumber && (
-            <p>
-              <span className="font-semibold text-gray-700">Stock Number:</span>{' '}
-              {vehicle.stockNumber}
+            <p className="flex items-center gap-1">
+              <Tag className="w-4 h-4" /> {vehicle.stockNumber}
             </p>
           )}
-          {vehicle.year && (
-            <p>
-              <span className="font-semibold text-gray-700">Year:</span> {vehicle.year}
+          {vehicle.msrp && (
+            <p className="flex items-center gap-1">
+              <DollarSign className="w-4 h-4" /> MSRP:{' '}
+              ${' '}
+              {vehicle.msrp?.toLocaleString?.() || vehicle.msrp}
             </p>
           )}
-          {vehicle.make && (
-            <p>
-              <span className="font-semibold text-gray-700">Make:</span> {vehicle.make}
+          {vehicle.sellingprice && (
+            <p className="flex items-center gap-1">
+              <DollarSign className="w-4 h-4" /> Selling Price:{' '}
+              ${' '}
+              {vehicle.sellingprice?.toLocaleString?.() || vehicle.sellingprice}
             </p>
           )}
-          {vehicle.model && (
-            <p>
-              <span className="font-semibold text-gray-700">Model:</span> {vehicle.model}
+          {vehicle.trim && (
+            <p className="flex items-center gap-1">
+              <Tag className="w-4 h-4" /> Trim: {vehicle.trim}
             </p>
           )}
-          {vehicle.link && (
-            <p>
-              <span className="font-semibold text-gray-700">VDP:</span>{' '}
-              <a
-                href={vehicle.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline"
-              >
-                {vehicle.link}
-              </a>
+          {vehicle.exterior_color && (
+            <p className="flex items-center gap-1">
+              <Palette className="w-4 h-4" /> Exterior: {vehicle.exterior_color}
+            </p>
+          )}
+          {vehicle.interior_color && (
+            <p className="flex items-center gap-1">
+              <Droplet className="w-4 h-4" /> Interior: {vehicle.interior_color}
             </p>
           )}
         </div>
-        <p className="text-gray-600">${price?.toLocaleString?.() || price}</p>
-        <p className="text-sm text-gray-500">Mileage: {mileage?.toLocaleString?.()}</p>
-        <p className="text-sm text-gray-500">Color: {color}</p>
-        <p className="text-sm text-gray-500">Status: {status}</p>
+        {vehicle.link && (
+          <a
+            href={vehicle.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-electricblue hover:underline text-sm font-medium"
+          >
+            <ExternalLink className="w-4 h-4" /> View On Site
+          </a>
+        )}
         {(onEdit || onToggle) && (
           <div className="flex justify-end gap-2 pt-2">
             {onEdit && (
