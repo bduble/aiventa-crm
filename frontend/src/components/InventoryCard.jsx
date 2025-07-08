@@ -12,32 +12,46 @@ import {
 
 export default function InventoryCard({ vehicle, onEdit, onToggle }) {
   // Build images array from Supabase fields
-  let images = [];
+  let images = []
 
   if (Array.isArray(vehicle.photos) && vehicle.photos.length) {
-    images = vehicle.photos;
+    images = vehicle.photos
   } else {
-    images = [
-      vehicle.imageLink,
-      vehicle.additionalImageLink,
-    ]
-      .filter(Boolean)                  // drop null/undefined and empty strings
-      .flatMap(link => link.split(',')) // split comma-separated lists
-      .map(u => u.trim())               // trim whitespace
-      .filter(Boolean);                 // remove leftover empties
+    images = [vehicle.imageLink, vehicle.additionalImageLink]
+      .filter(Boolean)
+      .flatMap(link => link.split(','))
+      .map(u => u.trim())
+      .filter(Boolean)
   }
 
-  // Fallback placeholder (SVG stored under /public/images)
+  // Fallback placeholder
   if (images.length === 0) {
-    images = ['/images/placeholder-car.svg'];
+    images = ['/images/placeholder-car.svg']
   }
 
   const [current, setCurrent] = useState(0)
-  const [open, setOpen]       = useState(false)
+  const [open, setOpen] = useState(false)
 
   const prevImage = () => setCurrent(i => (i === 0 ? images.length - 1 : i - 1))
   const nextImage = () => setCurrent(i => (i === images.length - 1 ? 0 : i + 1))
 
+  // Format prices
+  const formattedMSRP =
+    vehicle.msrp != null
+      ? `$${
+          typeof vehicle.msrp === 'number'
+            ? vehicle.msrp.toLocaleString()
+            : vehicle.msrp
+        }`
+      : null
+  const formattedSelling =
+    vehicle.sellingprice != null
+      ? `$${
+          typeof vehicle.sellingprice === 'number'
+            ? vehicle.sellingprice.toLocaleString()
+            : vehicle.sellingprice
+        }`
+      : null
 
   return (
     <div className="rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300">
@@ -49,8 +63,8 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
             className="w-full h-48 object-cover cursor-pointer"
             onClick={() => setOpen(true)}
             onError={e => {
-              e.currentTarget.onerror = null;
-              e.currentTarget.src = '/images/placeholder-car.svg';
+              e.currentTarget.onerror = null
+              e.currentTarget.src = '/images/placeholder-car.svg'
             }}
           />
         )}
@@ -73,7 +87,9 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
                 <span
                   key={idx}
                   onClick={() => setCurrent(idx)}
-                  className={`w-2 h-2 rounded-full cursor-pointer transition-colors duration-200 ${idx === current ? 'bg-blue-600' : 'bg-gray-300'}`}
+                  className={`w-2 h-2 rounded-full cursor-pointer transition-colors duration-200 ${
+                    idx === current ? 'bg-blue-600' : 'bg-gray-300'
+                  }`}
                 />
               ))}
             </div>
@@ -86,23 +102,19 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
           {vehicle.year} {vehicle.make} {vehicle.model}
         </h3>
         <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
-          {vehicle.stockNumber && (
+          {vehicle.stocknumber && (
             <p className="flex items-center gap-1">
-              <Tag className="w-4 h-4" /> {vehicle.stockNumber}
+              <Tag className="w-4 h-4" /> {vehicle.stocknumber}
             </p>
           )}
-          {vehicle.msrp && (
+          {formattedMSRP && (
             <p className="flex items-center gap-1">
-              <DollarSign className="w-4 h-4" /> MSRP:{' '}
-              ${' '}
-              {vehicle.msrp?.toLocaleString?.() || vehicle.msrp}
+              <DollarSign className="w-4 h-4" /> MSRP: {formattedMSRP}
             </p>
           )}
-          {vehicle.sellingprice && (
+          {formattedSelling && (
             <p className="flex items-center gap-1">
-              <DollarSign className="w-4 h-4" /> Selling Price:{' '}
-              ${' '}
-              {vehicle.sellingprice?.toLocaleString?.() || vehicle.sellingprice}
+              <DollarSign className="w-4 h-4" /> Selling Price: {formattedSelling}
             </p>
           )}
           {vehicle.trim && (
@@ -110,14 +122,14 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
               <Tag className="w-4 h-4" /> Trim: {vehicle.trim}
             </p>
           )}
-          {vehicle.exterior_color && (
+          {vehicle.exteriorColor && (
             <p className="flex items-center gap-1">
-              <Palette className="w-4 h-4" /> Exterior: {vehicle.exterior_color}
+              <Palette className="w-4 h-4" /> Exterior: {vehicle.exteriorColor}
             </p>
           )}
-          {vehicle.interior_color && (
+          {vehicle.interiorColor && (
             <p className="flex items-center gap-1">
-              <Droplet className="w-4 h-4" /> Interior: {vehicle.interior_color}
+              <Droplet className="w-4 h-4" /> Interior: {vehicle.interiorColor}
             </p>
           )}
         </div>
@@ -134,12 +146,19 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
         {(onEdit || onToggle) && (
           <div className="flex justify-end gap-2 pt-2">
             {onEdit && (
-              <button onClick={() => onEdit(vehicle)} className="px-2 py-1 bg-electricblue text-white rounded">
+              <button
+                onClick={() => onEdit(vehicle)}
+                className="px-2 py-1 bg-electricblue text-white rounded"
+              >
                 Edit
               </button>
             )}
             {onToggle && (
-              <button onClick={() => onToggle(vehicle)} className={`px-2 py-1 rounded ${vehicle.active ? 'bg-green-600 text-white' : 'bg-gray-300'}`}
+              <button
+                onClick={() => onToggle(vehicle)}
+                className={`px-2 py-1 rounded ${
+                  vehicle.active ? 'bg-green-600 text-white' : 'bg-gray-300'
+                }`}
               >
                 {vehicle.active ? 'Disable' : 'Activate'}
               </button>
@@ -150,14 +169,14 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
 
       {open && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="relative">
+          <div className="relative max-w-full max-h-full">
             <img
               src={images[current]}
               alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
               className="max-h-[80vh] object-contain"
               onError={e => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = '/images/placeholder-car.svg';
+                e.currentTarget.onerror = null
+                e.currentTarget.src = '/images/placeholder-car.svg'
               }}
             />
             <button
@@ -170,13 +189,13 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
               <>
                 <button
                   onClick={prevImage}
-                  className="absolute left-2 top-1/2 transform -translate-y-1/2 p-3 bg-white rounded-full shadow-lg hover:bg-gray-100"
+                  className="absolute left-2 top-1/2 transform -translate-y-1/2 p-2 bg-white rounded-full shadow-md hover:bg-gray-100"
                 >
                   <ChevronLeft size={24} />
                 </button>
                 <button
                   onClick={nextImage}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-3 bg-whiteRounded-full shadow-lg hover:bg-gray-100"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 bg-white-rounded-full shadow-md-hover:bg-gray-100"
                 >
                   <ChevronRight size={24} />
                 </button>
