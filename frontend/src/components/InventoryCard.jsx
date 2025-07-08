@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -8,7 +8,7 @@ import {
   Droplet,
   Palette,
   ExternalLink,
-} from 'lucide-react'
+} from "lucide-react";
 
 export default function InventoryCard({ vehicle, onEdit, onToggle }) {
   const {
@@ -18,7 +18,7 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
     stockNumber,
     trim,
     msrp,
-    price,            // your selling price
+    price, // your selling price
     mileage,
     link,
     imageLink,
@@ -34,7 +34,7 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
     exteriorColor,
     interiorColor,
     active,
-  } = vehicle
+  } = vehicle;
 
   // collect every image field (camelCase keys)
   const imageFields = [
@@ -48,45 +48,43 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
     additionalImageLink6,
     additionalImageLink7,
     additionalImageLink8,
-  ]
+  ];
 
   // flatten comma-separated URLs, trim, drop falsy
   const images = imageFields
-    .filter(u => typeof u === 'string' && u.trim())
-    .flatMap(u => u.split(','))
-    .map(u => u.trim())
+    .filter((u) => typeof u === "string" && u.trim())
+    .flatMap((u) => u.split(","))
+    .map((u) => u.trim());
 
   const displayImages = images.length
     ? images
-    : ['/images/placeholder-car.svg']
+    : ["/images/placeholder-car.svg"];
 
-  const [current, setCurrent] = useState(0)
-  const [open, setOpen] = useState(false)
+  const [current, setCurrent] = useState(0);
+  const [open, setOpen] = useState(false);
   const prevImage = () =>
-    setCurrent(i => (i === 0 ? displayImages.length - 1 : i - 1))
+    setCurrent((i) => (i === 0 ? displayImages.length - 1 : i - 1));
   const nextImage = () =>
-    setCurrent(i => (i === displayImages.length - 1 ? 0 : i + 1))
+    setCurrent((i) => (i === displayImages.length - 1 ? 0 : i + 1));
 
   // format money
-  const formattedMSRP = msrp != null
-    ? `$${Number(msrp).toLocaleString()}`
-    : null
-  const formattedPrice = price != null
-    ? `$${Number(price).toLocaleString()}`
-    : null
+  const formattedMSRP =
+    msrp != null ? `$${Number(msrp).toLocaleString()}` : null;
+  const formattedPrice =
+    price != null ? `$${Number(price).toLocaleString()}` : null;
 
   return (
-    <div className="rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+    <div className="rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300 bg-white dark:bg-gray-900">
       {/* IMAGE CAROUSEL */}
-      <div className="relative bg-gray-100">
+      <div className="relative bg-gray-100 dark:bg-gray-700">
         <img
           src={displayImages[current]}
           alt={`${year} ${make} ${model}`}
           className="w-full h-48 object-cover cursor-pointer"
           onClick={() => setOpen(true)}
-          onError={e => {
-            e.currentTarget.onerror = null
-            e.currentTarget.src = '/images/placeholder-car.svg'
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = "/images/placeholder-car.svg";
           }}
         />
 
@@ -110,7 +108,9 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
                   key={idx}
                   onClick={() => setCurrent(idx)}
                   className={`w-2 h-2 rounded-full cursor-pointer transition-colors duration-200 ${
-                    idx === current ? 'bg-blue-600' : 'bg-gray-300'
+                    idx === current
+                      ? "bg-blue-600"
+                      : "bg-gray-300 dark:bg-gray-600"
                   }`}
                 />
               ))}
@@ -120,7 +120,7 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
       </div>
 
       {/* DETAILS */}
-      <div className="p-4 space-y-2 text-sm text-gray-700">
+      <div className="p-4 space-y-2 text-sm text-gray-700 dark:text-gray-200">
         <h3 className="text-xl font-semibold">
           {year} {make} {model}
         </h3>
@@ -145,7 +145,8 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
 
         {mileage != null && (
           <p className="flex items-center gap-1">
-            <Tag className="w-4 h-4" /> Mileage: {Number(mileage).toLocaleString()} mi
+            <Tag className="w-4 h-4" /> Mileage:{" "}
+            {Number(mileage).toLocaleString()} mi
           </p>
         )}
 
@@ -175,7 +176,7 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
             href={link}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1 text-blue-600 hover:underline"
+            className="flex items-center gap-1 text-blue-600 hover:underline dark:text-blue-400"
           >
             <ExternalLink className="w-4 h-4" /> View On Site
           </a>
@@ -197,11 +198,11 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
               onClick={() => onToggle(vehicle)}
               className={`px-3 py-1 rounded-md text-sm transition ${
                 active
-                  ? 'bg-green-600 text-white hover:bg-green-700'
-                  : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                  ? "bg-green-600 text-white hover:bg-green-700"
+                  : "bg-gray-300 text-gray-700 hover:bg-gray-400 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
               }`}
             >
-              {active ? 'Disable' : 'Activate'}
+              {active ? "Disable" : "Activate"}
             </button>
           )}
         </div>
@@ -215,9 +216,9 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
               src={displayImages[current]}
               alt={`${year} ${make} ${model}`}
               className="max-h-[80vh] object-contain"
-              onError={e => {
-                e.currentTarget.onerror = null
-                e.currentTarget.src = '/images/placeholder-car.svg'
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = "/images/placeholder-car.svg";
               }}
             />
             <button
@@ -230,5 +231,5 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
         </div>
       )}
     </div>
-  )
+  );
 }
