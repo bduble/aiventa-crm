@@ -17,6 +17,7 @@ import Logo                   from "./components/Logo";
 import ReconPage              from "./pages/ReconPage";
 import ChatGPTPrompt          from "./components/ChatGPTPrompt";
 import ChatPage               from "./pages/ChatPage";
+import { Plus, User }         from 'lucide-react';
 export default function App() {
   // Track dark mode preference
   const [isDark, setIsDark] = useState(
@@ -80,7 +81,15 @@ export default function App() {
             ['/chat', 'AI Chat'],
             ['/activities', 'Activities'],
             ['/floor-traffic', "Today's Floor Log"],
-            ['/floor-traffic/new', 'Log a Visitor'],
+            [
+              '/floor-traffic/new',
+              (
+                <span className="flex items-center">
+                  <Plus className="h-4 w-4" />
+                  <User className="h-4 w-4 ml-1" />
+                </span>
+              ),
+            ],
           ].map(([to, label]) => (
             <Link key={to} to={to} style={linkStyle}>
               {label}
