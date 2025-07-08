@@ -130,6 +130,7 @@ export default function FloorTrafficPage() {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
+          keepalive: true,
         });
       }
     } catch (err) {
@@ -151,6 +152,7 @@ export default function FloorTrafficPage() {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
+          keepalive: true,
         });
       }
       setRows(prev => prev.map(r => (r.id === editing.id ? { ...r, ...data } : r)));
