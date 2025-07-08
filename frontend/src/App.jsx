@@ -17,6 +17,7 @@ import Logo                   from "./components/Logo";
 import ReconPage              from "./pages/ReconPage";
 import ChatGPTPrompt          from "./components/ChatGPTPrompt";
 import ChatPage               from "./pages/ChatPage";
+import { Plus, User }         from 'lucide-react';
 export default function App() {
   // Track dark mode preference
   const [isDark, setIsDark] = useState(
@@ -24,6 +25,7 @@ export default function App() {
   );
 
   const [showLog, setShowLog] = useState(false);
+  const [customerMenuOpen, setCustomerMenuOpen] = useState(false);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
@@ -74,19 +76,27 @@ export default function App() {
           {[
             ['/', 'Home'],
             ['/leads/new', 'New Lead'],
-            ['/customers', 'Customers'],
             ['/users', 'Users'],
             ['/inventory', 'Inventory'],
             ['/recon', 'Recon'],
             ['/chat', 'AI Chat'],
             ['/activities', 'Activities'],
             ['/floor-traffic/new', 'Log a Visitor'],
+            ['/floor-traffic', "Today's Floor Log"],
+            [
+              '/floor-traffic/new',
+              (
+                <span className="flex items-center">
+                  <Plus className="h-4 w-4" />
+                  <User className="h-4 w-4 ml-1" />
+                </span>
+              ),
+            ],
           ].map(([to, label]) => (
             <Link key={to} to={to} style={linkStyle}>
               {label}
             </Link>
           ))}
-
           {/* Log dropdown */}
           <div style={{ position: 'relative' }}>
             <span
@@ -96,6 +106,14 @@ export default function App() {
               Log
             </span>
             {showLog && (
+          {/* Customers dropdown */}
+          <div
+            style={{ position: 'relative' }}
+            onMouseEnter={() => setCustomerMenuOpen(true)}
+            onMouseLeave={() => setCustomerMenuOpen(false)}
+          >
+            <span style={{ ...linkStyle, cursor: 'pointer' }}>Customers ▾</span>
+            {customerMenuOpen && (
               <div
                 style={{
                   position: 'absolute',
@@ -118,6 +136,24 @@ export default function App() {
                   style={{ ...linkStyle, display: 'block', padding: '0.25rem 0' }}
                 >
                   Today's Floor Log
+                  backgroundColor: isDark ? '#1a202c' : '#ffffff',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                  padding: '0.5rem 0',
+                  borderRadius: '4px',
+                  minWidth: '150px',
+                }}
+              >
+                <Link
+                  to="/customers"
+                  style={{ ...linkStyle, display: 'block', padding: '0.25rem 1rem' }}
+                >
+                  Customer List
+                </Link>
+                <Link
+                  to="/activities"
+                  style={{ ...linkStyle, display: 'block', padding: '0.25rem 1rem' }}
+                >
+                  Activities
                 </Link>
               </div>
             )}
