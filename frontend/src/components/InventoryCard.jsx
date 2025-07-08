@@ -15,39 +15,39 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
     year,
     make,
     model,
-    stocknumber,
+    stockNumber,
     trim,
     msrp,
     sellingprice,
-    exterior_color,
-    interior_color,
+    exteriorColor,
+    interiorColor,
     mileage,
     link,
-    image_link,
-    additional_image_link,
-    additional_image_link_1,
-    additional_image_link_2,
-    additional_image_link_3,
-    additional_image_link_4,
-    additional_image_link_5,
-    additional_image_link_6,
-    additional_image_link_7,
-    additional_image_link_8,
+    imageLink,
+    additionalImageLink,
+    additionalImageLink1,
+    additionalImageLink2,
+    additionalImageLink3,
+    additionalImageLink4,
+    additionalImageLink5,
+    additionalImageLink6,
+    additionalImageLink7,
+    additionalImageLink8,
     active,
   } = vehicle
 
   // Gather all Supabase image columns first
   const imageFields = [
-    image_link,
-    additional_image_link,
-    additional_image_link_1,
-    additional_image_link_2,
-    additional_image_link_3,
-    additional_image_link_4,
-    additional_image_link_5,
-    additional_image_link_6,
-    additional_image_link_7,
-    additional_image_link_8,
+    imageLink,
+    additionalImageLink,
+    additionalImageLink1,
+    additionalImageLink2,
+    additionalImageLink3,
+    additionalImageLink4,
+    additionalImageLink5,
+    additionalImageLink6,
+    additionalImageLink7,
+    additionalImageLink8,
   ]
   // Filter out empty and trim whitespace
   const images = imageFields.filter(url => typeof url === 'string' && url.trim())
@@ -106,9 +106,9 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
         <h3 className="text-xl font-semibold">
           {year} {make} {model}
         </h3>
-        {stocknumber && (
+        {stockNumber && (
           <p className="flex items-center gap-1">
-            <Tag className="w-4 h-4" /> Stock #: {stocknumber}
+            <Tag className="w-4 h-4" /> Stock #: {stockNumber}
           </p>
         )}
         {formattedMSRP && (
@@ -131,14 +131,14 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
             <Tag className="w-4 h-4" /> Trim: {trim}
           </p>
         )}
-        {exterior_color && (
+        {exteriorColor && (
           <p className="flex items-center gap-1">
-            <Palette className="w-4 h-4" /> Exterior: {exterior_color}
+            <Palette className="w-4 h-4" /> Exterior: {exteriorColor}
           </p>
         )}
-        {interior_color && (
+        {interiorColor && (
           <p className="flex items-center gap-1">
-            <Droplet className="w-4 h-4" /> Interior: {interior_color}
+            <Droplet className="w-4 h-4" /> Interior: {interiorColor}
           </p>
         )}
       </div>
