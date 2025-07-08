@@ -30,7 +30,7 @@ def test_ask_no_openai_key():
     mock_supabase.table.return_value = mock_table
 
     with patch("app.routers.leads.supabase", mock_supabase), \
-         patch("app.routers.leads.openai_client", None):
+         patch("app.routers.leads.get_openai_client", return_value=None):
         response = client.post(
             "/api/leads/ask",
             content=b'{"question": "Hi"}',

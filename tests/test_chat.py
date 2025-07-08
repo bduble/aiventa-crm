@@ -13,7 +13,7 @@ def test_chat_endpoint():
             completions=SimpleNamespace(create=AsyncMock(return_value=mock_resp))
         )
     )
-    with patch("app.routers.chat.openai_client", mock_client):
+    with patch("app.routers.chat.get_openai_client", return_value=mock_client):
         response = client.post(
             "/api/chat/",
             content=b'{"message":"hi"}',

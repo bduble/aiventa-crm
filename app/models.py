@@ -189,6 +189,9 @@ class InventoryItem(CamelModel):
     fuel_type: Optional[str] = None
     drivetrain: Optional[str] = None
     active: Optional[bool] = True
+    image_link: Optional[str] = None
+    additional_image_link: Optional[str] = None
+    photos: Optional[list[str]] = None
     video_urls: Optional[list[str]] = None
     history_report: Optional[str] = None
 
@@ -206,6 +209,9 @@ class InventoryItemCreate(CamelModel):
     fuel_type: Optional[str] = None
     drivetrain: Optional[str] = None
     active: Optional[bool] = True
+    image_link: Optional[str] = None
+    additional_image_link: Optional[str] = None
+    photos: Optional[list[str]] = None
     video_urls: Optional[list[str]] = None
     history_report: Optional[str] = None
 
@@ -223,5 +229,8 @@ class InventoryItemUpdate(CamelModel):
     fuel_type: Optional[str] = None
     drivetrain: Optional[str] = None
     active: Optional[bool] = None
+    image_link: Optional[str] = None
+    additional_image_link: Optional[str] = None
+    photos: Optional[list[str]] = None
     video_urls: Optional[list[str]] = None
     history_report: Optional[str] = None

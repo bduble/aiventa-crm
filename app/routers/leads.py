@@ -10,7 +10,9 @@ api_key = os.environ.get("OPENAI_API_KEY")
 openai_client = openai.AsyncOpenAI(api_key=api_key) if api_key else None
 from datetime import datetime
 import json
-
+from app.openai_client import get_openai_client
+from datetime import datetime
+import json
 router = APIRouter()
 
 class LeadCreate(BaseModel):
@@ -104,7 +106,8 @@ async def prioritized_leads():
     if not leads:
         return []
 
-    if not openai_client:
+    client = get_openai_client()
+    if not client:
         # simple heuristic fallback
         leads.sort(key=lambda l: l.get("last_lead_response_at") or "", reverse=True)
         return leads[:10]
@@ -115,7 +118,7 @@ async def prioritized_leads():
         f"Leads: {json.dumps(leads)}"
     )
     try:
-        chat = await openai_client.chat.completions.create(
+        chat = await client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
             temperature=0,
@@ -143,10 +146,11 @@ async def ask_lead_question(payload: AskPayload):
     lead = next((l for l in leads if l["id"] == payload.lead_id), None)
     context = f"Lead info: {json.dumps(lead)}" if lead else ""
     prompt = f"{payload.question}\n{context}"
-    if not openai_client:
+    client = get_openai_client()
+    if not client:
         return {"answer": "OpenAI API key not configured"}
     try:
-        chat = await openai_client.chat.completions.create(
+        chat = await client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.3,
