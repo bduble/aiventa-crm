@@ -134,7 +134,7 @@ export default function App() {
                   to="/floor-traffic"
                   style={{ ...linkStyle, display: "block", padding: "0.25rem 1rem" }}
                 >
-                  Today's Floor Log
+                  Floor Log
                 </Link>
                 <Link
                   to="/leads"
