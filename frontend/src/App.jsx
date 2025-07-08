@@ -23,6 +23,8 @@ export default function App() {
     window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
   );
 
+  const [customerMenuOpen, setCustomerMenuOpen] = useState(false);
+
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = (e) => setIsDark(e.matches);
@@ -73,12 +75,10 @@ export default function App() {
             ['/', 'Home'],
             ['/leads', 'Lead Log'],
             ['/leads/new', 'New Lead'],
-            ['/customers', 'Customers'],
             ['/users', 'Users'],
             ['/inventory', 'Inventory'],
             ['/recon', 'Recon'],
             ['/chat', 'AI Chat'],
-            ['/activities', 'Activities'],
             ['/floor-traffic', "Today's Floor Log"],
             ['/floor-traffic/new', 'Log a Visitor'],
           ].map(([to, label]) => (
@@ -86,6 +86,42 @@ export default function App() {
               {label}
             </Link>
           ))}
+
+          {/* Customers dropdown */}
+          <div
+            style={{ position: 'relative' }}
+            onMouseEnter={() => setCustomerMenuOpen(true)}
+            onMouseLeave={() => setCustomerMenuOpen(false)}
+          >
+            <span style={{ ...linkStyle, cursor: 'pointer' }}>Customers ▾</span>
+            {customerMenuOpen && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  backgroundColor: isDark ? '#1a202c' : '#ffffff',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                  padding: '0.5rem 0',
+                  borderRadius: '4px',
+                  minWidth: '150px',
+                }}
+              >
+                <Link
+                  to="/customers"
+                  style={{ ...linkStyle, display: 'block', padding: '0.25rem 1rem' }}
+                >
+                  Customer List
+                </Link>
+                <Link
+                  to="/activities"
+                  style={{ ...linkStyle, display: 'block', padding: '0.25rem 1rem' }}
+                >
+                  Activities
+                </Link>
+              </div>
+            )}
+          </div>
           <ChatGPTPrompt />
         </div>
       </nav>
