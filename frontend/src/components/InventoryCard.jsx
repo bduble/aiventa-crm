@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { motion as Motion } from 'framer-motion'
 import {
   ChevronLeft,
   ChevronRight,
@@ -65,7 +66,10 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
   const formattedSelling = sellingprice != null ? `$${Number(sellingprice).toLocaleString()}` : null
 
   return (
-    <div className="rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+    <Motion.div
+      className="rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300"
+      whileHover={{ scale: 1.02 }}
+    >
       {/* Image Carousel */}
       <div className="relative bg-gray-100">
         <img
@@ -199,6 +203,6 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
           </div>
         </div>
       )}
-    </div>
+    </Motion.div>
   )
 }
