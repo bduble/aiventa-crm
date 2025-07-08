@@ -16,7 +16,6 @@ import Home                   from "./routes/Home";
 import Logo                   from "./components/Logo";
 import ReconPage              from "./pages/ReconPage";
 import ChatGPTPrompt          from "./components/ChatGPTPrompt";
-import ChatPage               from "./pages/ChatPage";
 import { Plus, User }         from "lucide-react";
 
 export default function App() {
@@ -73,7 +72,6 @@ export default function App() {
     { to: "/users",    label: "Users"            },
     { to: "/inventory",label: "Inventory"        },
     { to: "/recon",    label: "Recon"            },
-    { to: "/chat",     label: "AI Chat"          },
     {
       to: "/floor-traffic/new",
       label: (
@@ -199,7 +197,6 @@ export default function App() {
           <Route path="/users" element={<UsersPage />} />
           <Route path="/inventory" element={<InventoryPage />} />
           <Route path="/recon" element={<ReconPage />} />
-          <Route path="/chat" element={<ChatPage />} />
           <Route path="/activities" element={<ActivityTimeline />} />
           <Route path="/floor-traffic" element={<FloorTrafficPage />} />
           <Route path="/floor-traffic/new" element={<CreateFloorTrafficForm />} />
