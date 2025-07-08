@@ -74,13 +74,13 @@ export default function FloorTrafficPage() {
           end.setDate(end.getDate() + 1);
           const { data, error: err } = await supabase
             .from('activities')
-            .select('activities_type')
+            .select('activity_type')
             .gte('created_at', start.toISOString())
             .lt('created_at', end.toISOString());
           if (err) throw err;
           const counts = { salesCalls: 0, textMessages: 0, appointmentsSet: 0 };
           for (const row of data || []) {
-            const t = String(row.type || '').toLowerCase();
+            const t = String(row.activity_type || '').toLowerCase();
             if (t.includes('call')) counts.salesCalls++;
             else if (t.includes('text')) counts.textMessages++;
             else if (t.includes('appointment')) counts.appointmentsSet++;
