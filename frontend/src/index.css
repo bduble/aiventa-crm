@@ -9,7 +9,8 @@
 
   color-scheme: light;
   color: #213547;
-  background-color: #F7FAFC; /* light gray for subtle contrast */
+  /* base color underneath the gradient */
+  background-color: #1C64F2;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -21,7 +22,7 @@
   :root {
     color-scheme: dark;
     color: #F7FAFC;
-    background-color: #1a202c;
+    background-color: #1C64F2;
   }
 }
 
@@ -43,6 +44,19 @@ body {
 #root {
   width: 100%;
   min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+#root::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top right, #6b46c1, #2F80ED, #00FFC6);
+  opacity: 0.6;
+  background-size: 200% 200%;
+  animation: gradient-move 8s ease infinite;
+  z-index: -1;
 }
 
 h1 {
@@ -72,7 +86,7 @@ button:focus-visible {
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
-    background-color: #ffffff;
+    background-color: #1C64F2;
   }
   a:hover {
     color: #747bff;
