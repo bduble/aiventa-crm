@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import { motion as Motion } from 'framer-motion'
 import {
   ChevronLeft,
   ChevronRight,
@@ -19,9 +18,7 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
     stockNumber,
     trim,
     msrp,
-    sellingprice,
-    exteriorColor,
-    interiorColor,
+    price,            // your selling price
     mileage,
     link,
     imageLink,
@@ -34,10 +31,12 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
     additionalImageLink6,
     additionalImageLink7,
     additionalImageLink8,
+    exteriorColor,
+    interiorColor,
     active,
   } = vehicle
 
-  // Gather all Supabase image columns first
+  // collect every image field (camelCase keys)
   const imageFields = [
     imageLink,
     additionalImageLink,
@@ -50,27 +49,35 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
     additionalImageLink7,
     additionalImageLink8,
   ]
-  // Filter out empty and trim whitespace
-  const images = imageFields.filter(url => typeof url === 'string' && url.trim())
 
-  // If no images, use placeholder
-  const displayImages = images.length > 0 ? images : ['/images/placeholder-car.svg']
+  // flatten comma-separated URLs, trim, drop falsy
+  const images = imageFields
+    .filter(u => typeof u === 'string' && u.trim())
+    .flatMap(u => u.split(','))
+    .map(u => u.trim())
+
+  const displayImages = images.length
+    ? images
+    : ['/images/placeholder-car.svg']
 
   const [current, setCurrent] = useState(0)
   const [open, setOpen] = useState(false)
-  const prevImage = () => setCurrent(i => (i === 0 ? displayImages.length - 1 : i - 1))
-  const nextImage = () => setCurrent(i => (i === displayImages.length - 1 ? 0 : i + 1))
+  const prevImage = () =>
+    setCurrent(i => (i === 0 ? displayImages.length - 1 : i - 1))
+  const nextImage = () =>
+    setCurrent(i => (i === displayImages.length - 1 ? 0 : i + 1))
 
-  // Format prices
-  const formattedMSRP = msrp != null ? `$${Number(msrp).toLocaleString()}` : null
-  const formattedSelling = sellingprice != null ? `$${Number(sellingprice).toLocaleString()}` : null
+  // format money
+  const formattedMSRP = msrp != null
+    ? `$${Number(msrp).toLocaleString()}`
+    : null
+  const formattedPrice = price != null
+    ? `$${Number(price).toLocaleString()}`
+    : null
 
   return (
-    <Motion.div
-      className="rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300"
-      whileHover={{ scale: 1.02 }}
-    >
-      {/* Image Carousel */}
+    <div className="rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+      {/* IMAGE CAROUSEL */}
       <div className="relative bg-gray-100">
         <img
           src={displayImages[current]}
@@ -82,12 +89,19 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
             e.currentTarget.src = '/images/placeholder-car.svg'
           }}
         />
+
         {displayImages.length > 1 && (
           <>
-            <button onClick={prevImage} className="absolute left-2 top-1/2 transform -translate-y-1/2 p-2 bg-white rounded-full shadow-md hover:bg-gray-100">
+            <button
+              onClick={prevImage}
+              className="absolute left-2 top-1/2 transform -translate-y-1/2 p-2 bg-white rounded-full shadow-md hover:bg-gray-100"
+            >
               <ChevronLeft size={20} />
             </button>
-            <button onClick={nextImage} className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 bg-white rounded-full shadow-md hover:bg-gray-100">
+            <button
+              onClick={nextImage}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 bg-white rounded-full shadow-md hover:bg-gray-100"
+            >
               <ChevronRight size={20} />
             </button>
             <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1">
@@ -105,41 +119,48 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
         )}
       </div>
 
-      {/* Details */}
+      {/* DETAILS */}
       <div className="p-4 space-y-2 text-sm text-gray-700">
         <h3 className="text-xl font-semibold">
           {year} {make} {model}
         </h3>
+
         {stockNumber && (
           <p className="flex items-center gap-1">
             <Tag className="w-4 h-4" /> Stock #: {stockNumber}
           </p>
         )}
+
         {formattedMSRP && (
           <p className="flex items-center gap-1">
             <DollarSign className="w-4 h-4" /> MSRP: {formattedMSRP}
           </p>
         )}
-        {formattedSelling && (
+
+        {formattedPrice && (
           <p className="flex items-center gap-1">
-            <DollarSign className="w-4 h-4" /> Selling Price: {formattedSelling}
+            <DollarSign className="w-4 h-4" /> Price: {formattedPrice}
           </p>
         )}
+
         {mileage != null && (
           <p className="flex items-center gap-1">
             <Tag className="w-4 h-4" /> Mileage: {Number(mileage).toLocaleString()} mi
           </p>
         )}
+
         {trim && (
           <p className="flex items-center gap-1">
             <Tag className="w-4 h-4" /> Trim: {trim}
           </p>
         )}
+
         {exteriorColor && (
           <p className="flex items-center gap-1">
             <Palette className="w-4 h-4" /> Exterior: {exteriorColor}
           </p>
         )}
+
         {interiorColor && (
           <p className="flex items-center gap-1">
             <Droplet className="w-4 h-4" /> Interior: {interiorColor}
@@ -147,9 +168,9 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
         )}
       </div>
 
-      {/* Actions */}
+      {/* FOOTER ACTIONS */}
       <div className="px-4 pb-4 flex justify-between items-center">
-        {link && (
+        {link ? (
           <a
             href={link}
             target="_blank"
@@ -158,7 +179,10 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
           >
             <ExternalLink className="w-4 h-4" /> View On Site
           </a>
+        ) : (
+          <div />
         )}
+
         <div className="flex gap-2">
           {onEdit && (
             <button
@@ -172,7 +196,9 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
             <button
               onClick={() => onToggle(vehicle)}
               className={`px-3 py-1 rounded-md text-sm transition ${
-                active ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                active
+                  ? 'bg-green-600 text-white hover:bg-green-700'
+                  : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
               }`}
             >
               {active ? 'Disable' : 'Activate'}
@@ -181,7 +207,7 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
         </div>
       </div>
 
-      {/* Lightbox */}
+      {/* LIGHTBOX */}
       {open && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
           <div className="relative max-w-full max-h-full">
@@ -203,6 +229,6 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
           </div>
         </div>
       )}
-    </Motion.div>
+    </div>
   )
 }
