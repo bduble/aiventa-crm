@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from typing import Optional
-from pydantic import BaseModel, EmailStr, validator
+from pydantic import BaseModel, EmailStr, validator, ConfigDict
 
 # ── Leads ──────────────────────────────────────────────────────────────────────
 
@@ -163,16 +163,15 @@ class FloorTrafficCustomerUpdate(BaseModel):
 
 # ── Inventory ─────────────────────────────────────────────────────────────────
 
+def to_camel(string: str) -> str:
+    parts = string.split('_')
+    return parts[0] + ''.join(word.capitalize() for word in parts[1:])
+
+
 class CamelModel(BaseModel):
     """Base model that converts snake_case fields to camelCase aliases."""
 
-    class Config:
-        allow_population_by_field_name = True
-
-        @staticmethod
-        def alias_generator(string: str) -> str:
-            parts = string.split('_')
-            return parts[0] + ''.join(word.capitalize() for word in parts[1:])
+    model_config = ConfigDict(validate_by_name=True, alias_generator=to_camel)
 
 class InventoryItem(CamelModel):
     id: int
