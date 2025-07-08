@@ -25,6 +25,7 @@ export default function App() {
     window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false
   );
   const [customerMenuOpen, setCustomerMenuOpen] = useState(false);
+  const [logMenuOpen, setLogMenuOpen] = useState(false);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
@@ -68,13 +69,11 @@ export default function App() {
   // Nav items as an array for clarity
   const navItems = [
     { to: "/",         label: "Home"             },
-    { to: "/leads",    label: "Lead Log"         },
     { to: "/leads/new",label: "New Lead"         },
     { to: "/users",    label: "Users"            },
     { to: "/inventory",label: "Inventory"        },
     { to: "/recon",    label: "Recon"            },
     { to: "/chat",     label: "AI Chat"          },
-    { to: "/floor-traffic",        label: "Today's Floor Log" },
     {
       to: "/floor-traffic/new",
       label: (
@@ -103,6 +102,44 @@ export default function App() {
               {label}
             </Link>
           ))}
+
+          {/* Log dropdown */}
+          <div
+            style={{ position: "relative" }}
+            onMouseEnter={() => setLogMenuOpen(true)}
+            onMouseLeave={() => setLogMenuOpen(false)}
+          >
+            <span style={{ ...linkStyle, cursor: "pointer" }}>
+              Log ▾
+            </span>
+            {logMenuOpen && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "100%",
+                  left: 0,
+                  backgroundColor: isDark ? "#1a202c" : "#ffffff",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                  padding: "0.5rem 0",
+                  borderRadius: "4px",
+                  minWidth: "150px",
+                }}
+              >
+                <Link
+                  to="/floor-traffic"
+                  style={{ ...linkStyle, display: "block", padding: "0.25rem 1rem" }}
+                >
+                  Today's Floor Log
+                </Link>
+                <Link
+                  to="/leads"
+                  style={{ ...linkStyle, display: "block", padding: "0.25rem 1rem" }}
+                >
+                  Lead Log
+                </Link>
+              </div>
+            )}
+          </div>
 
           {/* Customers dropdown */}
           <div
