@@ -23,6 +23,8 @@ export default function App() {
     window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
   );
 
+  const [showLog, setShowLog] = useState(false);
+
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = (e) => setIsDark(e.matches);
@@ -71,7 +73,6 @@ export default function App() {
           </Link>
           {[
             ['/', 'Home'],
-            ['/leads', 'Lead Log'],
             ['/leads/new', 'New Lead'],
             ['/customers', 'Customers'],
             ['/users', 'Users'],
@@ -79,13 +80,48 @@ export default function App() {
             ['/recon', 'Recon'],
             ['/chat', 'AI Chat'],
             ['/activities', 'Activities'],
-            ['/floor-traffic', "Today's Floor Log"],
             ['/floor-traffic/new', 'Log a Visitor'],
           ].map(([to, label]) => (
             <Link key={to} to={to} style={linkStyle}>
               {label}
             </Link>
           ))}
+
+          {/* Log dropdown */}
+          <div style={{ position: 'relative' }}>
+            <span
+              onClick={() => setShowLog((o) => !o)}
+              style={{ ...linkStyle, cursor: 'pointer', userSelect: 'none' }}
+            >
+              Log
+            </span>
+            {showLog && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  backgroundColor: isDark ? '#2d3748' : '#ffffff',
+                  padding: '0.5rem',
+                  borderRadius: '0.25rem',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
+                }}
+              >
+                <Link
+                  to="/leads"
+                  style={{ ...linkStyle, display: 'block', padding: '0.25rem 0' }}
+                >
+                  Lead Log
+                </Link>
+                <Link
+                  to="/floor-traffic"
+                  style={{ ...linkStyle, display: 'block', padding: '0.25rem 0' }}
+                >
+                  Today's Floor Log
+                </Link>
+              </div>
+            )}
+          </div>
           <ChatGPTPrompt />
         </div>
       </nav>
