@@ -24,6 +24,7 @@ export default function App() {
     window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
   );
 
+  const [showLog, setShowLog] = useState(false);
   const [customerMenuOpen, setCustomerMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -74,12 +75,13 @@ export default function App() {
           </Link>
           {[
             ['/', 'Home'],
-            ['/leads', 'Lead Log'],
             ['/leads/new', 'New Lead'],
             ['/users', 'Users'],
             ['/inventory', 'Inventory'],
             ['/recon', 'Recon'],
             ['/chat', 'AI Chat'],
+            ['/activities', 'Activities'],
+            ['/floor-traffic/new', 'Log a Visitor'],
             ['/floor-traffic', "Today's Floor Log"],
             [
               '/floor-traffic/new',
@@ -95,7 +97,15 @@ export default function App() {
               {label}
             </Link>
           ))}
-
+          {/* Log dropdown */}
+          <div style={{ position: 'relative' }}>
+            <span
+              onClick={() => setShowLog((o) => !o)}
+              style={{ ...linkStyle, cursor: 'pointer', userSelect: 'none' }}
+            >
+              Log
+            </span>
+            {showLog && (
           {/* Customers dropdown */}
           <div
             style={{ position: 'relative' }}
@@ -109,6 +119,23 @@ export default function App() {
                   position: 'absolute',
                   top: '100%',
                   left: 0,
+                  backgroundColor: isDark ? '#2d3748' : '#ffffff',
+                  padding: '0.5rem',
+                  borderRadius: '0.25rem',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
+                }}
+              >
+                <Link
+                  to="/leads"
+                  style={{ ...linkStyle, display: 'block', padding: '0.25rem 0' }}
+                >
+                  Lead Log
+                </Link>
+                <Link
+                  to="/floor-traffic"
+                  style={{ ...linkStyle, display: 'block', padding: '0.25rem 0' }}
+                >
+                  Today's Floor Log
                   backgroundColor: isDark ? '#1a202c' : '#ffffff',
                   boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                   padding: '0.5rem 0',
