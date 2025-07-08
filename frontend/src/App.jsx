@@ -99,12 +99,22 @@ export default function App() {
           ))}
           {/* Log dropdown */}
           <div style={{ position: 'relative' }}>
-            <span
+            <button
               onClick={() => setShowLog((o) => !o)}
-              style={{ ...linkStyle, cursor: 'pointer', userSelect: 'none' }}
-            >
-              Log
-            </span>
+              style={{
+                ...linkStyle,
+                cursor: 'pointer',
+                userSelect: 'none',
+                background: 'none',
+                border: 'none',
+               padding: 0,
+               font: 'inherit',
+             }}
+             aria-haspopup="true"
+             aria-expanded={showLog}
+           >
+             Log
+           </button>
             {showLog && (
           {/* Customers dropdown */}
           <div
