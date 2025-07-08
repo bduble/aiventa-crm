@@ -109,7 +109,12 @@ export default function App() {
             onMouseEnter={() => setLogMenuOpen(true)}
             onMouseLeave={() => setLogMenuOpen(false)}
           >
-            <span style={{ ...linkStyle, cursor: "pointer" }}>
+            <span
+              style={{ ...linkStyle, cursor: "pointer" }}
+              role="button"
+              aria-haspopup="menu"
+              aria-expanded={logMenuOpen}
+            >
               Log ▾
             </span>
             {logMenuOpen && (
