@@ -1,6 +1,7 @@
 // routes/floorTraffic.js
 import express from 'express';
 import FloorTrafficModel from '../models/FloorTrafficModel.js';
+import supabase from '../lib/supabaseClient.js';
 
 const router = express.Router();
 
@@ -72,6 +73,25 @@ router.post('/floor-traffic', async (req, res, next) => {
       mgrTO,
       origin,
     });
+
+    // Attempt to also create a contact record for this customer.
+    // Ignore any errors so the floor-traffic entry still persists.
+    const name = customerName || `${req.body.first_name ?? ''} ${req.body.last_name ?? ''}`.trim();
+    if (name) {
+      try {
+        const { error } = await supabase
+          .from('contacts')
+          .insert({
+            name,
+            email: req.body.email || null,
+            phone: req.body.phone || null,
+          })
+          .single();
+        if (error) console.warn('Failed to insert contact record:', error.message);
+      } catch (e) {
+        console.warn('Failed to insert contact record:', e.message);
+      }
+    }
 
     return res.status(201).json(newLog);
   } catch (err) {
