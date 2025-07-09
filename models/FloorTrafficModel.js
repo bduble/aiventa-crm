@@ -1,42 +1,90 @@
 // models/FloorTrafficModel.js
-let logs = [];
+import supabase from '../lib/supabaseClient.js';
 
 /**
- * A very basic in-memory model.
- * In production you’d swap this out for a real DB/ORM.
+ * Persistence layer for floor-traffic entries.
+ * Uses Supabase if credentials are configured, otherwise
+ * the underlying supabase client provides stubbed methods
+ * that return an error. The router handles any thrown errors.
  */
 export default class FloorTrafficModel {
   /**
-   * Returns all logs for “today.”
-   * Here we ignore the date and just return everything.
+   * Fetch today's floor-traffic entries ordered by visit time.
    */
   static async findToday() {
-    // You could filter by entry.date if you store one:
-    return logs;
+    const today = new Date();
+    const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const end = new Date(start);
+    end.setDate(end.getDate() + 1);
+
+    const { data, error } = await supabase
+      .from('floor_traffic_customers')
+      .select('*')
+      .gte('visit_time', start.toISOString())
+      .lt('visit_time', end.toISOString())
+      .order('visit_time', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
   }
 
   /**
-   * Creates a new log entry.
-   * Assigns it a simple incremental `id`.
+   * Insert a new floor-traffic entry.
+   * Accepts camelCase or snake_case field names and maps them
+   * to the Supabase table structure.
    */
   static async create(entry) {
-    const newLog = {
-      id: logs.length + 1,
-      ...entry,
-      createdAt: new Date().toISOString()
-    };
-    logs.push(newLog);
-    return newLog;
+    const payload = { ...entry };
+
+    if (payload.timeIn && !payload.visit_time) {
+      payload.visit_time = payload.timeIn;
+    }
+    if (payload.timeOut && !payload.time_out) {
+      payload.time_out = payload.timeOut;
+    }
+    if (payload.customerName && !payload.customer_name) {
+      payload.customer_name = payload.customerName;
+    }
+
+    delete payload.timeIn;
+    delete payload.timeOut;
+    delete payload.customerName;
+
+    const { data, error } = await supabase
+      .from('floor_traffic_customers')
+      .insert(payload)
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 
   /**
-   * Update an existing log entry by id.
-   * Returns the updated log or null if not found.
+   * Update an existing entry and return the updated record.
    */
   static async update(id, fields) {
-    const index = logs.findIndex(l => l.id === Number(id));
-    if (index === -1) return null;
-    logs[index] = { ...logs[index], ...fields };
-    return logs[index];
+    const payload = { ...fields };
+
+    if (payload.timeIn) {
+      payload.visit_time = payload.timeIn;
+      delete payload.timeIn;
+    }
+    if (payload.timeOut) {
+      payload.time_out = payload.timeOut;
+      delete payload.timeOut;
+    }
+    if (payload.customerName) {
+      payload.customer_name = payload.customerName;
+      delete payload.customerName;
+    }
+
+    const { data, error } = await supabase
+      .from('floor_traffic_customers')
+      .update(payload)
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 }
