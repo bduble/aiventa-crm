@@ -33,7 +33,7 @@ export default function FloorTrafficTable({ rows, onEdit, onToggle }) {
     { key: 'vehicle', label: 'Vehicle' },
     { key: 'demo', label: 'Demo' },
     { key: 'worksheet', label: 'Worksheet' },
-    { key: 'customer_offer', label: 'Customer Offer' },
+    { key: 'customer_offer', label: 'Offer' },
     { key: 'sold', label: 'Sold' },
     { key: 'notes', label: 'Notes' },
     { key: 'phone', label: 'Phone' }
