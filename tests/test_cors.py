@@ -29,3 +29,23 @@ def test_cors_inventory():
 
     assert resp.status_code in (200, 404, 500)
     assert resp.headers.get("access-control-allow-origin") in ("https://aiventa-crm.vercel.app", "*")
+
+
+def test_cors_vercel_env(monkeypatch):
+    # When VERCEL_URL is set the server should automatically allow that origin
+    monkeypatch.setenv("VERCEL_URL", "preview.vercel.app")
+    from importlib import reload
+    import app.main as main
+    reload(main)
+    client = TestClient(main.app)
+
+    resp = client.options(
+        "/api/floor-traffic/",
+        headers={
+            "Origin": "https://preview.vercel.app",
+            "Access-Control-Request-Method": "GET",
+        },
+    )
+
+    assert resp.status_code == 200
+    assert resp.headers.get("access-control-allow-origin") == "https://preview.vercel.app"

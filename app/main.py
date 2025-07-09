@@ -17,12 +17,30 @@ from app.routers.telephony       import router as telephony_router
 
 app = FastAPI(title="aiVenta CRM API")
 
-# 1️⃣ CORS: allow origins from env or fall back to permissive defaults
-origins_env = os.environ.get("CORS_ORIGINS", "")
-if origins_env:
-    allowed_origins = [o.strip().rstrip("/") for o in origins_env.split(",") if o.strip()]
-else:
-    allowed_origins = ["*"]  # open during local/dev if not configured
+# 1️⃣ CORS: allow origins from env or detected deployment URLs
+def build_allowed_origins() -> list[str]:
+    origins = [
+        o.strip().rstrip("/")
+        for o in os.environ.get("CORS_ORIGINS", "").split(",")
+        if o.strip()
+    ]
+
+    # Include hosting platform URLs automatically so CORS works out-of-the-box
+    if vercel_url := os.environ.get("VERCEL_URL"):
+        origins.append(f"https://{vercel_url.strip().rstrip('/')}")
+    if render_url := os.environ.get("RENDER_EXTERNAL_URL"):
+        origins.append(f"https://{render_url.strip().rstrip('/')}")
+
+    # Remove duplicates while preserving order
+    seen = set()
+    deduped = []
+    for o in origins:
+        if o not in seen:
+            deduped.append(o)
+            seen.add(o)
+    return deduped or ["*"]
+
+allowed_origins = build_allowed_origins()
 
 allow_credentials = False if "*" in allowed_origins else True
 allow_regex = None if "*" in allowed_origins else r"https://.*\.vercel\.app$"
