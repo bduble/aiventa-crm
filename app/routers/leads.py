@@ -5,6 +5,7 @@ from postgrest.exceptions import APIError
 from app.db import supabase
 import os
 import openai
+import logging
 
 api_key = os.environ.get("OPENAI_API_KEY")
 openai_client = openai.AsyncOpenAI(api_key=api_key) if api_key else None
@@ -45,7 +46,23 @@ def create_lead(lead: LeadCreate):
         res = supabase.table("leads").insert(payload).single().execute()
     except APIError as e:
         raise HTTPException(400, e.message)
-    return res.data
+
+    created = res.data
+
+    # Also create a contact record for this lead. Ignore errors so the lead
+    # itself is still saved if the contact insert fails (e.g. due to duplicates
+    # or RLS restrictions).
+    try:
+        supabase.table("contacts").insert(
+            {
+                "name": created.get("name"),
+                "email": created.get("email"),
+            }
+        ).execute()
+    except APIError as e:
+        logging.warning("Failed to insert contact for lead %s: %s", created.get("id"), e)
+
+    return created
 
 @router.put("/{lead_id:int}", response_model=Lead)
 def update_lead(lead_id: int = Path(..., gt=0), lead: LeadCreate = None):
