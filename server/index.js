@@ -9,20 +9,36 @@ import { startAdfIngestJob } from './jobs/adfIngestJob.js';
 
 const app = express();
 
-// Allow requests from configured origins
-const originsEnv = process.env.CORS_ORIGINS || 'https://aiventa-crm.vercel.app';
-const allowedOrigins = originsEnv
-  .split(',')
-  .map(o => o.trim().replace(/\/+$/, ''))
-  .filter(Boolean);
+// Allow requests from configured origins and detected platform URLs
+function buildAllowedOrigins() {
+  const envOrigins = (process.env.CORS_ORIGINS || '')
+    .split(',')
+    .map(o => o.trim().replace(/\/+$/, ''))
+    .filter(Boolean);
+
+  if (process.env.VERCEL_URL) {
+    envOrigins.push(`https://${process.env.VERCEL_URL.replace(/\/+$/, '')}`);
+  }
+  if (process.env.RENDER_EXTERNAL_URL) {
+    envOrigins.push(`https://${process.env.RENDER_EXTERNAL_URL.replace(/\/+$/, '')}`);
+  }
+
+  return [...new Set(envOrigins.length ? envOrigins : ['*'])];
+}
+
+const allowedOrigins = buildAllowedOrigins();
 
 // Support wildcard subdomains for Vercel preview URLs
 function isOriginAllowed(origin) {
   if (!origin) return true; // allow same-origin or non-browser requests
+  if (allowedOrigins.includes('*')) return true;
   if (allowedOrigins.includes(origin)) return true;
-  return allowedOrigins.some(o =>
-    o.endsWith('.vercel.app') && origin.endsWith('.vercel.app')
-  );
+  return allowedOrigins.some(o => {
+    return (
+      (o.endsWith('.vercel.app') && origin.endsWith('.vercel.app')) ||
+      (o.endsWith('.onrender.com') && origin.endsWith('.onrender.com'))
+    );
+  });
 }
 
 // Configure CORS so the React frontend hosted on Vercel can talk to this API

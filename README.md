@@ -34,6 +34,11 @@ install the necessary dev dependencies (`tailwindcss`, `postcss` and
 
 The FastAPI services expect `SUPABASE_URL` and `SUPABASE_KEY` to be set. `CORS_ORIGINS` controls the allowed origins for both servers. The React frontend looks for `VITE_API_BASE_URL`, `VITE_SUPABASE_URL` and `VITE_SUPABASE_KEY`.
 
+Both the Node and FastAPI servers automatically append deployment URLs exposed by
+platforms like Vercel (`VERCEL_URL`) or Render (`RENDER_EXTERNAL_URL`). In most
+cases setting `CORS_ORIGINS` to your production domain is sufficient and preview
+deployments will be permitted out of the box.
+
 ```env
 SUPABASE_URL=<your-supabase-url>
 SUPABASE_KEY=<your-supabase-key>
