@@ -37,12 +37,14 @@ The FastAPI services expect `SUPABASE_URL` and `SUPABASE_KEY` to be set. `CORS_O
 Both the Node and FastAPI servers automatically append deployment URLs exposed by
 platforms like Vercel (`VERCEL_URL`) or Render (`RENDER_EXTERNAL_URL`). In most
 cases setting `CORS_ORIGINS` to your production domain is sufficient and preview
-deployments will be permitted out of the box.
+deployments will be permitted out of the box. Alternatively you can set
+`FRONTEND_URL` and it will automatically be added to the allowed origins.
 
 ```env
 SUPABASE_URL=<your-supabase-url>
 SUPABASE_KEY=<your-supabase-key>
 CORS_ORIGINS=https://aiventa-crm.vercel.app,https://aiventa-g3al310q6-brian-dubles-projects.vercel.app
+FRONTEND_URL=https://aiventa-crm.vercel.app
 VITE_API_BASE_URL=http://localhost:8000
 VITE_SUPABASE_URL=<your-supabase-url>
 VITE_SUPABASE_KEY=<your-supabase-key>
