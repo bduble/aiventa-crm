@@ -130,3 +130,29 @@ def test_update_floor_traffic():
 
     assert response.status_code == 200
     assert response.json() == sample
+
+
+def test_month_metrics():
+    sample = [
+        {"demo": True, "worksheet": None, "sold": False},
+        {"demo": False, "worksheet": True, "sold": True},
+    ]
+
+    exec_result = MagicMock(data=sample, error=None)
+    mock_table = MagicMock()
+    (
+        mock_table.select.return_value.gte.return_value.lt.return_value.execute.return_value
+    ) = exec_result
+    mock_supabase = MagicMock()
+    mock_supabase.table.return_value = mock_table
+
+    with patch("app.routers.floor_traffic.supabase", mock_supabase):
+        response = client.get("/api/floor-traffic/month-metrics")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "total_customers": 2,
+        "demo_count": 1,
+        "write_up_count": 1,
+        "sold_count": 1,
+    }
