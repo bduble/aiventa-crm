@@ -8,4 +8,8 @@ if (!container) {
   throw new Error("Could not find #root element")
 }
 const root = createRoot(container)
-root.render(<App />)
+root.render(
+  <div className="page-frame">
+    <App />
+  </div>
+)
