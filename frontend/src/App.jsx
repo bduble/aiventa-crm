@@ -12,7 +12,7 @@ import ActivityTimeline       from "./components/ActivityTimeline";
 import CreateLeadForm         from "./components/CreateLeadForm";
 import FloorTrafficPage       from "./pages/FloorTrafficPage";
 import CreateFloorTrafficForm from "./components/CreateFloorTrafficForm";
-import Home                   from "./routes/Home";
+import Home                   from "./pages/Home";
 import Logo                   from "./components/Logo";
 import ReconPage              from "./pages/ReconPage";
 import ChatGPTPrompt          from "./components/ChatGPTPrompt";
