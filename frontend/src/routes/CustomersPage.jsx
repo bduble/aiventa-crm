@@ -21,7 +21,7 @@ export default function CustomersPage() {
       try {
         const params = new URLSearchParams()
         if (debounced) params.append('q', debounced)
-        const res = await fetch(`${API_BASE}/contacts/?${params.toString()}`)
+        const res = await fetch(`${API_BASE}/customers/?${params.toString()}`)
         if (!res.ok) throw new Error('Failed to load customers')
         const data = await res.json()
         setCustomers(Array.isArray(data) ? data : [])

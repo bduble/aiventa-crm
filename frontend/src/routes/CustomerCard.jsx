@@ -12,7 +12,7 @@ export default function CustomerCard() {
   useEffect(() => {
     const fetchCustomer = async () => {
       try {
-        const res = await fetch(`${API_BASE}/contacts/${id}`);
+        const res = await fetch(`${API_BASE}/customers/${id}`);
         if (!res.ok) throw new Error('Failed to load customer');
         const data = await res.json();
         setCustomer(data);
