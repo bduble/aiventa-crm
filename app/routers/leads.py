@@ -2,18 +2,19 @@ from fastapi import APIRouter, HTTPException, Path
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 from postgrest.exceptions import APIError
+from datetime import datetime, date
+
 from app.db import supabase
+from app.openai_client import get_openai_client
+
 import os
 import openai
 import logging
+import json
 
 api_key = os.environ.get("OPENAI_API_KEY")
 openai_client = openai.AsyncOpenAI(api_key=api_key) if api_key else None
-from datetime import datetime
-import json
-from app.openai_client import get_openai_client
-from datetime import datetime
-import json
+
 router = APIRouter()
 
 class LeadCreate(BaseModel):
@@ -199,6 +200,54 @@ def lead_metrics():
     avg_response_time = sum(response_deltas) / len(response_deltas) if response_deltas else 0.0
 
     conversion_rate = round(len(engaged) / total * 100, 2) if total else 0.0
+
+    return {
+        "total_leads": total,
+        "conversion_rate": conversion_rate,
+        "average_response_time": avg_response_time,
+        "lead_engagement_rate": engagement_rate,
+    }
+
+
+@router.get("/month-metrics")
+def month_metrics():
+    """Return month-to-date lead metrics."""
+    today = date.today()
+    start = datetime.combine(today.replace(day=1), datetime.min.time())
+    if start.month == 12:
+        end = start.replace(year=start.year + 1, month=1)
+    else:
+        end = start.replace(month=start.month + 1)
+
+    try:
+        res = (
+            supabase.table("leads")
+            .select("created_at,last_lead_response_at,last_staff_response_at")
+            .gte("created_at", start.isoformat())
+            .lt("created_at", end.isoformat())
+            .execute()
+        )
+    except APIError as e:
+        raise HTTPException(status_code=500, detail=e.message)
+
+    rows = res.data or []
+    total = len(rows)
+    engaged = [r for r in rows if r.get("last_lead_response_at")]
+    engagement_rate = round(len(engaged) / total * 100, 2) if total else 0.0
+
+    response_deltas = []
+    for r in engaged:
+        if r.get("last_staff_response_at"):
+            try:
+                la = datetime.fromisoformat(r["last_lead_response_at"])
+                sa = datetime.fromisoformat(r["last_staff_response_at"])
+                response_deltas.append((sa - la).total_seconds())
+            except Exception:
+                pass
+
+    avg_response_time = sum(response_deltas) / len(response_deltas) if response_deltas else 0.0
+
+    conversion_rate = engagement_rate
 
     return {
         "total_leads": total,

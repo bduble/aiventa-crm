@@ -66,3 +66,17 @@ def test_filter_inventory_query_params():
     assert data[0]["make"] == "Ford"
     mock_query.ilike.assert_called_with("make", "%Ford%")
     mock_query.gte.assert_called_with("year", 2020)
+
+def test_inventory_snapshot():
+    sample = [{"active": True}, {"active": False}]
+    exec_result = MagicMock(data=sample, error=None)
+    mock_table = MagicMock()
+    mock_table.select.return_value.execute.return_value = exec_result
+    mock_supabase = MagicMock()
+    mock_supabase.table.return_value = mock_table
+
+    with patch("app.routers.inventory.supabase", mock_supabase):
+        response = client.get("/api/inventory/snapshot")
+
+    assert response.status_code == 200
+    assert response.json() == {"total": 2, "active": 1, "inactive": 1}
