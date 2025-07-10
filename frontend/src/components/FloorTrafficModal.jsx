@@ -109,7 +109,7 @@ export default function FloorTrafficModal({ isOpen, onClose, onSubmit, initialDa
           </div>
           <div>
             <label className="block text-sm mb-1">Notes</label>
-            <textarea name="notes" value={form.notes} onChange={handleChange} className="w-full border rounded px-2 py-1 h-24" />
+            <textarea name="notes" value={form.notes} onChange={handleChange} className="w-full border rounded px-2 py-1 h-32" />
           </div>
           <div className="flex justify-end gap-2">
             <button type="button" onClick={onClose} className="px-3 py-2 border rounded">Cancel</button>
