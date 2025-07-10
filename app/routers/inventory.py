@@ -55,6 +55,21 @@ def list_inventory(
 def list_inventory_noslash():
     return list_inventory()
 
+
+@router.get("/snapshot")
+def inventory_snapshot():
+    """Return basic counts of active and inactive inventory."""
+    try:
+        res = supabase.table("inventory").select("active").execute()
+    except APIError as e:
+        raise HTTPException(status_code=500, detail=e.message)
+
+    rows = res.data or []
+    total = len(rows)
+    active_count = sum(1 for r in rows if r.get("active"))
+    inactive_count = total - active_count
+    return {"total": total, "active": active_count, "inactive": inactive_count}
+
 @router.get("/{item_id}", response_model=InventoryItem)
 def get_inventory_item(item_id: int):
     res = (
