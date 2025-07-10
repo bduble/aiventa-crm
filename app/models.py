@@ -39,6 +39,27 @@ class ContactUpdate(BaseModel):
     phone: Optional[str]
 
 
+# ── Customers ─────────────────────────────────────────────────────────────────
+
+class Customer(BaseModel):
+    id: str
+    name: str
+    email: Optional[str]
+    phone: Optional[str]
+
+
+class CustomerCreate(BaseModel):
+    name: str
+    email: Optional[str]
+    phone: Optional[str]
+
+
+class CustomerUpdate(BaseModel):
+    name: Optional[str]
+    email: Optional[str]
+    phone: Optional[str]
+
+
 # ── Accounts ───────────────────────────────────────────────────────────────────
 
 class Account(BaseModel):

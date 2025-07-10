@@ -9,6 +9,7 @@ from app.routers.users           import router as users_router
 from app.routers import floor_traffic
 from app.routers.accounts        import router as accounts_router
 from app.routers.contacts        import router as contacts_router
+from app.routers.customers       import router as customers_router
 from app.routers.opportunities   import router as opportunities_router
 from app.routers.activities      import router as activities_router
 from app.routers import inventory  # inventory router mounted under /api/inventory
@@ -74,6 +75,7 @@ app.include_router(
 )
 app.include_router(accounts_router,      prefix="/api/accounts",      tags=["accounts"])
 app.include_router(contacts_router,      prefix="/api/contacts",      tags=["contacts"])
+app.include_router(customers_router,     prefix="/api/customers",     tags=["customers"])
 app.include_router(opportunities_router, prefix="/api/opportunities", tags=["opportunities"])
 app.include_router(activities_router,    prefix="/api/activities",    tags=["activities"])
 # now include your inventory router
