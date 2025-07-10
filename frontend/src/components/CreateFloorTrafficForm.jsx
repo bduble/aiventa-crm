@@ -231,7 +231,7 @@ export default function CreateFloorTrafficForm() {
             name="notes"
             value={form.notes}
             onChange={handleChange}
-            className="mt-1 block w-full bg-white border border-gray-300 rounded-md dark:bg-gray-900 dark:border-gray-600"
+            className="mt-1 block w-full bg-white border border-gray-300 rounded-md dark:bg-gray-900 dark:border-gray-600 h-32"
           />
         </div>
 

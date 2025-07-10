@@ -35,9 +35,16 @@ export default function FloorTrafficTable({ rows, onEdit, onToggle }) {
     { key: 'worksheet', label: 'Worksheet' },
     { key: 'customer_offer', label: 'Offer' },
     { key: 'sold', label: 'Sold' },
-    { key: 'notes', label: 'Notes' },
-    { key: 'phone', label: 'Phone' }
+    { key: 'notes', label: 'Notes' }
   ];
+
+  const centeredKeys = new Set([
+    'demo',
+    'worksheet',
+    'customer_offer',
+    'sold',
+    'time_out'
+  ]);
 
   const handleRowClick = id => {
     setAcknowledged(prev => new Set(prev).add(id));
@@ -58,7 +65,12 @@ export default function FloorTrafficTable({ rows, onEdit, onToggle }) {
     return (
       <tr key={row.id} className={rowClasses} role="row" onClick={() => handleRowClick(row.id)}>
         {headers.map(h => (
-          <td key={h.key} className="p-2" role="cell" data-label={h.label}>
+          <td
+            key={h.key}
+            className={`p-2${centeredKeys.has(h.key) ? ' text-center' : ''}${h.key === 'notes' ? ' whitespace-pre-line w-64' : ''}`}
+            role="cell"
+            data-label={h.label}
+          >
             {h.key === 'visit_time' ? (
               new Date(row[h.key]).toLocaleTimeString()
             ) : h.key === 'time_out' ? (
