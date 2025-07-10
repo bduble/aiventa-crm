@@ -60,7 +60,7 @@ export default function App() {
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: "#1C64F2",
+    backgroundColor: "rgb(var(--current-bg-rgb))",
     zIndex: 1000,
   };
   const navInnerStyle = {
