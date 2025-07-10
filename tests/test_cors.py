@@ -59,10 +59,13 @@ def test_cors_frontend_env(monkeypatch):
     reload(main)
     client = TestClient(main.app)
 
-    resp = client.get(
+    resp = client.options(
         "/api/floor-traffic/",
-        headers={"Origin": "https://myapp.example.com"},
+        headers={
+            "Origin": "https://myapp.example.com",
+            "Access-Control-Request-Method": "GET",
+        },
     )
 
-    assert resp.status_code in (200, 404, 500)
+    assert resp.status_code == 200
     assert resp.headers.get("access-control-allow-origin") == "https://myapp.example.com"
