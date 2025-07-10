@@ -18,7 +18,7 @@ export default {
           '37.5%': { backgroundColor: '#EC008C' },
           '50%':   { backgroundColor: '#00B3C7' },
           '62.5%': { backgroundColor: '#0066CC' },
-          '75%':   { backgroundColor: '#3CB043' },
+          '75%':   { backgroundColor: '#32CD32' },
           '87.5%': { backgroundColor: '#FAA61A' },
           '100%':  { backgroundColor: '#FAA61A' },
         },
