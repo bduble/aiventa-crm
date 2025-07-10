@@ -60,6 +60,7 @@ export default function App() {
     top: 0,
     left: 0,
     right: 0,
+    backgroundColor: "#1C64F2",
     zIndex: 1000,
   };
   const navInnerStyle = {
@@ -105,7 +106,7 @@ export default function App() {
       <Toaster position="top-right" />
 
       {/* FIXED TOP NAV */}
-      <nav ref={navRef} style={navStyle} className={`animate-logoCycle transition-colors duration-1000 ${lightText ? 'text-white' : 'text-black'}`}>
+      <nav ref={navRef} style={navStyle} className={`transition-colors duration-1000 ${lightText ? 'text-white' : 'text-black'}`}>
         <div style={navInnerStyle}>
           <Link to="/" style={{ marginRight: "1rem" }}>
             <Logo />
