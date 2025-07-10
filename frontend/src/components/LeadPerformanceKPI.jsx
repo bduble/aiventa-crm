@@ -1,25 +1,33 @@
 import React, { useEffect, useState } from 'react';
+import {
+  ResponsiveContainer,
+  FunnelChart,
+  Funnel,
+  Tooltip,
+  LabelList,
+} from 'recharts';
+import { Clock } from 'lucide-react';
 
 export default function LeadPerformanceKPI() {
   const [stats, setStats] = useState({
-    total: 0,
-    engagement: 0,
-    conversion: 0,
+    new: 0,
+    qualified: 0,
     avgResponse: 0,
+    funnel: [],
   });
 
   useEffect(() => {
     const API_BASE = import.meta.env.PROD ? import.meta.env.VITE_API_BASE_URL : '/api';
     const fetchStats = async () => {
       try {
-        const res = await fetch(`${API_BASE}/leads/month-metrics`);
+        const res = await fetch(`${API_BASE}/analytics/lead-overview`);
         if (!res.ok) return;
         const data = await res.json();
         setStats({
-          total: data.total_leads ?? data.totalLeads ?? 0,
-          engagement: data.lead_engagement_rate ?? data.leadEngagementRate ?? 0,
-          conversion: data.conversion_rate ?? data.conversionRate ?? 0,
-          avgResponse: data.average_response_time ?? data.averageResponseTime ?? 0,
+          new: data.new ?? 0,
+          qualified: data.qualified ?? 0,
+          avgResponse: data.avgResponse ?? 0,
+          funnel: Array.isArray(data.funnel) ? data.funnel : [],
         });
       } catch (err) {
         console.error(err);
@@ -28,8 +36,6 @@ export default function LeadPerformanceKPI() {
     fetchStats();
   }, []);
 
-  const kpiClass = 'rounded-3xl p-6 bg-gradient-to-br from-electricblue via-darkblue to-slategray text-white shadow-lg';
-
   const formatTime = secs => {
     if (!secs) return '0m';
     const mins = Math.round(secs / 60);
@@ -37,14 +43,31 @@ export default function LeadPerformanceKPI() {
   };
 
   return (
-    <div className={kpiClass}>
-      <h2 className="text-lg font-semibold mb-2">MTD Lead Performance</h2>
-      <ul className="space-y-1 text-sm">
-        <li>Total Leads: {stats.total}</li>
-        <li>Engagement Rate: {stats.engagement}%</li>
-        <li>Conversion Rate: {stats.conversion}%</li>
-        <li>Avg Response: {formatTime(stats.avgResponse)}</li>
-      </ul>
+    <div className="bg-white p-4 rounded-lg shadow space-y-3">
+      <h3 className="font-semibold">Lead Performance</h3>
+      <div className="flex justify-between text-sm">
+        <span>New Leads: {stats.new}</span>
+        <span>Qualified: {stats.qualified}</span>
+      </div>
+      <div className="flex items-center gap-1 text-xs">
+        <Clock className="w-4 h-4" />
+        <span>Avg Response Time: {formatTime(stats.avgResponse)}</span>
+      </div>
+      <div className="h-32">
+        <ResponsiveContainer width="100%" height="100%">
+          <FunnelChart>
+            <Tooltip />
+            <Funnel
+              dataKey="value"
+              data={stats.funnel}
+              isAnimationActive={false}
+              orientation="vertical"
+            >
+              <LabelList position="right" fill="#374151" stroke="none" dataKey="stage" />
+            </Funnel>
+          </FunnelChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }
