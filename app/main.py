@@ -26,6 +26,9 @@ def build_allowed_origins() -> list[str]:
         if o.strip()
     ]
 
+    if frontend_url := os.environ.get("FRONTEND_URL"):
+        origins.append(frontend_url.strip().rstrip("/"))
+
     # Include hosting platform URLs automatically so CORS works out-of-the-box
     if vercel_url := os.environ.get("VERCEL_URL"):
         origins.append(f"https://{vercel_url.strip().rstrip('/')}")

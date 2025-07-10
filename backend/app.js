@@ -14,6 +14,10 @@ function buildAllowedOrigins() {
     .map(o => o.trim().replace(/\/+$/, ''))
     .filter(Boolean);
 
+  if (process.env.FRONTEND_URL) {
+    envOrigins.push(process.env.FRONTEND_URL.replace(/\/+$/, ''));
+  }
+
   if (process.env.VERCEL_URL) {
     envOrigins.push(`https://${process.env.VERCEL_URL.replace(/\/+$/, '')}`);
   }

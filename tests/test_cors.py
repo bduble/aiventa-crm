@@ -49,3 +49,20 @@ def test_cors_vercel_env(monkeypatch):
 
     assert resp.status_code == 200
     assert resp.headers.get("access-control-allow-origin") == "https://preview.vercel.app"
+
+
+def test_cors_frontend_env(monkeypatch):
+    """FRONTEND_URL should automatically be allowed."""
+    monkeypatch.setenv("FRONTEND_URL", "https://myapp.example.com")
+    from importlib import reload
+    import app.main as main
+    reload(main)
+    client = TestClient(main.app)
+
+    resp = client.get(
+        "/api/floor-traffic/",
+        headers={"Origin": "https://myapp.example.com"},
+    )
+
+    assert resp.status_code in (200, 404, 500)
+    assert resp.headers.get("access-control-allow-origin") == "https://myapp.example.com"
