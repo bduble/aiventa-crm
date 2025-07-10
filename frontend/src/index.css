@@ -7,6 +7,8 @@
   line-height: 1.5;
   font-weight: 400;
 
+  --current-bg-rgb: 250,166,26;
+
   color-scheme: light;
   color: #213547;
   /* base color underneath the gradient */
@@ -129,4 +131,8 @@ button:focus-visible {
 
 @keyframes sheen-move {
   to { left: 200%; }
+}
+
+.page-frame {
+  @apply p-2 rounded-md shadow-frame;
 }

@@ -1,5 +1,5 @@
 // src/App.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 
 import LeadLog                from "./routes/LeadLog";
@@ -25,6 +25,8 @@ export default function App() {
   );
   const [customerMenuOpen, setCustomerMenuOpen] = useState(false);
   const [logMenuOpen, setLogMenuOpen] = useState(false);
+  const [lightText, setLightText] = useState(false);
+  const navRef = useRef(null);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
@@ -33,16 +35,31 @@ export default function App() {
     return () => mediaQuery.removeEventListener("change", handler);
   }, []);
 
+  useEffect(() => {
+    const navEl = navRef.current;
+    if (!navEl) return;
+    const update = () => {
+      const rgb = window.getComputedStyle(navEl).backgroundColor;
+      const values = rgb.match(/\d+/g)?.map(Number) ?? [0, 0, 0];
+      document.documentElement.style.setProperty(
+        "--current-bg-rgb",
+        `${values[0]},${values[1]},${values[2]}`
+      );
+      const luminance =
+        (0.299 * values[0] + 0.587 * values[1] + 0.114 * values[2]) / 255;
+      setLightText(luminance < 0.5);
+    };
+    update();
+    const interval = setInterval(update, 500);
+    return () => clearInterval(interval);
+  }, []);
+
   // Inline styles
   const navStyle = {
     position: "fixed",
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: isDark ? "#1a202c" : "#ffffff",
-    boxShadow: isDark
-      ? "0 2px 4px rgba(0,0,0,0.5)"
-      : "0 2px 4px rgba(0,0,0,0.1)",
     zIndex: 1000,
   };
   const navInnerStyle = {
@@ -53,10 +70,10 @@ export default function App() {
     padding: "0.75rem 1.5rem",
   };
   const linkStyle = {
-    color: isDark ? "#f7fafc" : "#1a202c",
     textDecoration: "none",
     fontWeight: 500,
   };
+  const navTextColor = lightText ? "#ffffff" : "#000000";
   const contentWrapperStyle = {
     paddingTop: "64px",
     minHeight: "100vh",
@@ -88,7 +105,7 @@ export default function App() {
       <Toaster position="top-right" />
 
       {/* FIXED TOP NAV */}
-      <nav style={navStyle}>
+      <nav ref={navRef} style={navStyle} className={`animate-logoCycle transition-colors duration-1000 ${lightText ? 'text-white' : 'text-black'}`}>
         <div style={navInnerStyle}>
           <Link to="/" style={{ marginRight: "1rem" }}>
             <Logo />
@@ -96,7 +113,7 @@ export default function App() {
 
           {/* Main nav links */}
           {navItems.map(({ to, label }) => (
-            <Link key={to} to={to} style={linkStyle}>
+            <Link key={to} to={to} style={{ ...linkStyle, color: navTextColor }}>
               {label}
             </Link>
           ))}
@@ -108,7 +125,7 @@ export default function App() {
             onMouseLeave={() => setLogMenuOpen(false)}
           >
             <span
-              style={{ ...linkStyle, cursor: "pointer" }}
+              style={{ ...linkStyle, color: navTextColor, cursor: "pointer" }}
               role="button"
               aria-haspopup="menu"
               aria-expanded={logMenuOpen}
@@ -130,13 +147,23 @@ export default function App() {
               >
                 <Link
                   to="/floor-traffic"
-                  style={{ ...linkStyle, display: "block", padding: "0.25rem 1rem" }}
+                  style={{
+                    ...linkStyle,
+                    display: "block",
+                    padding: "0.25rem 1rem",
+                    color: isDark ? "#f7fafc" : "#1a202c",
+                  }}
                 >
                   Floor Log
                 </Link>
                 <Link
                   to="/leads"
-                  style={{ ...linkStyle, display: "block", padding: "0.25rem 1rem" }}
+                  style={{
+                    ...linkStyle,
+                    display: "block",
+                    padding: "0.25rem 1rem",
+                    color: isDark ? "#f7fafc" : "#1a202c",
+                  }}
                 >
                   Lead Log
                 </Link>
@@ -150,7 +177,7 @@ export default function App() {
             onMouseEnter={() => setCustomerMenuOpen(true)}
             onMouseLeave={() => setCustomerMenuOpen(false)}
           >
-            <span style={{ ...linkStyle, cursor: "pointer" }}>
+            <span style={{ ...linkStyle, color: navTextColor, cursor: "pointer" }}>
               Customers ▾
             </span>
             {customerMenuOpen && (
@@ -168,13 +195,23 @@ export default function App() {
               >
                 <Link
                   to="/customers"
-                  style={{ ...linkStyle, display: "block", padding: "0.25rem 1rem" }}
+                  style={{
+                    ...linkStyle,
+                    display: "block",
+                    padding: "0.25rem 1rem",
+                    color: isDark ? "#f7fafc" : "#1a202c",
+                  }}
                 >
                   Customer List
                 </Link>
                 <Link
                   to="/activities"
-                  style={{ ...linkStyle, display: "block", padding: "0.25rem 1rem" }}
+                  style={{
+                    ...linkStyle,
+                    display: "block",
+                    padding: "0.25rem 1rem",
+                    color: isDark ? "#f7fafc" : "#1a202c",
+                  }}
                 >
                   Activities
                 </Link>
