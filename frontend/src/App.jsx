@@ -16,6 +16,7 @@ import Home                   from "./routes/Home";
 import Logo                   from "./components/Logo";
 import ReconPage              from "./pages/ReconPage";
 import ChatGPTPrompt          from "./components/ChatGPTPrompt";
+import KPIDetailPage          from "./routes/KPIDetailPage";
 import { Plus, User }         from "lucide-react";
 
 export default function App() {
@@ -238,6 +239,7 @@ export default function App() {
           <Route path="/activities" element={<ActivityTimeline />} />
           <Route path="/floor-traffic" element={<FloorTrafficPage />} />
           <Route path="/floor-traffic/new" element={<CreateFloorTrafficForm />} />
+          <Route path="/kpi/:id" element={<KPIDetailPage />} />
         </Routes>
       </div>
     </Router>
