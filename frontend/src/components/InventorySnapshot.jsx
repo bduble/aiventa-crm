@@ -22,7 +22,7 @@ export default function InventorySnapshot() {
     fetchStats();
   }, []);
 
-  const kpiClass = 'rounded-3xl p-6 bg-gradient-to-br from-electricblue via-darkblue to-slategray text-white shadow-lg';
+  const kpiClass = 'rounded-3xl p-6 bg-gradient-to-br from-electricblue via-darkblue to-slategray text-white shadow-frame';
 
   return (
     <div className={kpiClass}>
