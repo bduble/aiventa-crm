@@ -124,3 +124,48 @@ def update_floor_traffic(entry_id: int, entry: FloorTrafficCustomerUpdate):
     if not res.data:
         raise HTTPException(status_code=404, detail="Entry not found")
     return res.data[0]
+
+
+@router.get("/month-metrics")
+def month_metrics():
+    """Return month-to-date sales performance metrics."""
+    today = date.today()
+    start = datetime.combine(today.replace(day=1), datetime.min.time())
+    if start.month == 12:
+        end = start.replace(year=start.year + 1, month=1)
+    else:
+        end = start.replace(month=start.month + 1)
+
+    try:
+        res = (
+            supabase.table("floor_traffic_customers")
+            .select(
+                "demo, worksheet, write_up, worksheet_complete, worksheetComplete, writeUp, sold"
+            )
+            .gte("visit_time", start.isoformat())
+            .lt("visit_time", end.isoformat())
+            .execute()
+        )
+    except APIError as e:
+        raise HTTPException(status_code=500, detail=e.message)
+
+    rows = res.data or []
+    total = len(rows)
+    demo = sum(1 for r in rows if r.get("demo"))
+    writeup = sum(
+        1
+        for r in rows
+        if r.get("worksheet")
+        or r.get("write_up")
+        or r.get("writeUp")
+        or r.get("worksheet_complete")
+        or r.get("worksheetComplete")
+    )
+    sold = sum(1 for r in rows if r.get("sold"))
+
+    return {
+        "total_customers": total,
+        "demo_count": demo,
+        "write_up_count": writeup,
+        "sold_count": sold,
+    }

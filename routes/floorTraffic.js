@@ -33,6 +33,44 @@ router.get('/floor-traffic', async (req, res, next) => {
 });
 
 /**
+ * GET /api/floor-traffic/month-metrics
+ * Return month to date sales performance counts.
+ */
+router.get('/floor-traffic/month-metrics', async (req, res, next) => {
+  try {
+    const start = new Date();
+    start.setDate(1);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(start);
+    end.setMonth(end.getMonth() + 1);
+
+    const { data, error } = await supabase
+      .from('floor_traffic_customers')
+      .select('*')
+      .gte('visit_time', start.toISOString())
+      .lt('visit_time', end.toISOString());
+    if (error) throw error;
+
+    const rows = data || [];
+    const total = rows.length;
+    const demo = rows.filter(r => r.demo).length;
+    const writeUp = rows.filter(r =>
+      r.worksheet || r.writeUp || r.worksheet_complete || r.worksheetComplete || r.write_up
+    ).length;
+    const sold = rows.filter(r => r.sold).length;
+
+    res.json({
+      totalCustomers: total,
+      demoCount: demo,
+      writeUpCount: writeUp,
+      soldCount: sold,
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+/**
  * POST /api/floor-traffic
  * Create a new floor-traffic entry.
  */
