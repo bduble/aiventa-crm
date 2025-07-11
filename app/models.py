@@ -44,19 +44,26 @@ class ContactUpdate(BaseModel):
 # ── Customers ─────────────────────────────────────────────────────────────────
 
 class Customer(BaseModel):
-    id: int                                # ← changed from str
+    id: int                                # ← match the DB’s integer PK
     first_name: Optional[str] = None
     last_name:  Optional[str] = None
-    email:      Optional[EmailStr] = None
-    phone:      Optional[str] = None
 
-    # still expose "name" for client code
+    # allow empty strings to become None so EmailStr validation is skipped
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+
+    # still expose "name" for backwards compatibility
     name: str
+
+    @validator('email', pre=True, always=True)
+    def empty_email_to_none(cls, v):
+        if v in (None, ""):
+            return None
+        return v
 
     @root_validator(pre=True)
     def combine_names(cls, values):
-        # If the DB already gave us a "name" field, keep it.
-        # Otherwise build it from first_name + last_name.
+        # If the DB already provided "name", keep it; otherwise build it
         if not values.get("name"):
             fn = values.get("first_name") or ""
             ln = values.get("last_name")  or ""
