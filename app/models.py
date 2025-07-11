@@ -1,6 +1,8 @@
+# app/models.py
+
 from datetime import date, datetime
-from typing import Optional
-from pydantic import BaseModel, EmailStr, validator, ConfigDict
+from typing import Optional, List
+from pydantic import BaseModel, EmailStr, root_validator, validator, ConfigDict
 
 # ── Leads ──────────────────────────────────────────────────────────────────────
 
@@ -42,17 +44,30 @@ class ContactUpdate(BaseModel):
 # ── Customers ─────────────────────────────────────────────────────────────────
 
 class Customer(BaseModel):
-    id: str
+    id: int                                # ← changed from str
+    first_name: Optional[str] = None
+    last_name:  Optional[str] = None
+    email:      Optional[EmailStr] = None
+    phone:      Optional[str] = None
+
+    # still expose "name" for client code
     name: str
-    email: Optional[str]
-    phone: Optional[str]
+
+    @root_validator(pre=True)
+    def combine_names(cls, values):
+        # If the DB already gave us a "name" field, keep it.
+        # Otherwise build it from first_name + last_name.
+        if not values.get("name"):
+            fn = values.get("first_name") or ""
+            ln = values.get("last_name")  or ""
+            values["name"] = (fn + " " + ln).strip()
+        return values
 
 
 class CustomerCreate(BaseModel):
     name: str
     email: Optional[str]
     phone: Optional[str]
-
 
 class CustomerUpdate(BaseModel):
     name: Optional[str]
@@ -163,7 +178,6 @@ class FloorTrafficCustomerCreate(BaseModel):
 
     @validator('email', pre=True, always=True)
     def empty_string_to_none(cls, v):
-        # Convert empty strings to None so EmailStr validation is skipped
         if v in (None, ''):
             return None
         return v
@@ -188,10 +202,8 @@ def to_camel(string: str) -> str:
     parts = string.split('_')
     return parts[0] + ''.join(word.capitalize() for word in parts[1:])
 
-
 class CamelModel(BaseModel):
     """Base model that converts snake_case fields to camelCase aliases."""
-
     model_config = ConfigDict(validate_by_name=True, alias_generator=to_camel)
 
 class InventoryItem(CamelModel):
