@@ -15,10 +15,10 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
     year,
     make,
     model,
-    stockNumber,
+    stocknumber,
     trim,
     msrp,
-    price, // your selling price
+    sellingprice, // your selling price
     mileage,
     link,
     imageLink,
@@ -31,8 +31,8 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
     additionalImageLink6,
     additionalImageLink7,
     additionalImageLink8,
-    exteriorColor,
-    interiorColor,
+    exterior_color,
+    interior_color,
     active,
   } = vehicle;
 
