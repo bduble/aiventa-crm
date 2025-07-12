@@ -31,9 +31,9 @@ def build_allowed_origins() -> list[str]:
     if frontend := os.getenv("FRONTEND_URL"):  # e.g. https://aiventa-crm.vercel.app
         origins.append(frontend.strip().rstrip("/"))
     if vercel_url := os.getenv("VERCEL_URL"):  # Vercel preview URLs
-        origins.append(f"https://{vercel_url.strip().rstrip("/")}")
+        origins.append(f'https://{vercel_url.strip().rstrip("/")}')
     if render_url := os.getenv("RENDER_EXTERNAL_URL"):  # Render service URL
-        origins.append(f"https://{render_url.strip().rstrip("/")}")
+        origins.append(f'https://{render_url.strip().rstrip("/")}')
     # Remove duplicates, preserve order
     seen = set()
     deduped = []
