@@ -1,8 +1,11 @@
+```python
+# app/routers/floor_traffic.py
+
+import logging
+from datetime import date, datetime, timedelta
 from fastapi import APIRouter, HTTPException, status, Query
 from fastapi.encoders import jsonable_encoder
 from postgrest.exceptions import APIError
-from datetime import date, datetime, timedelta
-import logging
 
 from app.db import supabase
 from app.models import (
@@ -12,9 +15,10 @@ from app.models import (
     MonthMetrics,
 )
 
-router = APIRouter()
+router = APIRouter(prefix="/floor-traffic", tags=["floor-traffic"])
 
 # --- Introspect actual columns to avoid selecting non-existent ones ---
+
 def _load_ft_columns() -> set[str]:
     try:
         resp = (
@@ -54,7 +58,7 @@ async def _fetch_range(start: date, end: date):
         return data if isinstance(data, list) else []
     except APIError as e:
         logging.error("floor_traffic._fetch_range error: %s", e)
-        raise HTTPException(status_code=500, detail="Failed to fetch floor traffic data")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to fetch floor traffic data")
 
 
 @router.get(
@@ -107,7 +111,7 @@ async def create_floor_traffic(entry: FloorTrafficCustomerCreate):
     # Required fields
     if not payload.get("visit_time") or not payload.get("salesperson"):
         raise HTTPException(
-            status_code=422,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="visit_time and salesperson are required",
         )
     # Build customer_name
@@ -115,7 +119,7 @@ async def create_floor_traffic(entry: FloorTrafficCustomerCreate):
     last = payload.get("last_name")
     if not first or not last:
         raise HTTPException(
-            status_code=422,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="first_name and last_name are required",
         )
     payload["customer_name"] = f"{first.strip()} {last.strip()}"
@@ -129,11 +133,11 @@ async def create_floor_traffic(entry: FloorTrafficCustomerCreate):
         )
     except APIError as e:
         logging.error("create_floor_traffic insert error: %s", e)
-        raise HTTPException(status_code=400, detail=e.message)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
     if not res.data:
         raise HTTPException(
-            status_code=500,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Database insertion failed, no data returned."
         )
 
@@ -141,13 +145,11 @@ async def create_floor_traffic(entry: FloorTrafficCustomerCreate):
 
     # Also create a contact record, ignore errors
     try:
-        supabase.table("contacts").insert(
-            {
-                "name": created.get("customer_name"),
-                "email": created.get("email"),
-                "phone": created.get("phone"),
-            }
-        ).execute()
+        supabase.table("contacts").insert({
+            "name": created.get("customer_name"),
+            "email": created.get("email"),
+            "phone": created.get("phone"),
+        }).execute()
     except APIError as e:
         logging.warning("Failed to insert contact record: %s", e)
 
@@ -158,7 +160,7 @@ async def create_floor_traffic(entry: FloorTrafficCustomerCreate):
 async def update_floor_traffic(entry_id: int, entry: FloorTrafficCustomerUpdate):
     payload = {k: v for k, v in jsonable_encoder(entry).items() if v is not None}
     if not payload:
-        raise HTTPException(status_code=400, detail="No fields to update")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update")
     try:
         res = (
             supabase.table("floor_traffic_customers")
@@ -168,9 +170,9 @@ async def update_floor_traffic(entry_id: int, entry: FloorTrafficCustomerUpdate)
         )
     except APIError as e:
         logging.error("update_floor_traffic error: %s", e)
-        raise HTTPException(status_code=400, detail=e.message)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     if not res.data:
-        raise HTTPException(status_code=404, detail="Entry not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Entry not found")
     return res.data[0]
 
 
@@ -225,6 +227,8 @@ async def month_metrics():
         1 for r in rows
         if any(r.get(k) for k in ["worksheet", "write_up", "worksheet_complete"])
     )
+    write_up = sum(1 for r in rows if r.get("write_up"))
+    worksheet_complete = sum(1 for r in rows if r.get("worksheet_complete"))
     customer_offer = sum(1 for r in rows if r.get("customer_offer"))
     sold = sum(1 for r in rows if r.get("sold"))
 
@@ -232,8 +236,9 @@ async def month_metrics():
         total=total,
         demo=demo,
         worksheet=worksheet,
-        write_up=sum(1 for r in rows if r.get("write_up")),
-        worksheet_complete=sum(1 for r in rows if r.get("worksheet_complete")),
+        write_up=write_up,
+        worksheet_complete=worksheet_complete,
         customer_offer=customer_offer,
         sold=sold,
     )
+```
