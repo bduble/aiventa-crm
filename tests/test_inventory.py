@@ -7,7 +7,7 @@ client = TestClient(app)
 
 
 def test_list_inventory():
-    sample = [{"id": 1, "stockNumber": "A123"}]
+    sample = [{"id": 1, "stockNumber": "A123", "inventory_type": "new"}]
     exec_result = MagicMock(data=sample, error=None)
     mock_table = MagicMock()
     mock_table.select.return_value.execute.return_value = exec_result
@@ -21,17 +21,18 @@ def test_list_inventory():
     data = response.json()
     assert isinstance(data, list)
     assert data[0]["stockNumber"] == "A123"
+    assert data[0]["inventoryType"] == "new"
 
 
 def test_create_inventory():
-    sample = {"id": 1, "stockNumber": "A123"}
+    sample = {"id": 1, "stockNumber": "A123", "inventory_type": "used"}
     exec_result = MagicMock(data=[sample], error=None)
     mock_table = MagicMock()
     mock_table.insert.return_value.execute.return_value = exec_result
     mock_supabase = MagicMock()
     mock_supabase.table.return_value = mock_table
 
-    payload = {"stockNumber": "A123"}
+    payload = {"stockNumber": "A123", "inventoryType": "used"}
     with patch("app.routers.inventory.supabase", mock_supabase):
         response = client.post(
             "/api/inventory/",
@@ -42,6 +43,7 @@ def test_create_inventory():
     assert response.status_code == 201
     data = response.json()
     assert data["stockNumber"] == "A123"
+    assert data["inventoryType"] == "used"
 
 
 def test_filter_inventory_query_params():
@@ -68,7 +70,11 @@ def test_filter_inventory_query_params():
     mock_query.gte.assert_called_with("year", 2020)
 
 def test_inventory_snapshot():
-    sample = [{"active": True}, {"active": False}]
+    sample = [
+        {"inventory_type": "new"},
+        {"inventory_type": "used"},
+        {"inventory_type": "new"},
+    ]
     exec_result = MagicMock(data=sample, error=None)
     mock_table = MagicMock()
     mock_table.select.return_value.execute.return_value = exec_result
@@ -79,4 +85,4 @@ def test_inventory_snapshot():
         response = client.get("/api/inventory/snapshot")
 
     assert response.status_code == 200
-    assert response.json() == {"total": 2, "active": 1, "inactive": 1}
+    assert response.json() == {"total": 3, "new": 2, "used": 1}

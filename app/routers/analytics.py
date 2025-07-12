@@ -67,10 +67,10 @@ def inventory_overview():
     try:
         snapshot = inventory.inventory_snapshot()
     except Exception:
-        snapshot = {"total": 0, "active": 0, "inactive": 0}
+        snapshot = {"total": 0, "new": 0, "used": 0}
     total = snapshot.get("total", 0)
-    new_count = snapshot.get("active", 0)
-    used_count = total - new_count
+    new_count = snapshot.get("new", 0)
+    used_count = snapshot.get("used", 0)
     return {
         "total": total,
         "newCount": new_count,

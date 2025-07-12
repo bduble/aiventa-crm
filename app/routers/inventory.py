@@ -17,6 +17,7 @@ def list_inventory(
     price_max: float | None = Query(None),
     mileage_max: int | None = Query(None),
     condition: str | None = Query(None),
+    inventory_type: str | None = Query(None, alias="type"),
     color: str | None = Query(None),
     fuel_type: str | None = Query(None, alias="fuelType"),
     drivetrain: str | None = Query(None),
@@ -42,6 +43,8 @@ def list_inventory(
         query = query.lte("mileage", mileage_max)
     if condition:
         query = query.eq("condition", condition)
+    if inventory_type:
+        query = query.eq("inventory_type", inventory_type)
     if color:
         query = query.ilike("color", f"%{color}%")
     if fuel_type:
@@ -66,23 +69,26 @@ def list_inventory_noslash():
 @router.get("/snapshot")
 def inventory_snapshot():
     """
-    Return basic counts of total, active, and inactive inventory.
+    Return counts of total, new, and used inventory items.
     """
     try:
-        # select all rows so we can count active vs inactive
-        res = supabase.table("inventory").select("*").execute()
+        res = supabase.table("inventory").select("inventory_type").execute()
     except APIError as e:
         raise HTTPException(status_code=500, detail=e.message)
 
     rows = res.data or []
     total = len(rows)
-    active_count = sum(1 for r in rows if r.get("active") is True)
-    inactive_count = total - active_count
+    new_count = sum(
+        1 for r in rows if str(r.get("inventory_type", "")).lower() == "new"
+    )
+    used_count = sum(
+        1 for r in rows if str(r.get("inventory_type", "")).lower() == "used"
+    )
 
     return {
         "total": total,
-        "active": active_count,
-        "inactive": inactive_count,
+        "new": new_count,
+        "used": used_count,
     }
 
 
