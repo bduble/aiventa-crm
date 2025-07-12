@@ -21,6 +21,9 @@ export default function FloorTrafficPage() {
   const [error, setError] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const [startDate, setStartDate] = useState(todayStr);
+  const [endDate, setEndDate] = useState(todayStr);
   const [activity, setActivity] = useState({
     salesCalls: 0,
     textMessages: 0,
@@ -28,26 +31,27 @@ export default function FloorTrafficPage() {
   });
 
   useEffect(() => {
-    const fetchToday = async () => {
+    const fetchRange = async () => {
       setLoading(true);
       setError('');
 
       try {
         if (supabase) {
-          const today = new Date();
-          const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-          const end = new Date(start);
-          end.setDate(end.getDate() + 1);
+          const start = new Date(startDate);
+          const end = new Date(endDate);
+          const endIso = new Date(end.getTime());
+          endIso.setDate(endIso.getDate() + 1);
           const { data, error: err } = await supabase
             .from('floor_traffic_customers')
             .select('*')
             .gte('visit_time', start.toISOString())
-            .lt('visit_time', end.toISOString())
+            .lt('visit_time', endIso.toISOString())
             .order('visit_time', { ascending: true });
           if (err) throw err;
           setRows(data || []);
         } else {
-          const res = await fetch(`${API_BASE}/floor-traffic`);
+          const params = new URLSearchParams({ start: startDate, end: endDate });
+          const res = await fetch(`${API_BASE}/floor-traffic/search?${params}`);
           if (!res.ok) throw new Error('Failed to load traffic');
           const data = await res.json();
           setRows(data || []);
@@ -61,8 +65,8 @@ export default function FloorTrafficPage() {
       }
     };
 
-    fetchToday();
-  }, [API_BASE]);
+    fetchRange();
+  }, [API_BASE, startDate, endDate]);
 
   useEffect(() => {
     const fetchActivityMetrics = async () => {
@@ -172,6 +176,23 @@ export default function FloorTrafficPage() {
     <div className="p-4 space-y-6">
       <h1 className="text-3xl font-bold">Floor Traffic</h1>
 
+      <div className="flex items-center gap-2">
+        <label className="text-sm">Start:</label>
+        <input
+          type="date"
+          value={startDate}
+          onChange={e => setStartDate(e.target.value)}
+          className="border rounded px-2 py-1"
+        />
+        <label className="text-sm">End:</label>
+        <input
+          type="date"
+          value={endDate}
+          onChange={e => setEndDate(e.target.value)}
+          className="border rounded px-2 py-1"
+        />
+      </div>
+
       {!supabase && (
         <p className="mt-4 text-yellow-700">
           Supabase is not configured. Falling back to the API server.
@@ -185,7 +206,7 @@ export default function FloorTrafficPage() {
           <div className="flex items-center gap-2 opacity-90">
             <Users className="w-5 h-5" />
             <p className="uppercase tracking-wider text-sm font-medium">
-              Total Visitors Today
+              Visitors
             </p>
           </div>
           <p className="text-3xl font-bold mt-2">{totalCustomers}</p>
