@@ -41,6 +41,8 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  /* prevent content from sitting underneath the fixed header */
+  padding-top: var(--header-height); /* Use the CSS variable for header height */
 }
 
 #root {
