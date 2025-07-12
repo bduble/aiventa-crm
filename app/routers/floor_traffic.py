@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Query
 from fastapi.encoders import jsonable_encoder
 from postgrest.exceptions import APIError
 from datetime import date, datetime, timedelta
@@ -11,23 +11,17 @@ from app.models import (
 
 router = APIRouter()
 
-@router.get(
-    "/today",
-    response_model=list[FloorTrafficCustomer],
-    summary="Get today's floor-traffic entries",
-)
-async def get_today_floor_traffic():
-    today = date.today()
-    start = datetime.combine(today, datetime.min.time())
-    end = start + timedelta(days=1)
+async def _fetch_range(start: date, end: date):
+    start_dt = datetime.combine(start, datetime.min.time())
+    end_dt = datetime.combine(end, datetime.min.time()) + timedelta(days=1)
 
     try:
         res = (
             supabase
             .table("floor_traffic_customers")
             .select("*")
-            .gte("visit_time", start.isoformat())
-            .lt("visit_time", end.isoformat())
+            .gte("visit_time", start_dt.isoformat())
+            .lt("visit_time", end_dt.isoformat())
             .order("visit_time", desc=False)
             .execute()
         )
@@ -36,6 +30,35 @@ async def get_today_floor_traffic():
 
     data = res.data or []
     return data if isinstance(data, list) else []
+
+
+@router.get(
+    "/today",
+    response_model=list[FloorTrafficCustomer],
+    summary="Get today's floor-traffic entries",
+)
+async def get_today_floor_traffic():
+    today = date.today()
+    return await _fetch_range(today, today)
+
+
+@router.get(
+    "/search",
+    response_model=list[FloorTrafficCustomer],
+    summary="Search floor-traffic by date range",
+)
+async def search_floor_traffic(
+    start: date | None = Query(None, description="Start date (YYYY-MM-DD)"),
+    end: date | None = Query(None, description="End date (YYYY-MM-DD)"),
+):
+    if start is None and end is None:
+        start = end = date.today()
+    elif start is None:
+        start = end
+    elif end is None:
+        end = start
+
+    return await _fetch_range(start, end)
 
 @router.get(
     "/",
