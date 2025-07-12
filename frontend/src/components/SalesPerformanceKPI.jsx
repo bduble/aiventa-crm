@@ -1,39 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-} from 'recharts';
-import { TrendingUp, PercentCircle } from 'lucide-react';
 
 export default function SalesPerformanceKPI() {
-  const [stats, setStats] = useState({
-    current: 0,
-    goal: 0,
-    avgDealSize: 0,
-    conversionRate: 0,
-    daily: [],
-  });
+  const [stats, setStats] = useState({ demo: 0, worksheet: 0, offer: 0, sold: 0 });
 
   useEffect(() => {
-    const API_BASE = import.meta.env.PROD
-      ? import.meta.env.VITE_API_BASE_URL
-      : '/api';
+    const API_BASE = import.meta.env.PROD ? import.meta.env.VITE_API_BASE_URL : '/api';
     const fetchStats = async () => {
       try {
-        const res = await fetch(`${API_BASE}/analytics/sales-overview`);
+        const res = await fetch(`${API_BASE}/floor-traffic/month-metrics`);
         if (!res.ok) return;
         const data = await res.json();
+        const total = data.total_customers ?? data.totalCustomers ?? 0;
+        const demo = data.demo_count ?? data.demoCount ?? 0;
+        const worksheet =
+          data.worksheet_count ?? data.worksheetCount ?? data.write_up_count ?? data.writeUpCount ?? 0;
+        const offer = data.customer_offer_count ?? data.customerOfferCount ?? 0;
+        const sold = data.sold_count ?? data.soldCount ?? 0;
+        const pct = c => (total ? Math.round((c / total) * 100) : 0);
         setStats({
-          current: data.current ?? 0,
-          goal: data.goal ?? 0,
-          avgDealSize: data.avgDealSize ?? 0,
-          conversionRate: data.conversionRate ?? 0,
-          daily: Array.isArray(data.daily) ? data.daily : [],
+          demo: pct(demo),
+          worksheet: pct(worksheet),
+          offer: pct(offer),
+          sold: pct(sold),
         });
       } catch (err) {
         console.error(err);
@@ -42,52 +30,15 @@ export default function SalesPerformanceKPI() {
     fetchStats();
   }, []);
 
-  const pct = stats.goal ? Math.round((stats.current / stats.goal) * 100) : 0;
-  const pieData = [
-    { name: 'progress', value: pct },
-    { name: 'remain', value: 100 - pct },
-  ];
-
   return (
     <div className="bg-white p-4 rounded-lg shadow space-y-3">
       <h3 className="font-semibold">MTD Sales Performance</h3>
-      <div className="flex items-center justify-between">
-        <span className="text-xl font-bold">
-          ${stats.current} of ${stats.goal} MTD
-        </span>
-        <PieChart width={60} height={60}>
-          <Pie
-            startAngle={90}
-            endAngle={-270}
-            innerRadius={20}
-            outerRadius={28}
-            paddingAngle={0}
-            data={pieData}
-            dataKey="value"
-          >
-            <Cell fill="#10b981" />
-            <Cell fill="#e5e7eb" />
-          </Pie>
-        </PieChart>
-      </div>
-      <div className="h-16">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={stats.daily} margin={{ left: -20, right: 0 }}>
-            <Line type="monotone" dataKey="value" stroke="#3b82f6" dot={false} />
-            <Tooltip />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-      <div className="grid grid-cols-2 gap-2 text-xs">
-        <div className="flex items-center gap-1">
-          <TrendingUp className="w-4 h-4" />
-          <span>Avg Deal Size: ${stats.avgDealSize}</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <PercentCircle className="w-4 h-4" />
-          <span>Conversion Rate: {stats.conversionRate}%</span>
-        </div>
-      </div>
+      <ul className="text-sm space-y-1">
+        <li>Demo: {stats.demo}%</li>
+        <li>Worksheet: {stats.worksheet}%</li>
+        <li>Customer Offer: {stats.offer}%</li>
+        <li>Sold: {stats.sold}%</li>
+      </ul>
     </div>
   );
 }

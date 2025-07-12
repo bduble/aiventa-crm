@@ -54,15 +54,22 @@ router.get('/floor-traffic/month-metrics', async (req, res, next) => {
     const rows = data || [];
     const total = rows.length;
     const demo = rows.filter(r => r.demo).length;
-    const writeUp = rows.filter(r =>
-      r.worksheet || r.writeUp || r.worksheet_complete || r.worksheetComplete || r.write_up
+    const worksheet = rows.filter(
+      r =>
+        r.worksheet ||
+        r.writeUp ||
+        r.worksheet_complete ||
+        r.worksheetComplete ||
+        r.write_up
     ).length;
+    const offers = rows.filter(r => r.customer_offer || r.customerOffer).length;
     const sold = rows.filter(r => r.sold).length;
 
     res.json({
       totalCustomers: total,
       demoCount: demo,
-      writeUpCount: writeUp,
+      worksheetCount: worksheet,
+      customerOfferCount: offers,
       soldCount: sold,
     });
   } catch (err) {

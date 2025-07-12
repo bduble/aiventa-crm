@@ -134,8 +134,8 @@ def test_update_floor_traffic():
 
 def test_month_metrics():
     sample = [
-        {"demo": True, "worksheet": None, "sold": False},
-        {"demo": False, "worksheet": True, "sold": True},
+        {"demo": True, "worksheet": True, "customer_offer": True, "sold": False},
+        {"demo": False, "worksheet": False, "customer_offer": False, "sold": True},
     ]
 
     exec_result = MagicMock(data=sample, error=None)
@@ -153,6 +153,7 @@ def test_month_metrics():
     assert response.json() == {
         "total_customers": 2,
         "demo_count": 1,
-        "write_up_count": 1,
+        "worksheet_count": 1,
+        "customer_offer_count": 1,
         "sold_count": 1,
     }
