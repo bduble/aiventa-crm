@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import CountUp from 'react-countup';
+import { motion as Motion } from 'framer-motion';
 
 import Logo from '../components/Logo';
 import SalesTeamActivity from '../components/SalesTeamActivity';
@@ -32,7 +31,7 @@ export default function Home() {
       to={to}
       className="group block bg-white rounded-lg shadow-md p-6 hover:shadow-xl hover:bg-blue-50 transition"
     >
-      <motion.div
+      <Motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay, duration: 0.6 }}
@@ -43,7 +42,7 @@ export default function Home() {
           If not, wrap numbers yourself with <CountUp /> inside each.
         */}
         {React.cloneElement(children, { countUp: true })}
-      </motion.div>
+      </Motion.div>
     </Link>
   );
 
@@ -85,7 +84,7 @@ export default function Home() {
 
       {/* DASHBOARD */}
       {!showHero && (
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1 }}
@@ -122,7 +121,7 @@ export default function Home() {
               <MarketingCampaignROI />
             </AnimatedCard>
           </div>
-        </motion.div>
+        </Motion.div>
       )}
     </div>
   );
