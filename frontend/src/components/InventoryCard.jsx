@@ -32,9 +32,8 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
     additionalImageLink6,
     additionalImageLink7,
     additionalImageLink8,
-    exteriorColor,
-    interiorColor,
-    inventoryType,
+    exterior_color,
+    interior_color,
     active,
   } = vehicle;
 
