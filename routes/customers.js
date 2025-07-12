@@ -16,7 +16,7 @@ router.get('/customers', async (req, res, next) => {
     const rows = Array.isArray(data) ? data : [];
     const customers = rows.map(c => ({
       ...c,
-      name: c.name || [c.first_name, c.last_name].filter(Boolean).join(' ').trim()
+      name: normalizeCustomerName(c)
     }));
     res.json(customers);
   } catch (err) {
