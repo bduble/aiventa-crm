@@ -15,7 +15,7 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
     year,
     make,
     model,
-    stocknumber,
+    stockNumber,
     trim,
     msrp,
     sellingprice, // your selling price
@@ -31,8 +31,8 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
     additionalImageLink6,
     additionalImageLink7,
     additionalImageLink8,
-    exterior_color,
-    interior_color,
+    exteriorColor,
+    interiorColor,
     active,
   } = vehicle;
 
@@ -71,7 +71,7 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
   const formattedMSRP =
     msrp != null ? `$${Number(msrp).toLocaleString()}` : null;
   const formattedPrice =
-    price != null ? `$${Number(price).toLocaleString()}` : null;
+    sellingprice != null ? `$${Number(sellingprice).toLocaleString()}` : null;
 
   return (
     <div className="rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300 bg-white dark:bg-gray-900">
