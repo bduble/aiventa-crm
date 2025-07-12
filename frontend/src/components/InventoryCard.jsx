@@ -15,6 +15,7 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
     year,
     make,
     model,
+    type,
     stockNumber,
     trim,
     msrp,
