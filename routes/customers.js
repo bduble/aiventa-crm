@@ -37,7 +37,7 @@ router.get('/customers/:id', async (req, res, next) => {
     if (!data) return res.status(404).json({ message: 'Customer not found' });
     const customer = {
       ...data,
-      name: data.name || [data.first_name, data.last_name].filter(Boolean).join(' ').trim(),
+      name: data.name || [data.first_name, data.last_name].filter(Boolean).join(' ').trim() || 'Unknown Customer',
     };
     res.json(customer);
   } catch (err) {
