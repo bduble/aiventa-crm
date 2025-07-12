@@ -82,3 +82,28 @@ curl -H "apikey: $SUPABASE_KEY" \
 ```
 
 This ensures requests authenticate correctly and avoids 401/400 errors.
+
+Alternatively, you can use the Supabase Python client which adds the
+required headers for you:
+
+```python
+from supabase import create_client
+import os
+
+url = os.environ.get("SUPABASE_URL")
+key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_KEY")
+supabase = create_client(url, key)
+
+def month_metrics():
+    start = "2025-07-01T00:00:00"
+    end = "2025-08-01T00:00:00"
+    res = (
+        supabase
+        .table("floor_traffic_customers")
+        .select("demo,worksheet,write_up,worksheet_complete,sold")
+        .gte("visit_time", start)
+        .lt("visit_time", end)
+        .execute()
+    )
+    return res.data or {}
+```
