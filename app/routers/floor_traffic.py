@@ -22,7 +22,7 @@ def _load_ft_columns() -> set[str]:
     try:
         resp = (
             supabase
-            .table("information_schema.columns")
+            .from_("information_schema.columns")
             .select("column_name")
             .eq("table_name", "floor_traffic_customers")
             .execute()
