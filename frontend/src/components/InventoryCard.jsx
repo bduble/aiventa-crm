@@ -127,9 +127,9 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
           {year} {make} {model}
         </h3>
 
-        {stockNumber && (
+        {stocknumber && (
           <p className="flex items-center gap-1">
-            <Tag className="w-4 h-4" /> Stock #: {stockNumber}
+            <Tag className="w-4 h-4" /> Stock #: {stocknumber}
           </p>
         )}
 
@@ -158,21 +158,21 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
           </p>
         )}
 
-        {inventoryType && (
+        {type && (
           <p className="flex items-center gap-1">
-            <Tag className="w-4 h-4" /> Type: {inventoryType}
+            <Tag className="w-4 h-4" /> Type: {type}
           </p>
         )}
 
-        {exteriorColor && (
+        {exterior_color && (
           <p className="flex items-center gap-1">
-            <Palette className="w-4 h-4" /> Exterior: {exteriorColor}
+            <Palette className="w-4 h-4" /> Exterior: {exterior_color}
           </p>
         )}
 
-        {interiorColor && (
+        {interior_color && (
           <p className="flex items-center gap-1">
-            <Droplet className="w-4 h-4" /> Interior: {interiorColor}
+            <Droplet className="w-4 h-4" /> Interior: {interior_color}
           </p>
         )}
       </div>
