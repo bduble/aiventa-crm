@@ -16,7 +16,7 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
     make,
     model,
     type,
-    stockNumber,
+    stocknumber,
     trim,
     msrp,
     sellingprice, // your selling price
