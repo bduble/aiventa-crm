@@ -128,10 +128,13 @@ function fullSyncInventory() {
   });
 
   const code = res.getResponseCode();
-  const ts   = (code >= 200 && code < 300)
-    ? new Date().toISOString()
-    : `ERROR:${code}`;
+  if (code < 200 || code >= 300) {
+    const errorDetails = res.getContentText();
+    console.error(`Error during API request. Code: ${code}, Details: ${errorDetails}`);
+    throw new Error(`API request failed with code ${code}: ${errorDetails}`);
+  }
 
+  const ts = new Date().toISOString();
   // Stamp each successfully processed row
   rowNumbers.forEach(r => {
     sh.getRange(r, statusIdx + 1).setValue(ts);
