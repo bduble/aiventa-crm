@@ -42,6 +42,9 @@ export default function SalesPerformanceKPI() {
     fetchStats();
   }, []);
 
+  const pct = count => (stats.total ? Math.round((count / stats.total) * 100) : 0);
+  const kpiClass =
+    'rounded-3xl p-6 bg-gradient-to-br from-electricblue via-darkblue to-slategray text-white shadow-frame';
   const pct = stats.goal ? Math.round((stats.current / stats.goal) * 100) : 0;
   const pieData = [
     { name: 'progress', value: pct },

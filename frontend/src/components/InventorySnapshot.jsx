@@ -32,6 +32,8 @@ export default function InventorySnapshot() {
     fetchStats();
   }, []);
 
+  const kpiClass = 'rounded-3xl p-6 bg-gradient-to-br from-electricblue via-darkblue to-slategray text-white shadow-frame';
+
   return (
     <div className="bg-white p-4 rounded-lg shadow space-y-3">
       <h3 className="font-semibold">Inventory Snapshot</h3>

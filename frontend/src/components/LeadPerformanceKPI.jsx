@@ -36,6 +36,7 @@ export default function LeadPerformanceKPI() {
     fetchStats();
   }, []);
 
+  const kpiClass = 'rounded-3xl p-6 bg-gradient-to-br from-electricblue via-darkblue to-slategray text-white shadow-frame';
   const formatTime = secs => {
     if (!secs) return '0m';
     const mins = Math.round(secs / 60);
