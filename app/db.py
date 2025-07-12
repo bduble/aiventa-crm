@@ -4,6 +4,7 @@ import os
 import logging
 from dotenv import load_dotenv
 from supabase import create_client
+from types import SimpleNamespace
 
 # 1️⃣ Load your .env (SUPABASE_URL, SUPABASE_KEY)
 load_dotenv()
@@ -28,4 +29,22 @@ else:
     logger.error("🔑 SUPABASE_KEY is not set in your environment!")
 
 # 5️⃣ Create the Supabase client
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+if SUPABASE_URL and SUPABASE_KEY:
+    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+else:
+    logger.warning("Supabase credentials missing; using in-memory stub")
+
+    class _StubQuery:
+        def __getattr__(self, _):
+            def method(*args, **kwargs):
+                return self
+            return method
+
+        def execute(self):
+            return SimpleNamespace(data=[], error=None, count=0)
+
+    class _StubClient:
+        def table(self, *_args, **_kwargs):
+            return _StubQuery()
+
+    supabase = _StubClient()
