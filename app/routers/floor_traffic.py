@@ -140,7 +140,7 @@ def month_metrics():
         res = (
             supabase.table("floor_traffic_customers")
             .select(
-                "demo, worksheet, write_up, worksheet_complete, worksheetComplete, writeUp, sold"
+                "demo, worksheet, write_up, worksheet_complete, worksheetComplete, writeUp, customer_offer, customerOffer, sold"
             )
             .gte("visit_time", start.isoformat())
             .lt("visit_time", end.isoformat())
@@ -152,7 +152,7 @@ def month_metrics():
     rows = res.data or []
     total = len(rows)
     demo = sum(1 for r in rows if r.get("demo"))
-    writeup = sum(
+    worksheet = sum(
         1
         for r in rows
         if r.get("worksheet")
@@ -161,11 +161,17 @@ def month_metrics():
         or r.get("worksheet_complete")
         or r.get("worksheetComplete")
     )
+    offers = sum(
+        1
+        for r in rows
+        if r.get("customer_offer") or r.get("customerOffer")
+    )
     sold = sum(1 for r in rows if r.get("sold"))
 
     return {
         "total_customers": total,
         "demo_count": demo,
-        "write_up_count": writeup,
+        "worksheet_count": worksheet,
+        "customer_offer_count": offers,
         "sold_count": sold,
     }
