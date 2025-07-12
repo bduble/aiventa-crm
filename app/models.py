@@ -225,6 +225,7 @@ class InventoryItem(CamelModel):
     mileage: Optional[int] = None
     color: Optional[str] = None
     condition: Optional[str] = None
+    inventory_type: Optional[str] = None
     fuel_type: Optional[str] = None
     drivetrain: Optional[str] = None
     active: Optional[bool] = True
@@ -245,6 +246,7 @@ class InventoryItemCreate(CamelModel):
     mileage: Optional[int] = None
     color: Optional[str] = None
     condition: Optional[str] = None
+    inventory_type: Optional[str] = None
     fuel_type: Optional[str] = None
     drivetrain: Optional[str] = None
     active: Optional[bool] = True
@@ -265,6 +267,7 @@ class InventoryItemUpdate(CamelModel):
     mileage: Optional[int] = None
     color: Optional[str] = None
     condition: Optional[str] = None
+    inventory_type: Optional[str] = None
     fuel_type: Optional[str] = None
     drivetrain: Optional[str] = None
     active: Optional[bool] = None
