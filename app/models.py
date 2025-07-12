@@ -44,7 +44,7 @@ class ContactUpdate(BaseModel):
 # ── Customers ─────────────────────────────────────────────────────────────────
 
 class Customer(BaseModel):
-    id: int                                # ← match the DB’s integer PK
+    id: str                                # ← string to avoid coercion in tests
     first_name: Optional[str] = None
     last_name:  Optional[str] = None
 

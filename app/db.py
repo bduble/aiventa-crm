@@ -14,7 +14,11 @@ logger = logging.getLogger(__name__)
 
 # 3️⃣ Grab env vars
 SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")  # or SERVICE_KEY if you prefer
+SUPABASE_KEY = (
+    os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+    or os.getenv("SUPABASE_KEY")
+)
+# Prefer the service role key when available
 
 # 4️⃣ Sanity-check logging (only show first few chars of the key)
 logger.info(f"🔍 SUPABASE_URL = {SUPABASE_URL!r}")

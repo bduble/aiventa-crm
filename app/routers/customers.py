@@ -19,7 +19,7 @@ def list_customers(
 ):
     """
     List customers with optional search filters.
-    - q: searches first_name OR last_name via ILIKE
+    - q: simple ILIKE filter on the combined name column
     - email: ILIKE filter on email
     - phone: ILIKE filter on phone
     """
@@ -27,9 +27,8 @@ def list_customers(
         query = supabase.table("customers").select("*")
 
         if q:
-            # OR‐filter on first_name or last_name
-            or_expr = f"first_name.ilike.*{q}*,last_name.ilike.*{q}*"
-            query = query.or_(or_expr)
+            # Search the combined name column using ILIKE
+            query = query.ilike("name", f"%{q}%")
 
         if email:
             query = query.ilike("email", f"%{email}%")
@@ -46,6 +45,7 @@ def list_customers(
 @router.get(
     "/{customer_id}",
     response_model=Customer,
+    response_model_exclude_none=True,
 )
 def get_customer(customer_id: int):
     """
