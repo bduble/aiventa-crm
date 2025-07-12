@@ -31,7 +31,7 @@ export default function FilterPanel({ filters, onChange, options = {} }) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
       <div>
-        <label className="block mb-1 text-sm">Condition</label>
+        <label className="block mb-1 text-sm">Type</label>
         <div className="flex gap-2">
           {['New', 'Used', 'Certified'].map(c => (
             <label key={c} className="text-sm flex items-center gap-1">
