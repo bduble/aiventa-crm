@@ -1,11 +1,21 @@
 # app/models.py
 
-from datetime import date, datetime
+from datetime import date, datetime, time
 from typing import Optional, List
 from pydantic import BaseModel, EmailStr, root_validator, validator, ConfigDict
 
-# ── Leads ──────────────────────────────────────────────────────────────────────
+# ── Analytics Schema ─────────────────────────────────────────────────────────
+class MonthMetrics(BaseModel):
+    total: int
+    demo: int
+    worksheet: int
+    write_up: int
+    worksheet_complete: int
+    customer_offer: int
+    sold: int
 
+
+# ── Leads ──────────────────────────────────────────────────────────────────────
 class Lead(BaseModel):
     id: str
     name: str
@@ -17,7 +27,6 @@ class LeadCreate(BaseModel):
 
 
 # ── Contacts ───────────────────────────────────────────────────────────────────
-
 class Contact(BaseModel):
     id: str
     lead_id: Optional[int]
@@ -42,48 +51,33 @@ class ContactUpdate(BaseModel):
 
 
 # ── Customers ─────────────────────────────────────────────────────────────────
-
 class Customer(BaseModel):
-    id: str                                # ← string to avoid coercion in tests
+    id: int                           # integer PK
     first_name: Optional[str] = None
-    last_name:  Optional[str] = None
+    last_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+    customer_name: str
+    vehicle: Optional[str] = None
+    trade: Optional[str] = None
+    demo: Optional[bool] = None
+    worksheet: Optional[bool] = None
+    customer_offer: Optional[bool] = None
+    sold: Optional[bool] = None
+    created_at: Optional[datetime] = None
 
-    # allow empty strings to become None so EmailStr validation is skipped
+class CustomerCreate(BaseModel):
+    customer_name: str
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
 
-    # still expose "name" for backwards compatibility
-    name: str
-
-    @validator('email', pre=True, always=True)
-    def empty_email_to_none(cls, v):
-        if v in (None, ""):
-            return None
-        return v
-
-    @root_validator(pre=True)
-    def combine_names(cls, values):
-        # If the DB already provided "name", keep it; otherwise build it
-        if not values.get("name"):
-            fn = values.get("first_name") or ""
-            ln = values.get("last_name")  or ""
-            values["name"] = (fn + " " + ln).strip()
-        return values
-
-
-class CustomerCreate(BaseModel):
-    name: str
-    email: Optional[str]
-    phone: Optional[str]
-
 class CustomerUpdate(BaseModel):
-    name: Optional[str]
-    email: Optional[str]
-    phone: Optional[str]
+    customer_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
 
 
 # ── Accounts ───────────────────────────────────────────────────────────────────
-
 class Account(BaseModel):
     id: str
     name: str
@@ -99,7 +93,6 @@ class AccountUpdate(BaseModel):
 
 
 # ── Opportunities ──────────────────────────────────────────────────────────────
-
 class Opportunity(BaseModel):
     id: str
     account_id: str
@@ -123,7 +116,6 @@ class OpportunityUpdate(BaseModel):
 
 
 # ── Activities ─────────────────────────────────────────────────────────────────
-
 class Activity(BaseModel):
     id: str
     activity_type: str        # e.g. "call", "email", "task"
@@ -152,8 +144,7 @@ class ActivityUpdate(BaseModel):
     date: Optional[date]
 
 
-# ── Floor Log ─────────────────────────────────────────────────────────────────
-
+# ── Floor Traffic Log ─────────────────────────────────────────────────────────
 class FloorTrafficCustomer(BaseModel):
     id: str
     salesperson: str
@@ -204,7 +195,6 @@ class FloorTrafficCustomerUpdate(BaseModel):
 
 
 # ── Inventory ─────────────────────────────────────────────────────────────────
-
 def to_camel(string: str) -> str:
     parts = string.split('_')
     return parts[0] + ''.join(word.capitalize() for word in parts[1:])
@@ -231,8 +221,8 @@ class InventoryItem(CamelModel):
     active: Optional[bool] = True
     image_link: Optional[str] = None
     additional_image_link: Optional[str] = None
-    photos: Optional[list[str]] = None
-    video_urls: Optional[list[str]] = None
+    photos: Optional[List[str]] = None
+    video_urls: Optional[List[str]] = None
     history_report: Optional[str] = None
 
 class InventoryItemCreate(CamelModel):
@@ -252,8 +242,8 @@ class InventoryItemCreate(CamelModel):
     active: Optional[bool] = True
     image_link: Optional[str] = None
     additional_image_link: Optional[str] = None
-    photos: Optional[list[str]] = None
-    video_urls: Optional[list[str]] = None
+    photos: Optional[List[str]] = None
+    video_urls: Optional[List[str]] = None
     history_report: Optional[str] = None
 
 class InventoryItemUpdate(CamelModel):
@@ -273,6 +263,6 @@ class InventoryItemUpdate(CamelModel):
     active: Optional[bool] = None
     image_link: Optional[str] = None
     additional_image_link: Optional[str] = None
-    photos: Optional[list[str]] = None
-    video_urls: Optional[list[str]] = None
+    photos: Optional[List[str]] = None
+    video_urls: Optional[List[str]] = None
     history_report: Optional[str] = None
