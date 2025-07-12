@@ -170,7 +170,14 @@ def month_metrics():
             .execute()
         )
     except APIError as e:
-        raise HTTPException(status_code=500, detail=e.message)
+        logging.error("Supabase query failed: %s", e.message)
+        return {
+            "total_customers": 0,
+            "demo_count": 0,
+            "worksheet_count": 0,
+            "customer_offer_count": 0,
+            "sold_count": 0,
+        }
 
     rows = res.data or []
     total = len(rows)
