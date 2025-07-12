@@ -1,4 +1,3 @@
-```python
 # app/routers/floor_traffic.py
 
 import logging
@@ -15,7 +14,7 @@ from app.models import (
     MonthMetrics,
 )
 
-router = APIRouter(prefix="/floor-traffic", tags=["floor-traffic"])
+router = APIRouter()
 
 # --- Introspect actual columns to avoid selecting non-existent ones ---
 
@@ -212,13 +211,11 @@ async def month_metrics():
     except APIError as e:
         logging.error("floor_traffic.month_metrics query failed: %s", e)
         return MonthMetrics(
-            total=0,
-            demo=0,
-            worksheet=0,
-            write_up=0,
-            worksheet_complete=0,
-            customer_offer=0,
-            sold=0,
+            total_customers=0,
+            demo_count=0,
+            worksheet_count=0,
+            customer_offer_count=0,
+            sold_count=0,
         )
 
     total = len(rows)
@@ -233,12 +230,9 @@ async def month_metrics():
     sold = sum(1 for r in rows if r.get("sold"))
 
     return MonthMetrics(
-        total=total,
-        demo=demo,
-        worksheet=worksheet,
-        write_up=write_up,
-        worksheet_complete=worksheet_complete,
-        customer_offer=customer_offer,
-        sold=sold,
+        total_customers=total,
+        demo_count=demo,
+        worksheet_count=worksheet,
+        customer_offer_count=customer_offer,
+        sold_count=sold,
     )
-```
