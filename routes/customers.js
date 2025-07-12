@@ -13,7 +13,12 @@ router.get(['/customers', '/customers/'], async (req, res, next) => {
     if (phone) query = query.ilike('phone', `%${phone}%`);
     const { data, error } = await query;
     if (error) throw error;
-    res.json(Array.isArray(data) ? data : []);
+    const rows = Array.isArray(data) ? data : [];
+    const customers = rows.map(c => ({
+      ...c,
+      name: normalizeCustomerName(c)
+    }));
+    res.json(customers);
   } catch (err) {
     next(err);
   }
@@ -30,7 +35,11 @@ router.get('/customers/:id', async (req, res, next) => {
       .maybeSingle();
     if (error) throw error;
     if (!data) return res.status(404).json({ message: 'Customer not found' });
-    res.json(data);
+    const customer = {
+      ...data,
+      name: data.name || [data.first_name, data.last_name].filter(Boolean).join(' ').trim() || 'Unknown Customer',
+    };
+    res.json(customer);
   } catch (err) {
     next(err);
   }
