@@ -6,13 +6,11 @@ from pydantic import BaseModel, EmailStr, root_validator, validator, ConfigDict
 
 # ── Analytics Schema ─────────────────────────────────────────────────────────
 class MonthMetrics(BaseModel):
-    total: int
-    demo: int
-    worksheet: int
-    write_up: int
-    worksheet_complete: int
-    customer_offer: int
-    sold: int
+    total_customers: int
+    demo_count: int
+    worksheet_count: int
+    customer_offer_count: int
+    sold_count: int
 
 
 # ── Leads ──────────────────────────────────────────────────────────────────────
@@ -52,12 +50,12 @@ class ContactUpdate(BaseModel):
 
 # ── Customers ─────────────────────────────────────────────────────────────────
 class Customer(BaseModel):
-    id: int                           # integer PK
+    id: str                           # string PK
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
-    customer_name: str
+    name: str
     vehicle: Optional[str] = None
     trade: Optional[str] = None
     demo: Optional[bool] = None
@@ -67,12 +65,12 @@ class Customer(BaseModel):
     created_at: Optional[datetime] = None
 
 class CustomerCreate(BaseModel):
-    customer_name: str
+    name: str
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
 
 class CustomerUpdate(BaseModel):
-    customer_name: Optional[str] = None
+    name: Optional[str] = None
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
 
