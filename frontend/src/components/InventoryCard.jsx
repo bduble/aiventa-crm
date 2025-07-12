@@ -33,6 +33,7 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
     additionalImageLink8,
     exteriorColor,
     interiorColor,
+    inventoryType,
     active,
   } = vehicle;
 
@@ -153,6 +154,12 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
         {trim && (
           <p className="flex items-center gap-1">
             <Tag className="w-4 h-4" /> Trim: {trim}
+          </p>
+        )}
+
+        {inventoryType && (
+          <p className="flex items-center gap-1">
+            <Tag className="w-4 h-4" /> Type: {inventoryType}
           </p>
         )}
 
