@@ -1,10 +1,8 @@
-```python
 # app/routers/inventory.py
 
 import logging
 from fastapi import APIRouter, HTTPException, status, Query
 from postgrest.exceptions import APIError
-
 from app.db import supabase
 from app.models import InventoryItem, InventoryItemCreate, InventoryItemUpdate
 
@@ -197,5 +195,5 @@ def delete_inventory_item(item_id: int):
 
     if not res.data:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+    # returning None yields a 204 with no content
     return
-```
