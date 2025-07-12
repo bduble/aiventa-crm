@@ -2,14 +2,39 @@ from fastapi import APIRouter, HTTPException, status, Query
 from fastapi.encoders import jsonable_encoder
 from postgrest.exceptions import APIError
 from datetime import date, datetime, timedelta
+import logging
+
 from app.db import supabase
 from app.models import (
     FloorTrafficCustomer,
     FloorTrafficCustomerCreate,
     FloorTrafficCustomerUpdate,
+    MonthMetrics,
 )
 
 router = APIRouter()
+
+# --- Introspect actual columns to avoid selecting non-existent ones ---
+def _load_ft_columns() -> set[str]:
+    try:
+        resp = (
+            supabase
+            .table("information_schema.columns")
+            .select("column_name")
+            .eq("table_name", "floor_traffic_customers")
+            .execute()
+        )
+        return {row["column_name"] for row in resp.data or []}
+    except Exception as e:
+        logging.error("Failed to load floor_traffic_customers columns: %s", e)
+        return set()
+
+_FT_COLUMNS = _load_ft_columns()
+
+def _safe_select(cols: list[str]) -> str:
+    valid = [c for c in cols if c in _FT_COLUMNS]
+    return ",".join(valid) if valid else "*"
+
 
 async def _fetch_range(start: date, end: date):
     start_dt = datetime.combine(start, datetime.min.time())
@@ -25,11 +50,11 @@ async def _fetch_range(start: date, end: date):
             .order("visit_time", desc=False)
             .execute()
         )
+        data = res.data or []
+        return data if isinstance(data, list) else []
     except APIError as e:
-        raise HTTPException(status_code=500, detail=e.message)
-
-    data = res.data or []
-    return data if isinstance(data, list) else []
+        logging.error("floor_traffic._fetch_range error: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to fetch floor traffic data")
 
 
 @router.get(
@@ -60,6 +85,7 @@ async def search_floor_traffic(
 
     return await _fetch_range(start, end)
 
+
 @router.get(
     "/",
     response_model=list[FloorTrafficCustomer],
@@ -67,6 +93,7 @@ async def search_floor_traffic(
 )
 async def get_today_alias():
     return await get_today_floor_traffic()
+
 
 @router.post(
     "/",
@@ -83,7 +110,7 @@ async def create_floor_traffic(entry: FloorTrafficCustomerCreate):
             status_code=422,
             detail="visit_time and salesperson are required",
         )
-    # Build customer_name from first_name and last_name
+    # Build customer_name
     first = payload.get("first_name")
     last = payload.get("last_name")
     if not first or not last:
@@ -101,6 +128,7 @@ async def create_floor_traffic(entry: FloorTrafficCustomerCreate):
             .execute()
         )
     except APIError as e:
+        logging.error("create_floor_traffic insert error: %s", e)
         raise HTTPException(status_code=400, detail=e.message)
 
     if not res.data:
@@ -111,13 +139,11 @@ async def create_floor_traffic(entry: FloorTrafficCustomerCreate):
 
     created = res.data[0]
 
-    # Also create a contact record for the customer. Ignore errors so the
-    # floor-traffic entry is saved even if the contact already exists or the
-    # insert fails for some other reason.
+    # Also create a contact record, ignore errors
     try:
         supabase.table("contacts").insert(
             {
-                "name": created["customer_name"],
+                "name": created.get("customer_name"),
                 "email": created.get("email"),
                 "phone": created.get("phone"),
             }
@@ -129,10 +155,8 @@ async def create_floor_traffic(entry: FloorTrafficCustomerCreate):
 
 
 @router.put("/{entry_id}", response_model=FloorTrafficCustomer)
-def update_floor_traffic(entry_id: int, entry: FloorTrafficCustomerUpdate):
-    payload = {
-        k: v for k, v in jsonable_encoder(entry).items() if v is not None
-    }
+async def update_floor_traffic(entry_id: int, entry: FloorTrafficCustomerUpdate):
+    payload = {k: v for k, v in jsonable_encoder(entry).items() if v is not None}
     if not payload:
         raise HTTPException(status_code=400, detail="No fields to update")
     try:
@@ -143,15 +167,19 @@ def update_floor_traffic(entry_id: int, entry: FloorTrafficCustomerUpdate):
             .execute()
         )
     except APIError as e:
+        logging.error("update_floor_traffic error: %s", e)
         raise HTTPException(status_code=400, detail=e.message)
     if not res.data:
         raise HTTPException(status_code=404, detail="Entry not found")
     return res.data[0]
 
 
-@router.get("/month-metrics")
-def month_metrics():
-    """Return month-to-date sales performance metrics."""
+@router.get(
+    "/month-metrics",
+    response_model=MonthMetrics,
+    summary="Return month-to-date sales performance metrics.",
+)
+async def month_metrics():
     today = date.today()
     start = datetime.combine(today.replace(day=1), datetime.min.time())
     if start.month == 12:
@@ -159,49 +187,53 @@ def month_metrics():
     else:
         end = start.replace(month=start.month + 1)
 
+    wanted = [
+        "demo",
+        "worksheet",
+        "write_up",
+        "worksheet_complete",
+        "customer_offer",
+        "sold",
+    ]
+    select_expr = _safe_select(wanted)
+
     try:
         res = (
-            supabase.table("floor_traffic_customers")
-            .select(
-                "demo, worksheet, write_up, worksheet_complete, worksheetComplete, writeUp, customer_offer, customerOffer, sold"
-            )
+            supabase
+            .table("floor_traffic_customers")
+            .select(select_expr)
             .gte("visit_time", start.isoformat())
             .lt("visit_time", end.isoformat())
             .execute()
         )
+        rows = res.data or []
     except APIError as e:
-        logging.error("Supabase query failed: %s", e.message)
-        return {
-            "total_customers": 0,
-            "demo_count": 0,
-            "worksheet_count": 0,
-            "customer_offer_count": 0,
-            "sold_count": 0,
-        }
+        logging.error("floor_traffic.month_metrics query failed: %s", e)
+        return MonthMetrics(
+            total=0,
+            demo=0,
+            worksheet=0,
+            write_up=0,
+            worksheet_complete=0,
+            customer_offer=0,
+            sold=0,
+        )
 
-    rows = res.data or []
     total = len(rows)
     demo = sum(1 for r in rows if r.get("demo"))
     worksheet = sum(
-        1
-        for r in rows
-        if r.get("worksheet")
-        or r.get("write_up")
-        or r.get("writeUp")
-        or r.get("worksheet_complete")
-        or r.get("worksheetComplete")
+        1 for r in rows
+        if any(r.get(k) for k in ["worksheet", "write_up", "worksheet_complete"])
     )
-    offers = sum(
-        1
-        for r in rows
-        if r.get("customer_offer") or r.get("customerOffer")
-    )
+    customer_offer = sum(1 for r in rows if r.get("customer_offer"))
     sold = sum(1 for r in rows if r.get("sold"))
 
-    return {
-        "total_customers": total,
-        "demo_count": demo,
-        "worksheet_count": worksheet,
-        "customer_offer_count": offers,
-        "sold_count": sold,
-    }
+    return MonthMetrics(
+        total=total,
+        demo=demo,
+        worksheet=worksheet,
+        write_up=sum(1 for r in rows if r.get("write_up")),
+        worksheet_complete=sum(1 for r in rows if r.get("worksheet_complete")),
+        customer_offer=customer_offer,
+        sold=sold,
+    )
