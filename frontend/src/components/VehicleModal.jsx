@@ -74,7 +74,7 @@ export default function VehicleModal({ isOpen, onClose, onSubmit, initialData })
             ['price','Price','number'],
             ['mileage','Mileage','number'],
             ['color','Color','text'],
-            ['condition','Condition','text'],
+            ['condition','Type','text'],
             ['fuelType','Fuel Type','text'],
             ['drivetrain','Drivetrain','text'],
           ].map(([name,label,type]) => (
