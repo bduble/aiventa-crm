@@ -14,7 +14,7 @@ from app.models import (
     MonthMetrics,
 )
 
-router = APIRouter(prefix="/floor-traffic", tags=["floor-traffic"])
+router = APIRouter()  # <-- No prefix or tags
 
 # --- Introspection disabled: always select all columns ---
 
@@ -22,11 +22,9 @@ def _safe_select(cols: list[str]) -> str:
     # Bypass introspection; select everything
     return "*"
 
-
 async def _fetch_range(start: date, end: date):
     start_dt = datetime.combine(start, datetime.min.time())
     end_dt = datetime.combine(end, datetime.min.time()) + timedelta(days=1)
-
     try:
         res = (
             supabase
@@ -43,7 +41,6 @@ async def _fetch_range(start: date, end: date):
         logging.error("floor_traffic._fetch_range error: %s", e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to fetch floor traffic data")
 
-
 @router.get(
     "/today",
     response_model=list[FloorTrafficCustomer],
@@ -52,7 +49,6 @@ async def _fetch_range(start: date, end: date):
 async def get_today_floor_traffic():
     today = date.today()
     return await _fetch_range(today, today)
-
 
 @router.get(
     "/search",
@@ -72,7 +68,6 @@ async def search_floor_traffic(
 
     return await _fetch_range(start, end)
 
-
 @router.get(
     "/",
     response_model=list[FloorTrafficCustomer],
@@ -80,7 +75,6 @@ async def search_floor_traffic(
 )
 async def get_today_alias():
     return await get_today_floor_traffic()
-
 
 @router.post(
     "/",
@@ -136,7 +130,6 @@ async def create_floor_traffic(entry: FloorTrafficCustomerCreate):
 
     return created
 
-
 @router.put("/{entry_id}", response_model=FloorTrafficCustomer)
 async def update_floor_traffic(entry_id: int, entry: FloorTrafficCustomerUpdate):
     payload = {k: v for k, v in jsonable_encoder(entry).items() if v is not None}
@@ -156,7 +149,6 @@ async def update_floor_traffic(entry_id: int, entry: FloorTrafficCustomerUpdate)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Entry not found")
     return res.data[0]
 
-
 @router.get(
     "/month-metrics",
     response_model=MonthMetrics,
@@ -165,6 +157,7 @@ async def update_floor_traffic(entry_id: int, entry: FloorTrafficCustomerUpdate)
 async def month_metrics():
     today = date.today()
     start = datetime.combine(today.replace(day=1), datetime.min.time())
+    # Fixes December → January edge-case
     end = (start.replace(month=start.month % 12 + 1, year=start.year + (start.month // 12)))
 
     try:
