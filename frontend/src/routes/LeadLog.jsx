@@ -79,7 +79,7 @@ export default function LeadLog() {
   const formatDate = d => (d ? new Date(d).toLocaleDateString() : '');
 
   return (
-    <div className="w-full min-h-screen bg-offwhite dark:bg-gray-800 p-4 grid gap-6 md:grid-cols-2">
+    <div className="w-full min-h-screen bg-offwhite dark:bg-gray-800 px-4 pb-4 pt-8 grid gap-6 md:grid-cols-2">
       <section className="bg-white dark:bg-gray-900 shadow rounded p-4 space-y-2">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">AI‑Powered Leads Prioritization</h2>
         <div className="mb-4 flex gap-2">
