@@ -203,64 +203,106 @@ class CamelModel(BaseModel):
 
 class InventoryItem(CamelModel):
     id: int
-    stock_number: Optional[str] = None
+    stocknumber: Optional[str] = None          # 'stocknumber'
     vin: Optional[str] = None
     year: Optional[int] = None
     make: Optional[str] = None
     model: Optional[str] = None
     trim: Optional[str] = None
-    price: Optional[float] = None
+    sellingprice: Optional[float] = None       # 'sellingprice'
+    msrp: Optional[float] = None
     mileage: Optional[int] = None
-    color: Optional[str] = None
-    condition: Optional[str] = None
-    inventory_type: Optional[str] = None
-    fuel_type: Optional[str] = None
-    drivetrain: Optional[str] = None
-    active: Optional[bool] = True
+    exterior_color: Optional[str] = None       # 'exterior_color'
+    interior_color: Optional[str] = None       # 'interior_color'
+    certified: Optional[bool] = None           # 'certified'
+    type: Optional[str] = None                 # 'type'
+    drive_type: Optional[str] = None           # 'drive_type'
+    transmission: Optional[str] = None
+    engine: Optional[str] = None
+    cylinders: Optional[int] = None
+    displacement: Optional[float] = None
+    descriptions: Optional[str] = None
+    date_added: Optional[datetime] = None
+    link: Optional[str] = None
     image_link: Optional[str] = None
     additional_image_link: Optional[str] = None
-    photos: Optional[List[str]] = None
-    video_urls: Optional[List[str]] = None
-    history_report: Optional[str] = None
+    # Add any other additional_image_link_N if you want
+    dealership_name: Optional[str] = None
+    dealership_address: Optional[str] = None
+    primary_key: Optional[str] = None
+    primary_key_raw: Optional[str] = None
+    video_player_url: Optional[str] = None     # 'VideoPlayerURL'
+    status_code: Optional[str] = None
+    days_in_stock: Optional[int] = None
+    # For photos array/json
+    image_url: Optional[List[str]] = None      # if you want the JSON array
+    # Add any other fields as needed
 
 class InventoryItemCreate(CamelModel):
-    stock_number: Optional[str] = None
+    # Same fields as InventoryItem, but all Optional except what you require for creation
+    stocknumber: Optional[str] = None
     vin: Optional[str] = None
     year: Optional[int] = None
     make: Optional[str] = None
     model: Optional[str] = None
     trim: Optional[str] = None
-    price: Optional[float] = None
+    sellingprice: Optional[float] = None
+    msrp: Optional[float] = None
     mileage: Optional[int] = None
-    color: Optional[str] = None
-    condition: Optional[str] = None
-    inventory_type: Optional[str] = None
-    fuel_type: Optional[str] = None
-    drivetrain: Optional[str] = None
-    active: Optional[bool] = True
+    exterior_color: Optional[str] = None
+    interior_color: Optional[str] = None
+    certified: Optional[bool] = None
+    type: Optional[str] = None
+    drive_type: Optional[str] = None
+    transmission: Optional[str] = None
+    engine: Optional[str] = None
+    cylinders: Optional[int] = None
+    displacement: Optional[float] = None
+    descriptions: Optional[str] = None
+    date_added: Optional[datetime] = None
+    link: Optional[str] = None
     image_link: Optional[str] = None
     additional_image_link: Optional[str] = None
-    photos: Optional[List[str]] = None
-    video_urls: Optional[List[str]] = None
-    history_report: Optional[str] = None
+    dealership_name: Optional[str] = None
+    dealership_address: Optional[str] = None
+    primary_key: Optional[str] = None
+    primary_key_raw: Optional[str] = None
+    video_player_url: Optional[str] = None
+    status_code: Optional[str] = None
+    days_in_stock: Optional[int] = None
+    image_url: Optional[List[str]] = None
 
 class InventoryItemUpdate(CamelModel):
-    stock_number: Optional[str] = None
+    # Same as above, all Optional
+    stocknumber: Optional[str] = None
     vin: Optional[str] = None
     year: Optional[int] = None
     make: Optional[str] = None
     model: Optional[str] = None
     trim: Optional[str] = None
-    price: Optional[float] = None
+    sellingprice: Optional[float] = None
+    msrp: Optional[float] = None
     mileage: Optional[int] = None
-    color: Optional[str] = None
-    condition: Optional[str] = None
-    inventory_type: Optional[str] = None
-    fuel_type: Optional[str] = None
-    drivetrain: Optional[str] = None
-    active: Optional[bool] = None
+    exterior_color: Optional[str] = None
+    interior_color: Optional[str] = None
+    certified: Optional[bool] = None
+    type: Optional[str] = None
+    drive_type: Optional[str] = None
+    transmission: Optional[str] = None
+    engine: Optional[str] = None
+    cylinders: Optional[int] = None
+    displacement: Optional[float] = None
+    descriptions: Optional[str] = None
+    date_added: Optional[datetime] = None
+    link: Optional[str] = None
     image_link: Optional[str] = None
     additional_image_link: Optional[str] = None
-    photos: Optional[List[str]] = None
-    video_urls: Optional[List[str]] = None
-    history_report: Optional[str] = None
+    dealership_name: Optional[str] = None
+    dealership_address: Optional[str] = None
+    primary_key: Optional[str] = None
+    primary_key_raw: Optional[str] = None
+    video_player_url: Optional[str] = None
+    status_code: Optional[str] = None
+    days_in_stock: Optional[int] = None
+    image_url: Optional[List[str]] = None
+
