@@ -50,7 +50,7 @@ class ContactUpdate(BaseModel):
 
 # ── Customers ─────────────────────────────────────────────────────────────────
 class Customer(BaseModel):
-    id: str                           # string PK
+    id: int                         # string PK
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
