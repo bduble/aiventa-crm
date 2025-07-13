@@ -6,7 +6,7 @@ from postgrest.exceptions import APIError
 from app.db import supabase
 from app.models import InventoryItem, InventoryItemCreate, InventoryItemUpdate
 
-router = APIRouter(prefix="/inventory", tags=["inventory"])
+router = APIRouter()
 
 @router.get(
     "/",
