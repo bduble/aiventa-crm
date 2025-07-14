@@ -24,34 +24,30 @@ def list_customers(
     """
     try:
         query = supabase.table("customers").select("*")
-
         if q:
             query = query.ilike("name", f"%{q}%")
         if email:
             query = query.ilike("email", f"%{email}%")
         if phone:
             query = query.ilike("phone", f"%{phone}%")
-
         res = query.execute()
     except APIError as e:
         raise HTTPException(status_code=400, detail=e.message)
 
-    return res.data or []
+    customers = res.data or []
+    # --- PATCH: Guarantee 'name' field for each customer ---
+    for c in customers:
+        if not c.get("name"):
+            c["name"] = (
+                (c.get("first_name", "") + " " + c.get("last_name", "")).strip()
+                or c.get("customer_name", "")
+                or ""
+            )
+        # Patch for email: If it's an empty string, set to None (avoids Pydantic error)
+        if c.get("email", "") == "":
+            c["email"] = None
 
-# --- FIX: No trailing slash version ---
-@router.get(
-    "",  # No trailing slash
-    response_model=list[Customer],
-    response_model_exclude_none=True,
-    include_in_schema=False
-)
-def list_customers_noslash(
-    q: str | None = Query(None, description="Search term for first or last name"),
-    email: str | None = Query(None, description="Filter by email"),
-    phone: str | None = Query(None, description="Filter by phone"),
-):
-    return list_customers(q=q, email=email, phone=phone)
-# --- END FIX ---
+    return customers
 
 @router.get(
     "/{customer_id}",
@@ -76,7 +72,20 @@ def get_customer(customer_id: int):
 
     if not res.data:
         raise HTTPException(status_code=404, detail="Customer not found")
-    return res.data
+
+    # --- PATCH: Guarantee 'name' field for single customer ---
+    c = res.data
+    if not c.get("name"):
+        c["name"] = (
+            (c.get("first_name", "") + " " + c.get("last_name", "")).strip()
+            or c.get("customer_name", "")
+            or ""
+        )
+    # Patch for email: If it's an empty string, set to None
+    if c.get("email", "") == "":
+        c["email"] = None
+
+    return c
 
 @router.post(
     "/",
@@ -92,7 +101,11 @@ def create_customer(c: CustomerCreate):
     except APIError as e:
         raise HTTPException(status_code=400, detail=e.message)
 
-    return res.data[0]
+    created = res.data[0]
+    # Patch for email: If it's an empty string, set to None
+    if created.get("email", "") == "":
+        created["email"] = None
+    return created
 
 @router.patch(
     "/{customer_id}",
@@ -119,7 +132,11 @@ def update_customer(customer_id: int, c: CustomerUpdate):
 
     if not res.data:
         raise HTTPException(status_code=404, detail="Customer not found")
-    return res.data[0]
+    updated = res.data[0]
+    # Patch for email: If it's an empty string, set to None
+    if updated.get("email", "") == "":
+        updated["email"] = None
+    return updated
 
 @router.delete(
     "/{customer_id}",
