@@ -14,12 +14,9 @@ from app.models import (
     MonthMetrics,
 )
 
-router = APIRouter()  # <-- No prefix or tags
-
-# --- Introspection disabled: always select all columns ---
+router = APIRouter()
 
 def _safe_select(cols: list[str]) -> str:
-    # Bypass introspection; select everything
     return "*"
 
 async def _fetch_range(start: date, end: date):
@@ -157,8 +154,11 @@ async def update_floor_traffic(entry_id: int, entry: FloorTrafficCustomerUpdate)
 async def month_metrics():
     today = date.today()
     start = datetime.combine(today.replace(day=1), datetime.min.time())
-    # Fixes December → January edge-case
-    end = (start.replace(month=start.month % 12 + 1, year=start.year + (start.month // 12)))
+    # Handle December → January edge-case
+    if start.month == 12:
+        end = start.replace(year=start.year + 1, month=1)
+    else:
+        end = start.replace(month=start.month + 1)
 
     try:
         res = (
@@ -172,22 +172,24 @@ async def month_metrics():
         rows = res.data or []
     except APIError as e:
         logging.error("floor_traffic.month_metrics query failed: %s", e)
-        return MonthMetrics(total=0, demo=0, worksheet=0, write_up=0, worksheet_complete=0, customer_offer=0, sold=0)
+        return MonthMetrics(
+            total_customers=0,
+            demo_count=0,
+            worksheet_count=0,
+            customer_offer_count=0,
+            sold_count=0
+        )
 
     total = len(rows)
     demo = sum(1 for r in rows if r.get("demo"))
     worksheet = sum(1 for r in rows if any(r.get(k) for k in ["worksheet", "write_up", "worksheet_complete"]))
-    write_up = sum(1 for r in rows if r.get("write_up"))
-    worksheet_complete = sum(1 for r in rows if r.get("worksheet_complete"))
     customer_offer = sum(1 for r in rows if r.get("customer_offer"))
     sold = sum(1 for r in rows if r.get("sold"))
 
     return MonthMetrics(
-        total=total,
-        demo=demo,
-        worksheet=worksheet,
-        write_up=write_up,
-        worksheet_complete=worksheet_complete,
-        customer_offer=customer_offer,
-        sold=sold,
+        total_customers=total,
+        demo_count=demo,
+        worksheet_count=worksheet,
+        customer_offer_count=customer_offer,
+        sold_count=sold,
     )
