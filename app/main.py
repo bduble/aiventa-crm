@@ -84,8 +84,5 @@ app.mount(
     "/",
     StaticFiles(directory="frontend/dist", html=True),
     name="frontend"
-    @app.get("/debug/routes")
-async def debug_routes():
-    return [route.path for route in app.routes]
 
 )
