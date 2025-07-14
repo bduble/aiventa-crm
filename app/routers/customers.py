@@ -1,5 +1,5 @@
 # app/routers/customers.py
-
+print("CUSTOMERS ROUTER LOADED")
 from fastapi import APIRouter, HTTPException, status, Query
 from postgrest.exceptions import APIError
 from app.db import supabase
