@@ -146,7 +146,7 @@ class ActivityUpdate(BaseModel):
 class FloorTrafficCustomer(BaseModel):
     id: str
     salesperson: str
-    customer_name: str
+    name: str
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
