@@ -1,4 +1,3 @@
-# app/routers/customers.py
 print("CUSTOMERS ROUTER LOADED")
 from fastapi import APIRouter, HTTPException, status, Query
 from postgrest.exceptions import APIError
@@ -27,9 +26,7 @@ def list_customers(
         query = supabase.table("customers").select("*")
 
         if q:
-            # Search the combined name column using ILIKE
             query = query.ilike("name", f"%{q}%")
-
         if email:
             query = query.ilike("email", f"%{email}%")
         if phone:
@@ -41,6 +38,20 @@ def list_customers(
 
     return res.data or []
 
+# --- FIX: No trailing slash version ---
+@router.get(
+    "",  # No trailing slash
+    response_model=list[Customer],
+    response_model_exclude_none=True,
+    include_in_schema=False
+)
+def list_customers_noslash(
+    q: str | None = Query(None, description="Search term for first or last name"),
+    email: str | None = Query(None, description="Filter by email"),
+    phone: str | None = Query(None, description="Filter by phone"),
+):
+    return list_customers(q=q, email=email, phone=phone)
+# --- END FIX ---
 
 @router.get(
     "/{customer_id}",
@@ -67,7 +78,6 @@ def get_customer(customer_id: int):
         raise HTTPException(status_code=404, detail="Customer not found")
     return res.data
 
-
 @router.post(
     "/",
     response_model=Customer,
@@ -83,7 +93,6 @@ def create_customer(c: CustomerCreate):
         raise HTTPException(status_code=400, detail=e.message)
 
     return res.data[0]
-
 
 @router.patch(
     "/{customer_id}",
@@ -111,7 +120,6 @@ def update_customer(customer_id: int, c: CustomerUpdate):
     if not res.data:
         raise HTTPException(status_code=404, detail="Customer not found")
     return res.data[0]
-
 
 @router.delete(
     "/{customer_id}",
