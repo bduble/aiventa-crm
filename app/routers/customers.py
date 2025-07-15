@@ -3,6 +3,8 @@ from fastapi import APIRouter, HTTPException, status, Query
 from postgrest.exceptions import APIError
 from app.db import supabase
 from app.models import Customer, CustomerCreate, CustomerUpdate
+from app.openai_client import get_openai_client
+import json
 
 router = APIRouter()
 
@@ -161,3 +163,51 @@ def delete_customer(customer_id: int):
         raise HTTPException(status_code=404, detail="Customer not found")
     # Returning None yields an empty 204 response
     return
+
+
+@router.get("/{customer_id}/ai-summary")
+async def customer_ai_summary(customer_id: int):
+    """Return an AI generated summary and messaging templates for the customer."""
+    try:
+        res = (
+            supabase.table("customers")
+            .select("*")
+            .eq("id", customer_id)
+            .maybe_single()
+            .execute()
+        )
+    except APIError as e:
+        raise HTTPException(status_code=400, detail=e.message)
+
+    if not res.data:
+        raise HTTPException(status_code=404, detail="Customer not found")
+
+    customer = res.data
+
+    client = get_openai_client()
+    if not client:
+        return {
+            "summary": "OpenAI API key not configured",
+            "next_steps": [],
+            "sms_template": "",
+            "email_template": "",
+        }
+
+    prompt = (
+        "Summarize this customer and suggest the best next step in bullet form. "
+        "Also provide a short friendly SMS template and a short professional email "
+        "template to contact them. Return JSON with keys 'summary', 'next_steps', "
+        "'sms_template', and 'email_template'.\n"
+        f"Customer info: {json.dumps(customer)}"
+    )
+
+    try:
+        chat = await client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3,
+        )
+        data = json.loads(chat.choices[0].message.content)
+        return data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
