@@ -1,25 +1,29 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import {
-  Phone, MessageCircle, Mail, Edit, Save, X, Flame, User, Calendar, Star, MapPin, Sun, Moon
+  Phone, MessageCircle, Mail, Edit, Save, X, Flame, User, Calendar, Star, MapPin,
+  Sun, Moon, BadgeCheck, Upload, Cloud, Users, Globe, File, Map, CheckCircle
 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import clsx from 'clsx'
+
+function getInitials(name = '') {
+  return name.split(' ').map(part => part[0]?.toUpperCase()).join('').slice(0, 2)
+}
 
 const TABS = [
   { label: "Profile", key: "profile" },
   { label: "Activity", key: "ledger" },
   { label: "Deals", key: "deals" },
   { label: "AI Insights", key: "ai" },
-  { label: "Tasks", key: "tasks" }
+  { label: "Tasks", key: "tasks" },
+  { label: "Docs", key: "docs" },
+  { label: "Map", key: "map" },
 ]
 
-function getInitials(name = '') {
-  return name.split(' ')
-    .map(part => part[0]?.toUpperCase())
-    .join('').slice(0, 2)
-}
+const ANIM_PROPS = { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -20 }, transition: { duration: 0.2 } }
 
-export default function CustomerCard() {
+export default function CustomerCard({ userRole = "sales" }) {
   const { id } = useParams()
   const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api'
 
@@ -31,35 +35,36 @@ export default function CustomerCard() {
   const [note, setNote] = useState('')
   const [aiInfo, setAiInfo] = useState({})
   const [tab, setTab] = useState('profile')
-  const [theme, setTheme] = useState(
-    window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-      ? 'dark' : 'light'
-  )
+  const [theme, setTheme] = useState(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+  const [isOnline, setIsOnline] = useState(false)
+  const [social, setSocial] = useState({ linkedin: '', facebook: '', twitter: '', found: false })
+  const [files, setFiles] = useState([])
+  const [uploading, setUploading] = useState(false)
 
-  // Hotness bar colors (1-10)
-  function hotnessColor(score) {
-    if (score >= 8) return "bg-gradient-to-r from-orange-500 via-red-600 to-yellow-400"
-    if (score >= 5) return "bg-gradient-to-r from-yellow-400 via-orange-400 to-red-500"
-    if (score > 0)  return "bg-gradient-to-r from-blue-400 to-yellow-400"
-    return "bg-gray-200 dark:bg-gray-700"
-  }
+  useEffect(() => {
+    const timer = setInterval(() => setIsOnline(Math.random() > 0.5), 5000)
+    return () => clearInterval(timer)
+  }, [])
 
-  // Fetch customer and AI info
   useEffect(() => {
     setLoading(true)
     fetch(`${API_BASE}/customers/${id}`)
-      .then(r => r.json())
-      .then(data => { setCustomer(data); setEdited(data); setLoading(false) })
+      .then(r => r.json()).then(data => { setCustomer(data); setEdited(data); setLoading(false) })
       .catch(() => setLoading(false))
     fetch(`${API_BASE}/customers/${id}/ai-summary`)
-      .then(r => r.json())
-      .then(setAiInfo)
+      .then(r => r.json()).then(setAiInfo)
     fetch(`${API_BASE}/activities?customer_id=${id}`)
-      .then(r => r.json())
-      .then(setLedger)
+      .then(r => r.json()).then(setLedger)
+    fetch(`${API_BASE}/customers/${id}/files`)
+      .then(r => r.json()).then(docs => setFiles(docs || []))
+    setTimeout(() => setSocial({
+      linkedin: "https://linkedin.com/in/fake-profile",
+      facebook: "https://facebook.com/fake-profile",
+      twitter: "https://twitter.com/fake-profile",
+      found: true
+    }), 700)
   }, [id])
 
-  // Save logic
   const handleSave = async () => {
     try {
       const payload = {}
@@ -78,7 +83,6 @@ export default function CustomerCard() {
   }
   const handleCancel = () => { setEdited(customer); setEditMode(false) }
 
-  // Add note
   const handleAddNote = async () => {
     if (!note.trim()) return
     await fetch(`${API_BASE}/activities`, {
@@ -89,7 +93,17 @@ export default function CustomerCard() {
     setNote(''); fetch(`${API_BASE}/activities?customer_id=${id}`).then(r=>r.json()).then(setLedger)
   }
 
-  // Theme toggle
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    const form = new FormData()
+    form.append("file", file)
+    await fetch(`${API_BASE}/customers/${id}/files`, { method: 'POST', body: form })
+    setUploading(false)
+    fetch(`${API_BASE}/customers/${id}/files`).then(r => r.json()).then(docs => setFiles(docs || []))
+  }
+
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark')
   }, [theme])
@@ -97,11 +111,9 @@ export default function CustomerCard() {
   if (loading) return <div className="flex justify-center items-center h-48">Loading...</div>
   if (!customer) return <div>Customer not found</div>
 
-  // Example scoring logic
   const hotness = aiInfo?.hotness_score ?? customer?.hotness ?? 5
   const inMarket = aiInfo?.in_market ?? hotness >= 7
 
-  // ---- Dynamic Field List ----
   const profileFields = [
     { key: 'full_name', label: 'Full Name', icon: User },
     { key: 'email', label: 'Email', icon: Mail },
@@ -110,21 +122,34 @@ export default function CustomerCard() {
     { key: 'vehicle_interest', label: 'Interested In', icon: Flame },
     { key: 'trade', label: 'Trade-in', icon: Star },
     { key: 'address', label: 'Address', icon: MapPin },
+    ...(userRole === "manager"
+      ? [{ key: 'hashed_password', label: 'Password Hash', icon: BadgeCheck }]
+      : [])
   ].filter(f => customer[f.key])
 
-  // ---- Tabbed Layout ----
+  const socialIcons = [
+    { label: "LinkedIn", icon: <Globe />, url: social.linkedin },
+    { label: "Facebook", icon: <Users />, url: social.facebook },
+    { label: "Twitter", icon: <Globe />, url: social.twitter }
+  ].filter(s => s.url)
+
   return (
-    <div className={clsx("max-w-3xl mx-auto mt-8 mb-12 rounded-2xl shadow-xl p-6 transition-all duration-300", "bg-white dark:bg-slate-900 text-slate-900 dark:text-white")}>
-      {/* Header */}
+    <div className={clsx(
+      "max-w-3xl mx-auto mt-8 mb-12 rounded-2xl shadow-2xl p-6 transition-all duration-300",
+      "bg-white dark:bg-slate-900 text-slate-900 dark:text-white",
+      "border border-slate-100 dark:border-slate-800"
+    )}>
       <div className="flex items-center gap-4 mb-4 relative">
-        {/* Avatar */}
         <div className="relative w-16 h-16 flex items-center justify-center rounded-full bg-gradient-to-br from-slate-300 to-blue-400 dark:from-slate-700 dark:to-blue-800 text-3xl font-bold text-white shadow-lg">
           {customer.avatar_url
             ? <img src={customer.avatar_url} alt="avatar" className="rounded-full w-16 h-16 object-cover" />
             : getInitials(customer.full_name || customer.name || customer.first_name || "U")}
-          {/* In-market badge */}
           {inMarket &&
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-2 py-1 shadow font-bold animate-pulse">IN MARKET</span>}
+            <motion.span {...ANIM_PROPS}
+              className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-2 py-1 shadow font-bold animate-pulse"
+            >IN MARKET</motion.span>}
+          {isOnline &&
+            <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 border-2 border-white rounded-full shadow"></span>}
         </div>
         <div>
           <h2 className="text-2xl font-extrabold flex items-center gap-2">
@@ -135,20 +160,23 @@ export default function CustomerCard() {
             )}>
               {inMarket ? "🔥 Hot Prospect" : "Active"}
             </span>
+            {customer.verified && <BadgeCheck className="w-5 h-5 text-green-400 ml-2" title="Verified" />}
           </h2>
           <div className="flex gap-2 items-center mt-1">
-            {/* Hotness bar */}
             <div className="flex items-center gap-1">
               <Flame className="w-4 h-4 text-red-500" />
               <span className="font-mono font-bold">{hotness}/10</span>
               <div className="w-24 h-2 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 ml-2">
                 <div
-                  className={clsx(hotnessColor(hotness), "h-2 transition-all")}
+                  className={clsx(
+                    hotness >= 8 ? "bg-gradient-to-r from-orange-500 via-red-600 to-yellow-400"
+                      : hotness >= 5 ? "bg-gradient-to-r from-yellow-400 via-orange-400 to-red-500"
+                        : "bg-gradient-to-r from-blue-400 to-yellow-400", "h-2 transition-all"
+                  )}
                   style={{ width: `${hotness * 10}%` }}
                 />
               </div>
             </div>
-            {/* Last contact / Overdue */}
             {customer.last_contact && (
               <span className="ml-4 text-xs text-slate-600 dark:text-slate-300 flex items-center gap-1">
                 <Calendar className="w-4 h-4 inline" /> Last Contact: {customer.last_contact}
@@ -156,7 +184,6 @@ export default function CustomerCard() {
             )}
           </div>
         </div>
-        {/* Theme toggle */}
         <button
           className="ml-auto p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
@@ -165,24 +192,25 @@ export default function CustomerCard() {
           {theme === 'dark' ? <Sun /> : <Moon />}
         </button>
       </div>
-      {/* Tags */}
-      <div className="flex gap-2 flex-wrap mb-2">
+      <div className="flex gap-2 flex-wrap mb-2 items-center">
         {(customer.tags || []).map((tag, i) =>
           <span key={i} className="bg-sky-100 text-sky-800 px-2 py-0.5 rounded text-xs font-semibold dark:bg-sky-900 dark:text-sky-200">{tag}</span>
         )}
-        {/* Example: show stage chip */}
         {customer.stage && <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-semibold dark:bg-green-900 dark:text-green-200">{customer.stage}</span>}
+        {social.found && socialIcons.map(s =>
+          <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer" title={s.label}
+            className="p-1 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700">
+            {s.icon}
+          </a>
+        )}
+        {isOnline && <span className="text-green-400 flex items-center text-xs font-semibold"><CheckCircle className="w-4 h-4 mr-1" /> Online</span>}
       </div>
-
-      {/* Actions */}
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-2 mb-4 flex-wrap">
         <a className="p-2 rounded hover:bg-blue-100 dark:hover:bg-blue-900" href={`tel:${customer.phone ?? ''}`} title="Call"><Phone /></a>
         <a className="p-2 rounded hover:bg-green-100 dark:hover:bg-green-900" href={`sms:${customer.phone ?? ''}`} title="Text"><MessageCircle /></a>
         <a className="p-2 rounded hover:bg-yellow-100 dark:hover:bg-yellow-900" href={`mailto:${customer.email ?? ''}`} title="Email"><Mail /></a>
-        {/* Appointment/Follow-Up Button */}
         <button className="ml-2 px-3 py-1 bg-blue-700 text-white rounded font-bold shadow" onClick={() => alert('TODO: Book appointment!')}>Book Appt</button>
         <button className="px-3 py-1 bg-orange-600 text-white rounded font-bold shadow" onClick={() => alert('TODO: Add follow-up task!')}>+ Follow-Up</button>
-        {/* Edit Toggle */}
         {editMode ? (
           <>
             <button className="px-3 py-1 bg-green-600 text-white rounded flex items-center gap-1" onClick={handleSave}><Save className="w-4 h-4" />Save</button>
@@ -192,9 +220,7 @@ export default function CustomerCard() {
           <button className="px-3 py-1 bg-blue-500 text-white rounded flex items-center gap-1" onClick={() => setEditMode(true)}><Edit className="w-4 h-4" />Edit</button>
         )}
       </div>
-
-      {/* Tabs */}
-      <div className="flex gap-4 mb-4 border-b border-slate-300 dark:border-slate-700">
+      <div className="flex gap-4 mb-4 border-b border-slate-300 dark:border-slate-700 overflow-x-auto">
         {TABS.map(t =>
           <button
             key={t.key}
@@ -210,99 +236,155 @@ export default function CustomerCard() {
           </button>
         )}
       </div>
-
-      {/* Main Panel: Render Tab Content */}
       <div>
-        {tab === 'profile' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {profileFields.map(({ key, label, icon: Icon }) => (
-              <div key={key} className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 py-2">
-                <Icon className="w-5 h-5 text-blue-500" />
-                <span className="font-medium w-28">{label}</span>
-                {editMode ? (
-                  <input
-                    className="bg-slate-100 dark:bg-slate-800 border rounded px-2 py-1 flex-1"
-                    type={key === 'email' ? 'email' : key === 'phone' ? 'tel' : 'text'}
-                    value={edited[key] || ''}
-                    onChange={e => setEdited({ ...edited, [key]: e.target.value })}
-                  />
-                ) : (
-                  <span className="flex-1">{customer[key]}</span>
-                )}
+        <AnimatePresence mode="wait">
+          {tab === 'profile' && (
+            <motion.div key="profile" {...ANIM_PROPS}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {profileFields.map(({ key, label, icon: Icon }) => (
+                  <div key={key} className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 py-2">
+                    <Icon className="w-5 h-5 text-blue-500" />
+                    <span className="font-medium w-28">{label}</span>
+                    {editMode ? (
+                      <input
+                        className="bg-slate-100 dark:bg-slate-800 border rounded px-2 py-1 flex-1"
+                        type={key === 'email' ? 'email' : key === 'phone' ? 'tel' : 'text'}
+                        value={edited[key] || ''}
+                        onChange={e => setEdited({ ...edited, [key]: e.target.value })}
+                      />
+                    ) : (
+                      <span className="flex-1">{customer[key]}</span>
+                    )}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
-        {tab === 'ledger' && (
-          <div>
-            <h3 className="font-bold mb-2">Activity Timeline</h3>
-            <div className="max-h-64 overflow-y-auto bg-slate-50 dark:bg-slate-800 rounded p-2 border">
-              {ledger.length ? ledger.map(entry =>
-                <div key={entry.id} className="mb-2">
-                  <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{entry.created_at}</span>
-                  <div className="">{entry.note}</div>
-                  <div className="text-xs text-slate-400">{entry.activity_type}</div>
-                </div>
-              ) : <div className="text-slate-400">No activity yet.</div>}
-            </div>
-            <div className="flex items-end gap-2 mt-3">
-              <textarea className="flex-1 border rounded p-2 bg-white dark:bg-slate-900" rows={2} placeholder="Add note..." value={note} onChange={e => setNote(e.target.value)} />
-              <button className="px-3 py-1 bg-blue-700 text-white rounded" onClick={handleAddNote}>Add</button>
-            </div>
-          </div>
-        )}
-        {tab === 'deals' && (
-          <div className="text-slate-500 text-center py-8">
-            <span className="text-xl font-semibold">Deals module coming soon!</span>
-          </div>
-        )}
-        {tab === 'ai' && (
-          <div>
-            <h3 className="font-bold mb-2">AI Insights</h3>
-            {aiInfo?.summary && <div className="mb-2">{aiInfo.summary}</div>}
-            {aiInfo?.next_steps?.length > 0 && (
-              <ul className="list-disc list-inside text-sm">
-                {aiInfo.next_steps.map((s, i) => <li key={i}>{s}</li>)}
-              </ul>
-            )}
-            {aiInfo?.sms_template && (
-              <div className="my-2">
-                <button
-                  className="px-3 py-1 bg-blue-600 text-white rounded text-sm"
-                  onClick={() =>
-                    (window.location.href = `sms:${customer.phone}?&body=${encodeURIComponent(aiInfo.sms_template)}`)
-                  }
-                >
-                  Send SMS Template
-                </button>
-              </div>
-            )}
-            {aiInfo?.email_template && (
-              <div className="my-2">
-                <button
-                  className="px-3 py-1 bg-blue-600 text-white rounded text-sm"
-                  onClick={() =>
-                    (window.location.href = `mailto:${customer.email}?body=${encodeURIComponent(aiInfo.email_template)}`)
-                  }
-                >
-                  Send Email Template
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-        {tab === 'tasks' && (
-          <div className="text-slate-500 text-center py-8">
-            <span className="text-xl font-semibold">Tasks & reminders coming soon!</span>
-          </div>
-        )}
-      </div>
+            </motion.div>
+          )}
 
-      {/* Back link */}
+          {tab === 'ledger' && (
+            <motion.div key="ledger" {...ANIM_PROPS}>
+              <h3 className="font-bold mb-2">Activity Timeline</h3>
+              <div className="max-h-64 overflow-y-auto bg-slate-50 dark:bg-slate-800 rounded p-2 border">
+                <AnimatePresence>
+                  {ledger.length ? ledger.map((entry, idx) =>
+                    <motion.div key={entry.id} {...ANIM_PROPS} transition={{ delay: idx * 0.04 }}>
+                      <div className="mb-2">
+                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{entry.created_at}</span>
+                        <div>{entry.note}</div>
+                        <div className="text-xs text-slate-400">{entry.activity_type}</div>
+                      </div>
+                    </motion.div>
+                  ) : <div className="text-slate-400">No activity yet.</div>}
+                </AnimatePresence>
+              </div>
+              <div className="flex items-end gap-2 mt-3">
+                <textarea className="flex-1 border rounded p-2 bg-white dark:bg-slate-900" rows={2} placeholder="Add note..." value={note} onChange={e => setNote(e.target.value)} />
+                <button className="px-3 py-1 bg-blue-700 text-white rounded" onClick={handleAddNote}>Add</button>
+              </div>
+            </motion.div>
+          )}
+
+          {tab === 'deals' && (
+            <motion.div key="deals" {...ANIM_PROPS}>
+              <div className="text-slate-500 text-center py-8 text-lg">
+                <Star className="mx-auto mb-2 w-6 h-6" />
+                Deals module coming soon!
+              </div>
+            </motion.div>
+          )}
+
+          {tab === 'ai' && (
+            <motion.div key="ai" {...ANIM_PROPS}>
+              <h3 className="font-bold mb-2">AI Insights</h3>
+              {aiInfo?.summary && <div className="mb-2">{aiInfo.summary}</div>}
+              {aiInfo?.next_steps?.length > 0 && (
+                <ul className="list-disc list-inside text-sm">
+                  {aiInfo.next_steps.map((s, i) => <li key={i}>{s}</li>)}
+                </ul>
+              )}
+              {aiInfo?.sms_template && (
+                <div className="my-2">
+                  <button
+                    className="px-3 py-1 bg-blue-600 text-white rounded text-sm"
+                    onClick={() =>
+                      (window.location.href = `sms:${customer.phone}?&body=${encodeURIComponent(aiInfo.sms_template)}`)
+                    }
+                  >
+                    Send SMS Template
+                  </button>
+                </div>
+              )}
+              {aiInfo?.email_template && (
+                <div className="my-2">
+                  <button
+                    className="px-3 py-1 bg-blue-600 text-white rounded text-sm"
+                    onClick={() =>
+                      (window.location.href = `mailto:${customer.email}?body=${encodeURIComponent(aiInfo.email_template)}`)
+                    }
+                  >
+                    Send Email Template
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {tab === 'tasks' && (
+            <motion.div key="tasks" {...ANIM_PROPS}>
+              <div className="text-slate-500 text-center py-8 text-lg">
+                <Calendar className="mx-auto mb-2 w-6 h-6" />
+                Tasks & reminders coming soon!
+              </div>
+            </motion.div>
+          )}
+
+          {tab === 'docs' && (
+            <motion.div key="docs" {...ANIM_PROPS}>
+              <div className="mb-3 flex items-center gap-3">
+                <File className="w-5 h-5" />
+                <h3 className="font-bold">Documents & Uploads</h3>
+                <label className="ml-auto cursor-pointer flex items-center gap-2">
+                  <Upload className="w-4 h-4" />
+                  <input type="file" className="hidden" disabled={uploading} onChange={handleFileChange} />
+                  <span className="text-sm">{uploading ? "Uploading..." : "Upload"}</span>
+                </label>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {files.map(file =>
+                  <a href={file.url} key={file.id} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2 p-2 border rounded hover:bg-slate-100 dark:hover:bg-slate-800"
+                  >
+                    <Cloud className="w-4 h-4" />
+                    <span className="truncate">{file.name}</span>
+                  </a>
+                )}
+                {!files.length && <div className="col-span-2 text-slate-400">No documents uploaded yet.</div>}
+              </div>
+            </motion.div>
+          )}
+
+          {tab === 'map' && (
+            <motion.div key="map" {...ANIM_PROPS}>
+              <div className="flex items-center gap-2 mb-3">
+                <Map className="w-5 h-5" />
+                <h3 className="font-bold">Customer Location</h3>
+              </div>
+              {customer.address ? (
+                <iframe
+                  className="w-full h-60 rounded border"
+                  loading="lazy"
+                  allowFullScreen
+                  referrerPolicy="no-referrer-when-downgrade"
+                  src={`https://www.google.com/maps?q=${encodeURIComponent(customer.address)}&output=embed`}
+                  title="Customer Location Map"
+                />
+              ) : <div className="text-slate-400">No address provided.</div>}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
       <div className="mt-8">
-        <Link to="/customers" className="text-blue-600 hover:underline">
-          &larr; Back to Customers
-        </Link>
+        <Link to="/customers" className="text-blue-600 dark:text-blue-300 hover:underline">&larr; Back to Customers</Link>
       </div>
     </div>
   )
