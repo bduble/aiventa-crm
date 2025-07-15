@@ -22,6 +22,17 @@ const TABS = [
   { label: "Map", key: "map" },
 ]
 
+const PROFILE_FIELDS = [
+  { key: 'full_name', label: 'Full Name', icon: User },
+  { key: 'email', label: 'Email', icon: Mail },
+  { key: 'phone', label: 'Phone', icon: Phone },
+  { key: 'vehicle', label: 'Current Vehicle', icon: Star },
+  { key: 'vehicle_interest', label: 'Interested In', icon: Flame },
+  { key: 'trade', label: 'Trade-in', icon: Star },
+  { key: 'address', label: 'Address', icon: MapPin }
+  // Add more fields here as needed!
+]
+
 const ANIM_PROPS = { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -20 }, transition: { duration: 0.2 } }
 
 export default function CustomerCard({ userRole = "sales" }) {
@@ -95,7 +106,9 @@ export default function CustomerCard({ userRole = "sales" }) {
   const handleSave = async () => {
     try {
       const payload = {}
-      Object.keys(edited).forEach(k => { if (edited[k] !== customer[k]) payload[k] = edited[k] })
+      // Always update every editable field
+      PROFILE_FIELDS.forEach(({ key }) => payload[key] = edited[key] ?? "")
+      if (userRole === "manager") payload['hashed_password'] = edited['hashed_password'] ?? ""
       const res = await fetch(`${API_BASE}/customers/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -147,18 +160,11 @@ export default function CustomerCard({ userRole = "sales" }) {
   const nextAppt = appointments
     .sort((a, b) => new Date(a.start_time) - new Date(b.start_time))[0]
 
-  const profileFields = [
-    { key: 'full_name', label: 'Full Name', icon: User },
-    { key: 'email', label: 'Email', icon: Mail },
-    { key: 'phone', label: 'Phone', icon: Phone },
-    { key: 'vehicle', label: 'Current Vehicle', icon: Star },
-    { key: 'vehicle_interest', label: 'Interested In', icon: Flame },
-    { key: 'trade', label: 'Trade-in', icon: Star },
-    { key: 'address', label: 'Address', icon: MapPin },
-    ...(userRole === "manager"
-      ? [{ key: 'hashed_password', label: 'Password Hash', icon: BadgeCheck }]
-      : [])
-  ].filter(f => customer[f.key])
+  // Append manager field if role
+  const profileFields = [...PROFILE_FIELDS]
+  if (userRole === "manager") {
+    profileFields.push({ key: 'hashed_password', label: 'Password Hash', icon: BadgeCheck })
+  }
 
   const socialIcons = [
     { label: "LinkedIn", icon: <Globe />, url: social.linkedin },
@@ -352,11 +358,12 @@ export default function CustomerCard({ userRole = "sales" }) {
                       <input
                         className="bg-slate-100 dark:bg-slate-800 border rounded px-2 py-1 flex-1"
                         type={key === 'email' ? 'email' : key === 'phone' ? 'tel' : 'text'}
-                        value={edited[key] || ''}
+                        value={edited?.[key] ?? ''}
                         onChange={e => setEdited({ ...edited, [key]: e.target.value })}
+                        placeholder={label}
                       />
                     ) : (
-                      <span className="flex-1">{customer[key]}</span>
+                      <span className="flex-1">{customer[key] ?? <span className="text-slate-400 italic">Not set</span>}</span>
                     )}
                   </div>
                 ))}
