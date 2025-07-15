@@ -15,7 +15,6 @@
     "lucide-react": "^0.525.0",
     "peerjs": "^1.5.5",
     "react": "^19.1.0",
-    "react-avatar": "^5.0.3",
     "react-countup": "^6.5.3",
     "react-dom": "^19.1.0",
     "react-hot-toast": "^2.5.2",
