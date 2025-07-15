@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import {
   Phone, MessageCircle, Mail, Edit, Save, X, Flame, User, Calendar, Star, MapPin,
-  Sun, Moon, BadgeCheck, Upload, Cloud, Users, Globe, File, Map, CheckCircle
+  Sun, Moon, BadgeCheck, Upload, Cloud, Users, Globe, File, Map, CheckCircle, Plus
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import clsx from 'clsx'
@@ -17,6 +17,7 @@ const TABS = [
   { label: "Deals", key: "deals" },
   { label: "AI Insights", key: "ai" },
   { label: "Tasks", key: "tasks" },
+  { label: "Appointments", key: "appointments" },
   { label: "Docs", key: "docs" },
   { label: "Map", key: "map" },
 ]
@@ -40,6 +41,10 @@ export default function CustomerCard({ userRole = "sales" }) {
   const [social, setSocial] = useState({ linkedin: '', facebook: '', twitter: '', found: false })
   const [files, setFiles] = useState([])
   const [uploading, setUploading] = useState(false)
+  const [tasks, setTasks] = useState([])
+  const [appointments, setAppointments] = useState([])
+  const [showTaskModal, setShowTaskModal] = useState(false)
+  const [showApptModal, setShowApptModal] = useState(false)
 
   useEffect(() => {
     const timer = setInterval(() => setIsOnline(Math.random() > 0.5), 5000)
@@ -63,7 +68,29 @@ export default function CustomerCard({ userRole = "sales" }) {
       twitter: "https://twitter.com/fake-profile",
       found: true
     }), 700)
+    fetchTasks()
+    fetchAppointments()
   }, [id])
+
+  useEffect(() => {
+    if (tab === "tasks") fetchTasks()
+    if (tab === "appointments") fetchAppointments()
+  }, [tab, id])
+
+  const fetchTasks = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/tasks?customer_id=${id}`)
+      if (res.ok) setTasks(await res.json())
+      else setTasks([])
+    } catch { setTasks([]) }
+  }
+  const fetchAppointments = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/appointments?customer_id=${id}`)
+      if (res.ok) setAppointments(await res.json())
+      else setAppointments([])
+    } catch { setAppointments([]) }
+  }
 
   const handleSave = async () => {
     try {
@@ -114,6 +141,12 @@ export default function CustomerCard({ userRole = "sales" }) {
   const hotness = aiInfo?.hotness_score ?? customer?.hotness ?? 5
   const inMarket = aiInfo?.in_market ?? hotness >= 7
 
+  const nextTask = tasks
+    .filter(t => !t.completed)
+    .sort((a, b) => new Date(a.due_date) - new Date(b.due_date))[0]
+  const nextAppt = appointments
+    .sort((a, b) => new Date(a.start_time) - new Date(b.start_time))[0]
+
   const profileFields = [
     { key: 'full_name', label: 'Full Name', icon: User },
     { key: 'email', label: 'Email', icon: Mail },
@@ -133,12 +166,82 @@ export default function CustomerCard({ userRole = "sales" }) {
     { label: "Twitter", icon: <Globe />, url: social.twitter }
   ].filter(s => s.url)
 
+  function TaskModal({ onClose }) {
+    const [title, setTitle] = useState('')
+    const [due, setDue] = useState('')
+    const handleAdd = async () => {
+      if (!title) return
+      await fetch(`${API_BASE}/tasks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, due_date: due, customer_id: id })
+      })
+      onClose()
+      fetchTasks()
+    }
+    return (
+      <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow w-80">
+          <h3 className="font-bold mb-2 flex items-center gap-2"><Plus /> Add Task</h3>
+          <input className="border rounded w-full p-2 mb-2" placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} />
+          <input className="border rounded w-full p-2 mb-2" type="datetime-local" value={due} onChange={e => setDue(e.target.value)} />
+          <div className="flex gap-2">
+            <button className="bg-blue-700 text-white px-3 py-1 rounded" onClick={handleAdd}>Add</button>
+            <button className="bg-gray-400 text-white px-3 py-1 rounded" onClick={onClose}>Cancel</button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+  function AppointmentModal({ onClose }) {
+    const [type, setType] = useState('')
+    const [start, setStart] = useState('')
+    const handleAdd = async () => {
+      if (!type || !start) return
+      await fetch(`${API_BASE}/appointments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appointment_type: type, start_time: start, customer_id: id })
+      })
+      onClose()
+      fetchAppointments()
+    }
+    return (
+      <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow w-80">
+          <h3 className="font-bold mb-2 flex items-center gap-2"><Plus /> Book Appointment</h3>
+          <input className="border rounded w-full p-2 mb-2" placeholder="Type (e.g., Test Drive)" value={type} onChange={e => setType(e.target.value)} />
+          <input className="border rounded w-full p-2 mb-2" type="datetime-local" value={start} onChange={e => setStart(e.target.value)} />
+          <div className="flex gap-2">
+            <button className="bg-green-700 text-white px-3 py-1 rounded" onClick={handleAdd}>Book</button>
+            <button className="bg-gray-400 text-white px-3 py-1 rounded" onClick={onClose}>Cancel</button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className={clsx(
       "max-w-3xl mx-auto mt-8 mb-12 rounded-2xl shadow-2xl p-6 transition-all duration-300",
       "bg-white dark:bg-slate-900 text-slate-900 dark:text-white",
       "border border-slate-100 dark:border-slate-800"
     )}>
+      {/* ---- Context Highlights ---- */}
+      <div className="flex flex-wrap gap-4 mb-2">
+        {nextTask && (
+          <div className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 px-3 py-1 rounded font-semibold">
+            Next Task: {nextTask.title} (Due {nextTask.due_date?.slice(0, 16)})
+          </div>
+        )}
+        {nextAppt && (
+          <div className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-3 py-1 rounded font-semibold">
+            Next Appt: {nextAppt.appointment_type || "Appointment"} ({nextAppt.start_time?.slice(0, 16)})
+          </div>
+        )}
+      </div>
+
+      {/* ---- Customer Header ---- */}
       <div className="flex items-center gap-4 mb-4 relative">
         <div className="relative w-16 h-16 flex items-center justify-center rounded-full bg-gradient-to-br from-slate-300 to-blue-400 dark:from-slate-700 dark:to-blue-800 text-3xl font-bold text-white shadow-lg">
           {customer.avatar_url
@@ -209,8 +312,8 @@ export default function CustomerCard({ userRole = "sales" }) {
         <a className="p-2 rounded hover:bg-blue-100 dark:hover:bg-blue-900" href={`tel:${customer.phone ?? ''}`} title="Call"><Phone /></a>
         <a className="p-2 rounded hover:bg-green-100 dark:hover:bg-green-900" href={`sms:${customer.phone ?? ''}`} title="Text"><MessageCircle /></a>
         <a className="p-2 rounded hover:bg-yellow-100 dark:hover:bg-yellow-900" href={`mailto:${customer.email ?? ''}`} title="Email"><Mail /></a>
-        <button className="ml-2 px-3 py-1 bg-blue-700 text-white rounded font-bold shadow" onClick={() => alert('TODO: Book appointment!')}>Book Appt</button>
-        <button className="px-3 py-1 bg-orange-600 text-white rounded font-bold shadow" onClick={() => alert('TODO: Add follow-up task!')}>+ Follow-Up</button>
+        <button className="ml-2 px-3 py-1 bg-blue-700 text-white rounded font-bold shadow" onClick={() => setShowApptModal(true)}>Book Appt</button>
+        <button className="px-3 py-1 bg-orange-600 text-white rounded font-bold shadow" onClick={() => setShowTaskModal(true)}>+ Follow-Up</button>
         {editMode ? (
           <>
             <button className="px-3 py-1 bg-green-600 text-white rounded flex items-center gap-1" onClick={handleSave}><Save className="w-4 h-4" />Save</button>
@@ -331,9 +434,37 @@ export default function CustomerCard({ userRole = "sales" }) {
 
           {tab === 'tasks' && (
             <motion.div key="tasks" {...ANIM_PROPS}>
-              <div className="text-slate-500 text-center py-8 text-lg">
-                <Calendar className="mx-auto mb-2 w-6 h-6" />
-                Tasks & reminders coming soon!
+              <div className="flex items-center mb-3">
+                <h3 className="font-bold flex-1">Tasks & Reminders</h3>
+                <button className="bg-blue-700 text-white px-2 py-1 rounded flex items-center gap-1" onClick={() => setShowTaskModal(true)}><Plus className="w-4 h-4" /> New Task</button>
+              </div>
+              <div className="divide-y divide-slate-200 dark:divide-slate-700">
+                {tasks.length ? tasks.map(t => (
+                  <div key={t.id} className="py-2 flex items-center gap-2">
+                    <input type="checkbox" checked={t.completed} readOnly className="accent-blue-600" />
+                    <div className="flex-1">
+                      <div className={clsx("font-semibold", t.completed && "line-through opacity-60")}>{t.title}</div>
+                      <div className="text-xs text-slate-500">{t.due_date?.slice(0,16)}</div>
+                    </div>
+                  </div>
+                )) : <div className="text-slate-400 py-8 text-center">No tasks yet.</div>}
+              </div>
+            </motion.div>
+          )}
+
+          {tab === 'appointments' && (
+            <motion.div key="appointments" {...ANIM_PROPS}>
+              <div className="flex items-center mb-3">
+                <h3 className="font-bold flex-1">Appointments</h3>
+                <button className="bg-blue-700 text-white px-2 py-1 rounded flex items-center gap-1" onClick={() => setShowApptModal(true)}><Plus className="w-4 h-4" /> Book Appt</button>
+              </div>
+              <div className="divide-y divide-slate-200 dark:divide-slate-700">
+                {appointments.length ? appointments.map(a => (
+                  <div key={a.id} className="py-2">
+                    <div className="font-semibold">{a.appointment_type}</div>
+                    <div className="text-xs text-slate-500">{a.start_time?.slice(0,16)}</div>
+                  </div>
+                )) : <div className="text-slate-400 py-8 text-center">No appointments yet.</div>}
               </div>
             </motion.div>
           )}
@@ -386,6 +517,8 @@ export default function CustomerCard({ userRole = "sales" }) {
       <div className="mt-8">
         <Link to="/customers" className="text-blue-600 dark:text-blue-300 hover:underline">&larr; Back to Customers</Link>
       </div>
+      {showTaskModal && <TaskModal onClose={() => setShowTaskModal(false)} />}
+      {showApptModal && <AppointmentModal onClose={() => setShowApptModal(false)} />}
     </div>
   )
 }
