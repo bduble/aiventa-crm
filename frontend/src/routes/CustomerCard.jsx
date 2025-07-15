@@ -14,6 +14,7 @@ export default function CustomerCard() {
   const [loading, setLoading] = useState(true)
   const [ledger, setLedger] = useState([])
   const [note, setNote] = useState('')
+  const [aiInfo, setAiInfo] = useState({ summary: '', next_steps: [], sms_template: '', email_template: '' })
 
   const fetchCustomer = async () => {
     try {
@@ -41,9 +42,27 @@ export default function CustomerCard() {
     }
   }
 
+  const fetchAiInfo = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/customers/${id}/ai-summary`)
+      if (res.ok) {
+        const data = await res.json()
+        setAiInfo({
+          summary: data.summary || '',
+          next_steps: data.next_steps || [],
+          sms_template: data.sms_template || '',
+          email_template: data.email_template || ''
+        })
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
   useEffect(() => {
     fetchCustomer()
     fetchLedger()
+    fetchAiInfo()
   }, [id])
 
   const handleSave = async () => {
@@ -165,6 +184,44 @@ export default function CustomerCard() {
             <a className="p-2 rounded hover:bg-gray-100" href={`mailto:${customer.email ?? ''}`}> <Mail className="h-4 w-4" /> </a>
           </div>
         </div>
+
+        {aiInfo.summary && (
+          <div className="mt-4 bg-gray-50 p-3 rounded">
+            <h3 className="font-semibold mb-1">AI Insights</h3>
+            <p className="text-sm whitespace-pre-wrap">{aiInfo.summary}</p>
+            {aiInfo.next_steps.length > 0 && (
+              <ul className="list-disc list-inside text-sm mt-2">
+                {aiInfo.next_steps.map((s, i) => (
+                  <li key={i}>{s}</li>
+                ))}
+              </ul>
+            )}
+            {(aiInfo.sms_template || aiInfo.email_template) && (
+              <div className="flex flex-wrap gap-2 mt-3">
+                {aiInfo.sms_template && customer.phone && (
+                  <button
+                    className="px-3 py-1 bg-blue-600 text-white rounded text-sm"
+                    onClick={() =>
+                      (window.location.href = `sms:${customer.phone}?&body=${encodeURIComponent(aiInfo.sms_template)}`)
+                    }
+                  >
+                    Send SMS Template
+                  </button>
+                )}
+                {aiInfo.email_template && customer.email && (
+                  <button
+                    className="px-3 py-1 bg-blue-600 text-white rounded text-sm"
+                    onClick={() =>
+                      (window.location.href = `mailto:${customer.email}?body=${encodeURIComponent(aiInfo.email_template)}`)
+                    }
+                  >
+                    Send Email Template
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {Object.values(GROUPS).map(group => (
           <div key={group.label} className="mt-4">
