@@ -81,9 +81,9 @@ app.include_router(inventory_router, prefix="/api/inventory", tags=["inventory"]
 app.include_router(chat_router, prefix="/api/chat", tags=["chat"])
 app.include_router(telephony_router, prefix="/api/telephony", tags=["telephony"])
 app.include_router(analytics_router, prefix="/api/analytics", tags=["analytics"])
-app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
-app.include_router(appointments.router, prefix="/api/appointments", tags=["appointments"])
-app.include_router(deals.router, prefix="/api/deals", tags=["deals"])
+app.include_router(tasks_router, prefix="/api/tasks", tags=["tasks"])
+app.include_router(appointments_router, prefix="/api/appointments", tags=["appointments"])
+app.include_router(deals_router, prefix="/api/deals", tags=["deals"])
 
 # 4️⃣ Serve React app for all other GETs
 app.mount(
