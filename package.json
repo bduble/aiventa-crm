@@ -18,6 +18,7 @@
     "node-imap": "^0.9.6",
     "peerjs": "^1.5.5",
     "pg": "^8.16.3",
+    "react-avatar": "^5.0.3",
     "sequelize": "^6.37.7",
     "sqlite3": "^5.1.6",
     "winston": "^3.17.0",
