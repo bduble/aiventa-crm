@@ -7,10 +7,44 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 import clsx from 'clsx'
 
-function getInitials(name = '') {
-  return name.split(' ').map(part => part[0]?.toUpperCase()).join('').slice(0, 2)
+// ——— Avatar (no external deps) ———
+function CustomerAvatar({ name, url, size = 64, online = false, inMarket = false }) {
+  const initials = (name || 'CU')
+    .split(' ')
+    .map(w => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+  return (
+    <div className="relative">
+      {url ? (
+        <img
+          src={url}
+          alt="avatar"
+          className="rounded-full object-cover border-2 border-white shadow w-16 h-16"
+          style={{ width: size, height: size }}
+        />
+      ) : (
+        <div
+          className="flex items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-slate-800 dark:from-slate-700 dark:to-blue-800 text-white font-bold shadow"
+          style={{ width: size, height: size, fontSize: size / 2 }}
+        >
+          {initials}
+        </div>
+      )}
+      {inMarket && (
+        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] rounded-full px-2 py-1 font-bold animate-pulse z-10 shadow">
+          IN MARKET
+        </span>
+      )}
+      {online && (
+        <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 border-2 border-white rounded-full shadow"></span>
+      )}
+    </div>
+  )
 }
 
+// ——— Tabs ———
 const TABS = [
   { label: "Profile", key: "profile" },
   { label: "Activity", key: "ledger" },
@@ -19,6 +53,7 @@ const TABS = [
   { label: "Tasks", key: "tasks" },
   { label: "Docs", key: "docs" },
   { label: "Map", key: "map" },
+  // Add more if needed!
 ]
 
 const ANIM_PROPS = { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -20 }, transition: { duration: 0.2 } }
@@ -35,17 +70,22 @@ export default function CustomerCard({ userRole = "sales" }) {
   const [note, setNote] = useState('')
   const [aiInfo, setAiInfo] = useState({})
   const [tab, setTab] = useState('profile')
-  const [theme, setTheme] = useState(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+  const [theme, setTheme] = useState(
+    window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark' : 'light'
+  )
   const [isOnline, setIsOnline] = useState(false)
   const [social, setSocial] = useState({ linkedin: '', facebook: '', twitter: '', found: false })
   const [files, setFiles] = useState([])
   const [uploading, setUploading] = useState(false)
 
+  // Randomize online status every 5s (demo)
   useEffect(() => {
     const timer = setInterval(() => setIsOnline(Math.random() > 0.5), 5000)
     return () => clearInterval(timer)
   }, [])
 
+  // Fetch data on mount/id change
   useEffect(() => {
     setLoading(true)
     fetch(`${API_BASE}/customers/${id}`)
@@ -57,6 +97,7 @@ export default function CustomerCard({ userRole = "sales" }) {
       .then(r => r.json()).then(setLedger)
     fetch(`${API_BASE}/customers/${id}/files`)
       .then(r => r.json()).then(docs => setFiles(docs || []))
+    // Fake social for now
     setTimeout(() => setSocial({
       linkedin: "https://linkedin.com/in/fake-profile",
       facebook: "https://facebook.com/fake-profile",
@@ -140,17 +181,12 @@ export default function CustomerCard({ userRole = "sales" }) {
       "border border-slate-100 dark:border-slate-800"
     )}>
       <div className="flex items-center gap-4 mb-4 relative">
-        <div className="relative w-16 h-16 flex items-center justify-center rounded-full bg-gradient-to-br from-slate-300 to-blue-400 dark:from-slate-700 dark:to-blue-800 text-3xl font-bold text-white shadow-lg">
-          {customer.avatar_url
-            ? <img src={customer.avatar_url} alt="avatar" className="rounded-full w-16 h-16 object-cover" />
-            : getInitials(customer.full_name || customer.name || customer.first_name || "U")}
-          {inMarket &&
-            <motion.span {...ANIM_PROPS}
-              className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-2 py-1 shadow font-bold animate-pulse"
-            >IN MARKET</motion.span>}
-          {isOnline &&
-            <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 border-2 border-white rounded-full shadow"></span>}
-        </div>
+        <CustomerAvatar
+          name={customer.full_name || customer.name || customer.first_name || "U"}
+          url={customer.avatar_url}
+          online={isOnline}
+          inMarket={inMarket}
+        />
         <div>
           <h2 className="text-2xl font-extrabold flex items-center gap-2">
             {customer.full_name || customer.name || (customer.first_name + ' ' + customer.last_name)}
