@@ -46,7 +46,7 @@ def _load_prompt_from_supabase() -> Optional[dict]:
             .execute()
         )
         if res.data and isinstance(res.data, dict):
-            return {"id": res.data["value"], "version": "2"}
+            return {"id": res.data["value"], "version": DEFAULT_PROMPT_VERSION}
     except Exception:
         pass
     return None
