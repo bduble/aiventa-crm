@@ -13,6 +13,7 @@ import CreateLeadForm         from "./components/CreateLeadForm";
 import FloorTrafficPage       from "./pages/FloorTrafficPage";
 import CreateFloorTrafficForm from "./components/CreateFloorTrafficForm";
 import Home                   from "./pages/Home";
+import NewEntryPage           from "./pages/NewEntryPage";
 import Logo                   from "./components/Logo";
 import ReconPage              from "./pages/ReconPage";
 import ChatGPTPrompt          from "./components/ChatGPTPrompt";
@@ -87,12 +88,11 @@ export default function App() {
   // Nav items as an array for clarity
   const navItems = [
     { to: "/",         label: "Home"             },
-    { to: "/leads/new",label: "New Lead"         },
     { to: "/users",    label: "Users"            },
     { to: "/inventory",label: "Inventory"        },
     { to: "/recon",    label: "Recon"            },
     {
-      to: "/floor-traffic/new",
+      to: "/new",
       label: (
         <span className="flex items-center">
           <Plus className="h-4 w-4" />
@@ -231,6 +231,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/leads" element={<LeadLog />} />
           <Route path="/leads/new" element={<CreateLeadForm />} />
+          <Route path="/new" element={<NewEntryPage />} />
           <Route path="/customers" element={<CustomersPage />} />
           <Route path="/customers/:id" element={<CustomerCard />} />
           <Route path="/users" element={<UsersPage />} />
