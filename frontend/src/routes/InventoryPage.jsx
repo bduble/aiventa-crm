@@ -105,7 +105,15 @@ export default function InventoryPage() {
     if (filters.priceMax) list = list.filter(v => Number(v.price) <= Number(filters.priceMax))
     if (filters.mileageMax) list = list.filter(v => Number(v.mileage) <= Number(filters.mileageMax))
     if (filters.condition?.length)
-      list = list.filter(v => filters.condition.includes(String(v.condition)))
+      list = list.filter(v => {
+        const val = String(v.condition || v.type || '').toLowerCase()
+        const isCertified = Boolean(v.certified) || val.includes('certified')
+        return (
+          (filters.condition.includes('Certified') && isCertified) ||
+          (filters.condition.includes('New') && val === 'new') ||
+          (filters.condition.includes('Used') && val === 'used')
+        )
+      })
     if (filters.color) list = list.filter(v => v.color?.toLowerCase().includes(filters.color.toLowerCase()))
     if (filters.fuelType) list = list.filter(v => v.fuelType?.toLowerCase().includes(filters.fuelType.toLowerCase()))
     if (filters.drivetrain) list = list.filter(v => v.drivetrain?.toLowerCase().includes(filters.drivetrain.toLowerCase()))
