@@ -15,7 +15,7 @@ class MonthMetrics(BaseModel):
 
 # ── Leads ──────────────────────────────────────────────────────────────────────
 class Lead(BaseModel):
-    id: str
+    id: int | str
     name: str
     email: Optional[str]
 
@@ -26,7 +26,7 @@ class LeadCreate(BaseModel):
 
 # ── Contacts ───────────────────────────────────────────────────────────────────
 class Contact(BaseModel):
-    id: str
+    id: int | str
     lead_id: Optional[int]
     account_id: Optional[int]
     name: str
@@ -77,7 +77,7 @@ class CustomerUpdate(BaseModel):
 
 # ── Accounts ───────────────────────────────────────────────────────────────────
 class Account(BaseModel):
-    id: str
+    id: int | str
     name: str
     industry: Optional[str]
 
@@ -92,8 +92,8 @@ class AccountUpdate(BaseModel):
 
 # ── Opportunities ──────────────────────────────────────────────────────────────
 class Opportunity(BaseModel):
-    id: str
-    account_id: str
+    id: int | str
+    account_id: int | str
     name: str
     stage: str   # e.g. "Prospecting", "Negotiation", "Closed Won", etc.
     amount: Optional[float]
@@ -115,7 +115,7 @@ class OpportunityUpdate(BaseModel):
 
 # ── Activities ─────────────────────────────────────────────────────────────────
 class Activity(BaseModel):
-    id: str
+    id: int | str
     activity_type: str        # e.g. "call", "email", "task", "view"
     subject: Optional[str] = None
     note: Optional[str] = None
@@ -151,7 +151,7 @@ class ActivityUpdate(BaseModel):
 
 # ── Floor Traffic Log ─────────────────────────────────────────────────────────
 class FloorTrafficCustomer(BaseModel):
-    id: str
+    id: int | str
     salesperson: str
     name: str = Field(alias="customer_name")
     first_name: Optional[str] = None
