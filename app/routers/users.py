@@ -1,7 +1,7 @@
 # app/routers/users.py
 
 from fastapi import APIRouter, HTTPException, Path
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from postgrest.exceptions import APIError
 from app.db import supabase
 
@@ -10,8 +10,9 @@ router = APIRouter()
 # ─── Pydantic models ──────────────────────────────────────────────────────────────
 
 class UserCreate(BaseModel):
-    full_name: str
+    full_name: str = Field(..., alias="name")
     email: EmailStr
+    model_config = ConfigDict(populate_by_name=True)
 
 class User(UserCreate):
     id: int
