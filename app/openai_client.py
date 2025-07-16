@@ -55,5 +55,5 @@ def get_openai_prompt() -> Optional[dict]:
     """Return prompt‑library reference, either from env or Supabase."""
     pid = os.environ.get("OPENAI_PROMPT_ID")
     if pid:
-        return {"id": pid, "version": "2"}
+        return {"id": pid, "version": OPENAI_PROMPT_VERSION}
     return _load_prompt_from_supabase()
