@@ -41,6 +41,7 @@ def get_lead(lead_id: int = Path(..., gt=0)):
     return res.data
 
 @router.post("/", response_model=Lead, status_code=201)
+@router.post("", response_model=Lead, status_code=201, include_in_schema=False)
 def create_lead(lead: LeadCreate):
     payload = lead.dict()
     try:

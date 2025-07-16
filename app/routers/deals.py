@@ -23,6 +23,7 @@ class Deal(DealCreate):
     id: int
 
 @router.get("/", response_model=list[Deal])
+@router.get("", response_model=list[Deal], include_in_schema=False)
 def list_deals(customer_id: Optional[int] = None):
     try:
         query = supabase.table("deals").select("*")
@@ -34,6 +35,7 @@ def list_deals(customer_id: Optional[int] = None):
         raise HTTPException(400, detail=e.message)
 
 @router.post("/", response_model=Deal)
+@router.post("", response_model=Deal, include_in_schema=False)
 def create_deal(deal: DealCreate):
     try:
         res = supabase.table("deals").insert(deal.dict()).execute()
