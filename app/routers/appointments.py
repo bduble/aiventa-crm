@@ -19,6 +19,7 @@ class Appointment(AppointmentCreate):
     id: int
 
 @router.get("/", response_model=list[Appointment])
+@router.get("", response_model=list[Appointment], include_in_schema=False)
 def list_appointments(customer_id: Optional[int] = None):
     try:
         query = supabase.table("appointments").select("*")
@@ -30,6 +31,7 @@ def list_appointments(customer_id: Optional[int] = None):
         raise HTTPException(400, detail=e.message)
 
 @router.post("/", response_model=Appointment)
+@router.post("", response_model=Appointment, include_in_schema=False)
 def create_appointment(appt: AppointmentCreate):
     try:
         res = supabase.table("appointments").insert(appt.dict()).execute()
