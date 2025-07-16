@@ -222,7 +222,7 @@ def month_metrics():
     try:
         res = (
             supabase.table("leads")
-            .select("created_at,last_lead_response_at,last_staff_response_at")
+            .select("*")
             .gte("created_at", start.isoformat())
             .lt("created_at", end.isoformat())
             .execute()
