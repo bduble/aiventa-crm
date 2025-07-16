@@ -1,8 +1,9 @@
 import React from 'react'
+import { formatDateTime } from '../utils/formatDateTime'
 
 export default function LedgerEntry({ entry }) {
   const { created_at, activity_type, subject, note, staff_name } = entry
-  const date = created_at ? new Date(created_at).toLocaleString() : ''
+  const date = formatDateTime(created_at)
   const summary = subject || note
   return (
     <div className="border-b py-2">

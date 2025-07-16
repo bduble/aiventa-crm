@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Users } from 'lucide-react';
+import { formatTime } from '../utils/formatDateTime';
 
 export default function FloorLog() {
   const [logs, setLogs] = useState([]);
@@ -102,10 +103,7 @@ export default function FloorLog() {
                       >
                         {['timeIn', 'timeOut'].includes(key)
                           ? log[key]
-                            ? new Date(log[key]).toLocaleTimeString([], {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })
+                            ? formatTime(log[key])
                             : ''
                           : String(log[key] ?? '')}
                       </td>

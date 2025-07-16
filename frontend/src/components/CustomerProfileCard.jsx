@@ -1,6 +1,7 @@
 // frontend/src/components/CustomerProfileCard.jsx
 import React, { useState, useEffect } from "react";
 import { Phone, MessageCircle, Mail, Edit, Save, X } from "lucide-react";
+import { formatDateTime } from "../utils/formatDateTime";
 
 // --- Helper: Get initials for avatar ---
 function getInitials(name, fallback = "?") {
@@ -99,9 +100,7 @@ function CustomerLedger({ ledger }) {
         {ledger.map((entry, idx) => (
           <div key={entry.id || idx} className="border-b last:border-b-0 py-2">
             <div className="text-xs text-gray-600">
-              {entry.timestamp
-                ? new Date(entry.timestamp).toLocaleString()
-                : null}
+              {entry.timestamp ? formatDateTime(entry.timestamp) : null}
             </div>
             <div className="font-medium">{entry.type || "Note"}</div>
             <div className="text-gray-800">
