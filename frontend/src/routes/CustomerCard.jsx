@@ -13,7 +13,7 @@ function getInitials(name = '') {
 
 const TABS = [
   { label: "Profile", key: "profile" },
-  { label: "Activity", key: "activities" },
+  { label: "Activity", key: "ledger" },
   { label: "Deals", key: "deals" },
   { label: "AI Insights", key: "ai" },
   { label: "Tasks", key: "tasks" },
@@ -23,7 +23,7 @@ const TABS = [
 ]
 
 const PROFILE_FIELDS = [
-  { key: 'customer_name', label: 'Full Name', icon: User },
+  { key: 'name', label: 'Full Name', icon: User },
   { key: 'email', label: 'Email', icon: Mail },
   { key: 'phone', label: 'Phone', icon: Phone },
   { key: 'vehicle', label: 'Current Vehicle', icon: Star },
