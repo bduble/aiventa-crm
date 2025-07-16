@@ -3,6 +3,9 @@ from typing import Optional
 from app.db import supabase
 import openai
 
+DEFAULT_PROMPT_VERSION = "2"  # Set your default prompt version here
+OPENAI_PROMPT_VERSION = os.environ.get("OPENAI_PROMPT_VERSION", DEFAULT_PROMPT_VERSION)
+
 _openai_client: Optional[openai.AsyncOpenAI] = None
 
 def _load_key_from_supabase() -> Optional[str]:
@@ -55,5 +58,5 @@ def get_openai_prompt() -> Optional[dict]:
     """Return prompt‑library reference, either from env or Supabase."""
     pid = os.environ.get("OPENAI_PROMPT_ID")
     if pid:
-        return {"id": pid, "version": OPENAI_PROMPT_VERSION}
+        return {"id": pid, "version": DEFAULT_PROMPT_VERSION}
     return _load_prompt_from_supabase()
