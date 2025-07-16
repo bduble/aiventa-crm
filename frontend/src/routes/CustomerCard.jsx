@@ -249,12 +249,12 @@ export default function CustomerCard({ userRole = "sales" }) {
       <div className="flex flex-wrap gap-4 mb-2">
         {nextTask && (
           <div className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 px-3 py-1 rounded font-semibold">
-            Next Task: {nextTask.title} (Due {nextTask.due_date?.slice(0, 16)})
+            Next Task: {nextTask.title} (Due {formatDateTime(nextTask.due_date)})
           </div>
         )}
         {nextAppt && (
           <div className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-3 py-1 rounded font-semibold">
-            Next Appt: {nextAppt.appointment_type || "Appointment"} ({nextAppt.start_time?.slice(0, 16)})
+            Next Appt: {nextAppt.appointment_type || "Appointment"} ({formatDateTime(nextAppt.start_time)})
           </div>
         )}
       </div>
@@ -463,7 +463,7 @@ export default function CustomerCard({ userRole = "sales" }) {
                     <input type="checkbox" checked={t.completed} readOnly className="accent-blue-600" />
                     <div className="flex-1">
                       <div className={clsx("font-semibold", t.completed && "line-through opacity-60")}>{t.title}</div>
-                      <div className="text-xs text-slate-500">{t.due_date?.slice(0,16)}</div>
+                      <div className="text-xs text-slate-500">{formatDateTime(t.due_date)}</div>
                     </div>
                   </div>
                 )) : <div className="text-slate-400 py-8 text-center">No tasks yet.</div>}
@@ -481,7 +481,7 @@ export default function CustomerCard({ userRole = "sales" }) {
                 {appointments.length ? appointments.map(a => (
                   <div key={a.id} className="py-2">
                     <div className="font-semibold">{a.appointment_type}</div>
-                    <div className="text-xs text-slate-500">{a.start_time?.slice(0,16)}</div>
+                    <div className="text-xs text-slate-500">{formatDateTime(a.start_time)}</div>
                   </div>
                 )) : <div className="text-slate-400 py-8 text-center">No appointments yet.</div>}
               </div>
