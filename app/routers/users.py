@@ -14,8 +14,11 @@ class UserCreate(BaseModel):
     email: EmailStr
     model_config = ConfigDict(populate_by_name=True)
 
-class User(UserCreate):
+class User(BaseModel):
     id: int
+    full_name: str = Field(..., alias="name")
+    email: EmailStr
+    model_config = ConfigDict(populate_by_name=True)
 
 # ─── Endpoints ────────────────────────────────────────────────────────────────────
 
