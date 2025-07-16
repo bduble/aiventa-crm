@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Phone, MessageCircle, Mail, Pencil } from 'lucide-react';
+import { formatTime } from '../utils/formatDateTime';
 export default function FloorTrafficTable({ rows, onEdit, onToggle }) {
   const [sortConfig, setSortConfig] = useState({ key: 'visit_time', direction: 'ascending' });
   const [acknowledged, setAcknowledged] = useState(new Set());
@@ -72,10 +73,10 @@ export default function FloorTrafficTable({ rows, onEdit, onToggle }) {
             data-label={h.label}
           >
             {h.key === 'visit_time' ? (
-              new Date(row[h.key]).toLocaleTimeString()
+              formatTime(row[h.key])
             ) : h.key === 'time_out' ? (
               row[h.key] ? (
-                new Date(row[h.key]).toLocaleTimeString()
+                formatTime(row[h.key])
               ) : (
                 <input
                   type="checkbox"

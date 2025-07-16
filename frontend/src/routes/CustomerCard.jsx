@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { formatDateTime } from '../utils/formatDateTime'
 import {
   Phone, MessageCircle, Mail, Edit, Save, X, Flame, User, Calendar, Star, MapPin,
   Sun, Moon, BadgeCheck, Upload, Cloud, Users, Globe, File, Map, CheckCircle, Plus
@@ -390,7 +391,7 @@ export default function CustomerCard({ userRole = "sales" }) {
                   {ledger.length ? ledger.map((entry, idx) =>
                     <motion.div key={entry.id} {...ANIM_PROPS} transition={{ delay: idx * 0.04 }}>
                       <div className="mb-2">
-                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{entry.created_at}</span>
+                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{formatDateTime(entry.created_at)}</span>
                         <div>{entry.note}</div>
                         <div className="text-xs text-slate-400">{entry.activity_type}</div>
                       </div>
