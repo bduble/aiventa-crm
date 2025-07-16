@@ -36,7 +36,13 @@ export default function ChatGPTPrompt() {
           aria-label="Ask a question to ChatGPT"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
-          style={{ padding: '0.25rem 0.5rem', border: '1px solid #ccc', borderRadius: '4px' }}
+          style={{
+            padding: '0.25rem 0.5rem',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            backgroundColor: '#ffffff',
+            color: '#000000',
+          }}
         />
         <button onClick={askQuestion} className="bg-electricblue text-white px-2 py-1 rounded">
           Ask
