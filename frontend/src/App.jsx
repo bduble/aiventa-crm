@@ -13,7 +13,6 @@ import CreateLeadForm         from "./components/CreateLeadForm";
 import FloorTrafficPage       from "./pages/FloorTrafficPage";
 import CreateFloorTrafficForm from "./components/CreateFloorTrafficForm";
 import Home                   from "./pages/Home";
-import NewEntryPage           from "./pages/NewEntryPage";
 import Logo                   from "./components/Logo";
 import ReconPage              from "./pages/ReconPage";
 import ChatGPTPrompt          from "./components/ChatGPTPrompt";
@@ -27,6 +26,7 @@ export default function App() {
   );
   const [customerMenuOpen, setCustomerMenuOpen] = useState(false);
   const [logMenuOpen, setLogMenuOpen] = useState(false);
+  const [addMenuOpen, setAddMenuOpen] = useState(false);
   const [lightText, setLightText] = useState(false);
   const navRef = useRef(null);
 
@@ -87,19 +87,10 @@ export default function App() {
 
   // Nav items as an array for clarity
   const navItems = [
-    { to: "/",         label: "Home"             },
-    { to: "/users",    label: "Users"            },
-    { to: "/inventory",label: "Inventory"        },
-    { to: "/recon",    label: "Recon"            },
-    {
-      to: "/new",
-      label: (
-        <span className="flex items-center">
-          <Plus className="h-4 w-4" />
-          <User className="h-4 w-4 ml-1" />
-        </span>
-      ),
-    },
+    { to: "/",         label: "Home"      },
+    { to: "/users",    label: "Users"     },
+    { to: "/inventory",label: "Inventory" },
+    { to: "/recon",    label: "Recon"     },
   ];
 
   return (
@@ -116,9 +107,67 @@ export default function App() {
           {/* Main nav links */}
           {navItems.map(({ to, label }) => (
             <Link key={to} to={to} style={{ ...linkStyle, color: navTextColor }}>
-              {label}
-            </Link>
-          ))}
+          {label}
+        </Link>
+      ))}
+
+          {/* Add dropdown */}
+          <div
+            style={{ position: "relative" }}
+            onMouseLeave={() => setAddMenuOpen(false)}
+          >
+            <span
+              style={{ ...linkStyle, color: navTextColor, cursor: "pointer" }}
+              role="button"
+              aria-haspopup="menu"
+              aria-expanded={addMenuOpen}
+              onClick={() => setAddMenuOpen(!addMenuOpen)}
+            >
+              <span className="flex items-center">
+                <Plus className="h-4 w-4" />
+                <User className="h-4 w-4 ml-1" />
+              </span>
+            </span>
+            {addMenuOpen && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "100%",
+                  left: 0,
+                  backgroundColor: isDark ? "#1a202c" : "#ffffff",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                  padding: "0.5rem 0",
+                  borderRadius: "4px",
+                  minWidth: "150px",
+                }}
+              >
+                <Link
+                  to="/leads/new"
+                  style={{
+                    ...linkStyle,
+                    display: "block",
+                    padding: "0.25rem 1rem",
+                    color: isDark ? "#f7fafc" : "#1a202c",
+                  }}
+                  onClick={() => setAddMenuOpen(false)}
+                >
+                  New Lead
+                </Link>
+                <Link
+                  to="/floor-traffic/new"
+                  style={{
+                    ...linkStyle,
+                    display: "block",
+                    padding: "0.25rem 1rem",
+                    color: isDark ? "#f7fafc" : "#1a202c",
+                  }}
+                  onClick={() => setAddMenuOpen(false)}
+                >
+                  Floor Traffic Visitor
+                </Link>
+              </div>
+            )}
+          </div>
 
           {/* Log dropdown */}
           <div
@@ -231,7 +280,6 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/leads" element={<LeadLog />} />
           <Route path="/leads/new" element={<CreateLeadForm />} />
-          <Route path="/new" element={<NewEntryPage />} />
           <Route path="/customers" element={<CustomersPage />} />
           <Route path="/customers/:id" element={<CustomerCard />} />
           <Route path="/users" element={<UsersPage />} />
