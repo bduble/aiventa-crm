@@ -2,7 +2,7 @@
 
 from datetime import date, datetime, time
 from typing import Optional, List
-from pydantic import BaseModel, EmailStr, root_validator, validator, ConfigDict
+from pydantic import BaseModel, EmailStr, root_validator, validator, ConfigDict, Field
 
 # ── Analytics Schema ─────────────────────────────────────────────────────────
 class MonthMetrics(BaseModel):
@@ -146,7 +146,7 @@ class ActivityUpdate(BaseModel):
 class FloorTrafficCustomer(BaseModel):
     id: str
     salesperson: str
-    name: str
+    name: str = Field(alias="customer_name")
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
@@ -156,8 +156,10 @@ class FloorTrafficCustomer(BaseModel):
     demo: Optional[bool] = None
     worksheet: Optional[bool] = None
     customer_offer: Optional[bool] = None
+    status: Optional[str] = None
     notes: Optional[str] = None
     created_at: datetime
+    model_config = ConfigDict(populate_by_name=True)
 
 class FloorTrafficCustomerCreate(BaseModel):
     visit_time: datetime
@@ -169,6 +171,7 @@ class FloorTrafficCustomerCreate(BaseModel):
     demo: Optional[bool] = None
     worksheet: Optional[bool] = None
     customer_offer: Optional[bool] = None
+    status: Optional[str] = None
     notes: Optional[str] = None
     time_out: Optional[datetime] = None
 
@@ -189,7 +192,20 @@ class FloorTrafficCustomerUpdate(BaseModel):
     demo: Optional[bool] = None
     worksheet: Optional[bool] = None
     customer_offer: Optional[bool] = None
+    status: Optional[str] = None
     notes: Optional[str] = None
+
+
+class CustomerFloorTrafficCreate(BaseModel):
+    """Simplified payload when logging an existing customer."""
+    visit_time: datetime
+    salesperson: str
+    demo: Optional[bool] = None
+    worksheet: Optional[bool] = None
+    customer_offer: Optional[bool] = None
+    status: Optional[str] = None
+    notes: Optional[str] = None
+    time_out: Optional[datetime] = None
 
 
 # ── Inventory ─────────────────────────────────────────────────────────────────

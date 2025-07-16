@@ -7,7 +7,7 @@ client = TestClient(app)
 
 
 def test_list_inventory():
-    sample = [{"id": 1, "stockNumber": "A123", "inventory_type": "new"}]
+    sample = [{"id": 1, "stocknumber": "A123", "type": "new"}]
     exec_result = MagicMock(data=sample, error=None)
     mock_table = MagicMock()
     mock_table.select.return_value.execute.return_value = exec_result
@@ -20,19 +20,19 @@ def test_list_inventory():
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
-    assert data[0]["stockNumber"] == "A123"
-    assert data[0]["inventoryType"] == "new"
+    assert data[0]["stocknumber"] == "A123"
+    assert data[0]["type"] == "new"
 
 
 def test_create_inventory():
-    sample = {"id": 1, "stockNumber": "A123", "inventory_type": "used"}
+    sample = {"id": 1, "stocknumber": "A123", "type": "used"}
     exec_result = MagicMock(data=[sample], error=None)
     mock_table = MagicMock()
     mock_table.insert.return_value.execute.return_value = exec_result
     mock_supabase = MagicMock()
     mock_supabase.table.return_value = mock_table
 
-    payload = {"stockNumber": "A123", "inventoryType": "used"}
+    payload = {"stocknumber": "A123", "type": "used"}
     with patch("app.routers.inventory.supabase", mock_supabase):
         response = client.post(
             "/api/inventory/",
@@ -42,8 +42,8 @@ def test_create_inventory():
 
     assert response.status_code == 201
     data = response.json()
-    assert data["stockNumber"] == "A123"
-    assert data["inventoryType"] == "used"
+    assert data["stocknumber"] == "A123"
+    assert data["type"] == "used"
 
 
 def test_filter_inventory_query_params():
@@ -71,9 +71,9 @@ def test_filter_inventory_query_params():
 
 def test_inventory_snapshot():
     sample = [
-        {"inventory_type": "new"},
-        {"inventory_type": "used"},
-        {"inventory_type": "new"},
+        {"type": "new"},
+        {"type": "used"},
+        {"type": "new"},
     ]
     exec_result = MagicMock(data=sample, error=None)
     mock_table = MagicMock()

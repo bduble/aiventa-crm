@@ -20,6 +20,7 @@ def test_get_today_floor_traffic():
         "demo": None,
         "worksheet": None,
         "customer_offer": None,
+        "status": None,
         "notes": None,
         "created_at": "2024-01-01T09:00:00"
     }]
@@ -51,6 +52,7 @@ def test_create_floor_traffic():
         "demo": None,
         "worksheet": None,
         "customer_offer": None,
+        "status": None,
         "notes": None,
         "created_at": "2024-01-01T10:00:00",
     }
@@ -111,6 +113,7 @@ def test_update_floor_traffic():
         "demo": None,
         "worksheet": None,
         "customer_offer": None,
+        "status": None,
         "notes": "Updated",
         "created_at": "2024-01-01T10:00:00",
     }
@@ -174,6 +177,7 @@ def test_search_floor_traffic():
             "demo": None,
             "worksheet": None,
             "customer_offer": None,
+            "status": None,
             "notes": None,
             "created_at": "2024-01-05T09:00:00",
         }
