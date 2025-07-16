@@ -4,6 +4,7 @@ from app.db import supabase
 import openai
 
 DEFAULT_PROMPT_VERSION = "2"  # Set your default prompt version here
+OPENAI_PROMPT_VERSION = os.environ.get("OPENAI_PROMPT_VERSION", DEFAULT_PROMPT_VERSION)
 
 _openai_client: Optional[openai.AsyncOpenAI] = None
 
