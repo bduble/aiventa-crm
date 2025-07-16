@@ -10,11 +10,15 @@ from app.models import (
     CustomerFloorTrafficCreate,
     FloorTrafficCustomer,
 )
+from fastapi import APIRouter, HTTPException, status, Query, UploadFile, File
+from postgrest.exceptions import APIError
+from app.db import supabase
+from pydantic import BaseModel
+import uuid
+from app.models import Customer, CustomerCreate, CustomerUpdate
 from app.openai_client import get_openai_client
 import json
-
 router = APIRouter()
-
 @router.get(
     "/",
     response_model=list[Customer],
@@ -286,3 +290,47 @@ async def add_customer_to_floor_log(customer_id: int, entry: CustomerFloorTraffi
         )
 
     return res.data[0]
+class CustomerFile(BaseModel):
+    id: int
+    customer_id: int
+    name: str
+    url: str
+
+
+@router.get("/{customer_id}/files", response_model=list[CustomerFile])
+def list_customer_files(customer_id: int):
+    """Return files uploaded for a customer."""
+    try:
+        res = (
+            supabase.table("customer_files")
+            .select("*")
+            .eq("customer_id", customer_id)
+            .execute()
+        )
+        return res.data or []
+    except APIError as e:
+        raise HTTPException(status_code=400, detail=e.message)
+
+
+@router.post(
+    "/{customer_id}/files",
+    response_model=CustomerFile,
+    status_code=status.HTTP_201_CREATED,
+)
+def upload_customer_file(customer_id: int, file: UploadFile = File(...)):
+    """Upload a document for the customer."""
+    try:
+        content = file.file.read()
+        filename = f"{uuid.uuid4()}_{file.filename}"
+        path = f"{customer_id}/{filename}"
+        bucket = supabase.storage.from_("customer-files")
+        bucket.upload(path, content, {"content-type": file.content_type})
+        url = bucket.get_public_url(path)
+        res = (
+            supabase.table("customer_files")
+            .insert({"customer_id": customer_id, "name": file.filename, "url": url})
+            .execute()
+        )
+        return res.data[0]
+    except APIError as e:
+        raise HTTPException(status_code=400, detail=e.message)

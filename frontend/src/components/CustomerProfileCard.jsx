@@ -122,6 +122,19 @@ export default function CustomerProfileCard({ customer, ledger = [], onSave }) {
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState(customer);
   const [activeTab, setActiveTab] = useState("Details");
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api'
+  const CURRENT_USER_ID = 1
+
+  const logActivity = async (type, note = '', subject = '') => {
+    const payload = { activity_type: type, note, subject, customer_id: customer?.id, user_id: CURRENT_USER_ID }
+    try {
+      await fetch(`${API_BASE}/activities`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+    } catch {}
+  }
 
   // Simulated tags: you might fetch or compute these
   const tags = [
@@ -136,6 +149,9 @@ export default function CustomerProfileCard({ customer, ledger = [], onSave }) {
 
   useEffect(() => {
     setForm(customer);
+    if (customer?.id) {
+      logActivity('view', '', 'Viewed customer card');
+    }
   }, [customer]);
 
   function handleFieldChange(key, value) {
@@ -154,14 +170,14 @@ export default function CustomerProfileCard({ customer, ledger = [], onSave }) {
           <>
             <button
               className="rounded-full p-2 hover:bg-blue-100"
-              onClick={() => (window.location.href = `tel:${phone}`)}
+              onClick={() => { logActivity('call', '', 'Phone call'); window.location.href = `tel:${phone}` }}
               title="Call"
             >
               <Phone className="w-4 h-4" />
             </button>
             <button
               className="rounded-full p-2 hover:bg-blue-100"
-              onClick={() => (window.location.href = `sms:${phone}`)}
+              onClick={() => { logActivity('text', '', 'Text message'); window.location.href = `sms:${phone}` }}
               title="Text"
             >
               <MessageCircle className="w-4 h-4" />
@@ -171,7 +187,7 @@ export default function CustomerProfileCard({ customer, ledger = [], onSave }) {
         {email && (
           <button
             className="rounded-full p-2 hover:bg-blue-100"
-            onClick={() => (window.location.href = `mailto:${email}`)}
+            onClick={() => { logActivity('email', '', 'Email'); window.location.href = `mailto:${email}` }}
             title="Email"
           >
             <Mail className="w-4 h-4" />

@@ -1,10 +1,9 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Query
 from postgrest.exceptions import APIError
 from app.db import supabase
 from app.models import Activity, ActivityCreate, ActivityUpdate
 
 router = APIRouter()
-
 
 @router.get("/today-metrics")
 def today_metrics():
@@ -40,8 +39,15 @@ def today_metrics():
     return counts
 
 @router.get("/", response_model=list[Activity])
-def list_activities():
-    res = supabase.table("activities").select("*").execute()
+def list_activities(customer_id: int = Query(None)):
+    """List all activities, or filter by customer_id if provided."""
+    try:
+        q = supabase.table("activities").select("*")
+        if customer_id is not None:
+            q = q.eq("customer_id", customer_id)
+        res = q.execute()
+    except APIError as e:
+        raise HTTPException(status_code=400, detail=e.message)
     return res.data
 
 @router.get("/{act_id}", response_model=Activity)
@@ -60,7 +66,7 @@ def get_activity(act_id: int):
 @router.post("/", response_model=Activity, status_code=status.HTTP_201_CREATED)
 def create_activity(a: ActivityCreate):
     try:
-        res = supabase.table("activities").insert(a.dict()).execute()
+        res = supabase.table("activities").insert(a.dict(exclude_none=True)).execute()
     except APIError as e:
         raise HTTPException(status_code=400, detail=e.message)
     return res.data[0]
