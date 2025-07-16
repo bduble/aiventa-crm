@@ -7,19 +7,17 @@ export default function NewEntryPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="flex justify-center mb-4 gap-4">
-        <button
-          className={`px-3 py-1 rounded border ${type === 'floor' ? 'bg-electricblue text-white' : ''}`}
-          onClick={() => setType('floor')}
+      <div className="flex justify-center mb-4 gap-2 items-center">
+        <label htmlFor="entryType" className="font-medium">Entry Type:</label>
+        <select
+          id="entryType"
+          className="border rounded px-3 py-1"
+          value={type}
+          onChange={(e) => setType(e.target.value)}
         >
-          Floor Traffic
-        </button>
-        <button
-          className={`px-3 py-1 rounded border ${type === 'lead' ? 'bg-electricblue text-white' : ''}`}
-          onClick={() => setType('lead')}
-        >
-          New Lead
-        </button>
+          <option value="floor">Floor Traffic</option>
+          <option value="lead">New Lead</option>
+        </select>
       </div>
       {type === 'floor' ? <CreateFloorTrafficForm /> : <CreateLeadForm />}
     </div>
