@@ -119,6 +119,7 @@ class Activity(BaseModel):
     activity_type: str        # e.g. "call", "email", "task"
     subject: str
     note: Optional[str]
+    customer_id: Optional[int] = None
     related_lead_id: Optional[int]
     related_contact_id: Optional[int]
     related_account_id: Optional[int]
@@ -128,12 +129,14 @@ class ActivityCreate(BaseModel):
     activity_type: str
     subject: str
     note: Optional[str]
+    customer_id: Optional[int] = None
     related_lead_id: Optional[int]
     related_contact_id: Optional[int]
     related_account_id: Optional[int]
     related_opportunity_id: Optional[int]
 
 class ActivityUpdate(BaseModel):
+    customer_id: Optional[int] = None
     contact_id: Optional[str]
     opportunity_id: Optional[str]
     activity_type: Optional[str]
