@@ -1,4 +1,15 @@
 print("CUSTOMERS ROUTER LOADED")
+from fastapi import APIRouter, HTTPException, status, Query
+from datetime import datetime, timedelta
+from postgrest.exceptions import APIError
+from app.db import supabase
+from app.models import (
+    Customer,
+    CustomerCreate,
+    CustomerUpdate,
+    CustomerFloorTrafficCreate,
+    FloorTrafficCustomer,
+)
 from fastapi import APIRouter, HTTPException, status, Query, UploadFile, File
 from postgrest.exceptions import APIError
 from app.db import supabase
@@ -7,9 +18,7 @@ import uuid
 from app.models import Customer, CustomerCreate, CustomerUpdate
 from app.openai_client import get_openai_client
 import json
-
 router = APIRouter()
-
 @router.get(
     "/",
     response_model=list[Customer],
@@ -215,6 +224,72 @@ async def customer_ai_summary(customer_id: int):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post(
+    "/{customer_id}/floor-traffic",
+    response_model=FloorTrafficCustomer,
+    status_code=status.HTTP_201_CREATED,
+)
+async def add_customer_to_floor_log(customer_id: int, entry: CustomerFloorTrafficCreate):
+    """Create a floor-traffic entry for an existing customer."""
+    # Fetch customer record
+    try:
+        res = (
+            supabase.table("customers")
+            .select("*")
+            .eq("id", customer_id)
+            .maybe_single()
+            .execute()
+        )
+    except APIError as e:
+        raise HTTPException(status_code=400, detail=e.message)
+
+    if not res.data:
+        raise HTTPException(status_code=404, detail="Customer not found")
+
+    customer = res.data
+    first = customer.get("first_name") or ""
+    last = customer.get("last_name") or ""
+
+    # Determine if they've visited in last 30 days
+    thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+    try:
+        past = (
+            supabase.table("floor_traffic_customers")
+            .select("id")
+            .eq("first_name", first)
+            .eq("last_name", last)
+            .gte("visit_time", thirty_days_ago.isoformat())
+            .limit(1)
+            .execute()
+        )
+        be_back = bool(past.data)
+    except APIError as e:
+        raise HTTPException(status_code=400, detail=e.message)
+
+    payload = entry.dict(exclude_unset=True)
+    payload.update(
+        {
+            "first_name": first,
+            "last_name": last,
+            "email": customer.get("email"),
+            "phone": customer.get("phone"),
+            "customer_name": (first + " " + last).strip() or customer.get("name"),
+            "status": "Be-Back" if be_back else entry.status or None,
+        }
+    )
+
+    try:
+        res = supabase.table("floor_traffic_customers").insert(payload).execute()
+    except APIError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    if not res.data:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Database insertion failed, no data returned.",
+        )
+
+    return res.data[0]
 class CustomerFile(BaseModel):
     id: int
     customer_id: int
