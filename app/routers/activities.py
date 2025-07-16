@@ -66,7 +66,7 @@ def get_activity(act_id: int):
 @router.post("/", response_model=Activity, status_code=status.HTTP_201_CREATED)
 def create_activity(a: ActivityCreate):
     try:
-        res = supabase.table("activities").insert(a.dict()).execute()
+        res = supabase.table("activities").insert(a.dict(exclude_none=True)).execute()
     except APIError as e:
         raise HTTPException(status_code=400, detail=e.message)
     return res.data[0]

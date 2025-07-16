@@ -38,6 +38,7 @@ const ANIM_PROPS = { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0
 export default function CustomerCard({ userRole = "sales" }) {
   const { id } = useParams()
   const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api'
+  const CURRENT_USER_ID = 1
 
   const [customer, setCustomer] = useState(null)
   const [edited, setEdited] = useState(null)
@@ -56,6 +57,19 @@ export default function CustomerCard({ userRole = "sales" }) {
   const [appointments, setAppointments] = useState([])
   const [showTaskModal, setShowTaskModal] = useState(false)
   const [showApptModal, setShowApptModal] = useState(false)
+
+  const logActivity = async (type, note = '', subject = '') => {
+    const payload = { activity_type: type, note, subject, customer_id: id, user_id: CURRENT_USER_ID }
+    try {
+      await fetch(`${API_BASE}/activities`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      fetch(`${API_BASE}/activities?customer_id=${id}`)
+        .then(r => r.json()).then(setLedger)
+    } catch {}
+  }
 
   useEffect(() => {
     const timer = setInterval(() => setIsOnline(Math.random() > 0.5), 5000)
@@ -81,6 +95,7 @@ export default function CustomerCard({ userRole = "sales" }) {
     }), 700)
     fetchTasks()
     fetchAppointments()
+    logActivity('view', '', 'Viewed customer card')
   }, [id])
 
   useEffect(() => {
@@ -125,12 +140,8 @@ export default function CustomerCard({ userRole = "sales" }) {
 
   const handleAddNote = async () => {
     if (!note.trim()) return
-    await fetch(`${API_BASE}/activities`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ activity_type: 'note', note, customer_id: id })
-    })
-    setNote(''); fetch(`${API_BASE}/activities?customer_id=${id}`).then(r=>r.json()).then(setLedger)
+    await logActivity('note', note, 'Note')
+    setNote('')
   }
 
   const handleFileChange = async (e) => {
@@ -315,9 +326,9 @@ export default function CustomerCard({ userRole = "sales" }) {
         {isOnline && <span className="text-green-400 flex items-center text-xs font-semibold"><CheckCircle className="w-4 h-4 mr-1" /> Online</span>}
       </div>
       <div className="flex gap-2 mb-4 flex-wrap">
-        <a className="p-2 rounded hover:bg-blue-100 dark:hover:bg-blue-900" href={`tel:${customer.phone ?? ''}`} title="Call"><Phone /></a>
-        <a className="p-2 rounded hover:bg-green-100 dark:hover:bg-green-900" href={`sms:${customer.phone ?? ''}`} title="Text"><MessageCircle /></a>
-        <a className="p-2 rounded hover:bg-yellow-100 dark:hover:bg-yellow-900" href={`mailto:${customer.email ?? ''}`} title="Email"><Mail /></a>
+        <a className="p-2 rounded hover:bg-blue-100 dark:hover:bg-blue-900" href={`tel:${customer.phone ?? ''}`} title="Call" onClick={() => logActivity('call', '', 'Phone call')}><Phone /></a>
+        <a className="p-2 rounded hover:bg-green-100 dark:hover:bg-green-900" href={`sms:${customer.phone ?? ''}`} title="Text" onClick={() => logActivity('text', '', 'Text message')}><MessageCircle /></a>
+        <a className="p-2 rounded hover:bg-yellow-100 dark:hover:bg-yellow-900" href={`mailto:${customer.email ?? ''}`} title="Email" onClick={() => logActivity('email', '', 'Email')}><Mail /></a>
         <button className="ml-2 px-3 py-1 bg-blue-700 text-white rounded font-bold shadow" onClick={() => setShowApptModal(true)}>Book Appt</button>
         <button className="px-3 py-1 bg-orange-600 text-white rounded font-bold shadow" onClick={() => setShowTaskModal(true)}>+ Follow-Up</button>
         {editMode ? (

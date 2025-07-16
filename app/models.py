@@ -116,33 +116,37 @@ class OpportunityUpdate(BaseModel):
 # ── Activities ─────────────────────────────────────────────────────────────────
 class Activity(BaseModel):
     id: str
-    activity_type: str        # e.g. "call", "email", "task"
-    subject: str
-    note: Optional[str]
+    activity_type: str        # e.g. "call", "email", "task", "view"
+    subject: Optional[str] = None
+    note: Optional[str] = None
     customer_id: Optional[int] = None
-    related_lead_id: Optional[int]
-    related_contact_id: Optional[int]
-    related_account_id: Optional[int]
-    related_opportunity_id: Optional[int]
+    user_id: Optional[int] = None
+    created_at: Optional[datetime] = None
+    related_lead_id: Optional[int] = None
+    related_contact_id: Optional[int] = None
+    related_account_id: Optional[int] = None
+    related_opportunity_id: Optional[int] = None
 
 class ActivityCreate(BaseModel):
     activity_type: str
-    subject: str
+    subject: Optional[str] = None
     note: Optional[str]
     customer_id: Optional[int] = None
-    related_lead_id: Optional[int]
-    related_contact_id: Optional[int]
-    related_account_id: Optional[int]
-    related_opportunity_id: Optional[int]
+    user_id: Optional[int] = None
+    related_lead_id: Optional[int] = None
+    related_contact_id: Optional[int] = None
+    related_account_id: Optional[int] = None
+    related_opportunity_id: Optional[int] = None
 
 class ActivityUpdate(BaseModel):
     customer_id: Optional[int] = None
-    contact_id: Optional[str]
-    opportunity_id: Optional[str]
-    activity_type: Optional[str]
-    subject: Optional[str]
-    note: Optional[str]
-    date: Optional[date]
+    contact_id: Optional[str] = None
+    opportunity_id: Optional[str] = None
+    activity_type: Optional[str] = None
+    subject: Optional[str] = None
+    note: Optional[str] = None
+    user_id: Optional[int] = None
+    date: Optional[date] = None
 
 
 # ── Floor Traffic Log ─────────────────────────────────────────────────────────
