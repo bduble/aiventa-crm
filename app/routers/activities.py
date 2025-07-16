@@ -39,6 +39,7 @@ def today_metrics():
     return counts
 
 @router.get("/", response_model=list[Activity])
+@router.get("", response_model=list[Activity], include_in_schema=False)
 def list_activities(customer_id: int = Query(None)):
     """List all activities, or filter by customer_id if provided."""
     try:
@@ -64,6 +65,7 @@ def get_activity(act_id: int):
     return res.data
 
 @router.post("/", response_model=Activity, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=Activity, status_code=status.HTTP_201_CREATED, include_in_schema=False)
 def create_activity(a: ActivityCreate):
     try:
         res = supabase.table("activities").insert(a.dict(exclude_none=True)).execute()

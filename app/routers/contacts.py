@@ -6,6 +6,7 @@ from app.models import Contact, ContactCreate, ContactUpdate
 router = APIRouter()
 
 @router.get("/", response_model=list[Contact])
+@router.get("", response_model=list[Contact], include_in_schema=False)
 def list_contacts(
     q: str | None = Query(None, description="Search term for name"),
     email: str | None = Query(None, description="Filter by email"),
@@ -38,6 +39,7 @@ def get_contact(contact_id: int):
     return res.data
 
 @router.post("/", response_model=Contact, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=Contact, status_code=status.HTTP_201_CREATED, include_in_schema=False)
 def create_contact(c: ContactCreate):
     try:
         res = supabase.table("contacts").insert(c.dict()).execute()

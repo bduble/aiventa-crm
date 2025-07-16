@@ -7,6 +7,7 @@ router = APIRouter()
 
 
 @router.get("/", response_model=list[Account])
+@router.get("", response_model=list[Account], include_in_schema=False)
 def list_accounts():
     res = supabase.table("accounts").select("*").execute()
     return res.data
@@ -28,6 +29,7 @@ def get_account(account_id: int):
 
 
 @router.post("/", response_model=Account, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=Account, status_code=status.HTTP_201_CREATED, include_in_schema=False)
 def create_account(a: AccountCreate):
     try:
         res = supabase.table("accounts").insert(a.dict()).execute()

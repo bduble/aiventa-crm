@@ -20,6 +20,7 @@ class Task(TaskCreate):
     id: int
 
 @router.get("/", response_model=list[Task])
+@router.get("", response_model=list[Task], include_in_schema=False)
 def list_tasks(customer_id: Optional[int] = None):
     try:
         query = supabase.table("tasks").select("*")
@@ -31,6 +32,7 @@ def list_tasks(customer_id: Optional[int] = None):
         raise HTTPException(400, detail=e.message)
 
 @router.post("/", response_model=Task)
+@router.post("", response_model=Task, include_in_schema=False)
 def create_task(task: TaskCreate):
     try:
         res = supabase.table("tasks").insert(task.dict()).execute()

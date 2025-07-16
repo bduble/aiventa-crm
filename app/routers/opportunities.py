@@ -6,6 +6,7 @@ from app.models import Opportunity, OpportunityCreate, OpportunityUpdate
 router = APIRouter()
 
 @router.get("/", response_model=list[Opportunity])
+@router.get("", response_model=list[Opportunity], include_in_schema=False)
 def list_opportunities():
     res = supabase.table("opportunities").select("*").execute()
     return res.data
@@ -22,6 +23,7 @@ def get_opportunity(opp_id: int):
     return res.data
 
 @router.post("/", response_model=Opportunity, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=Opportunity, status_code=status.HTTP_201_CREATED, include_in_schema=False)
 def create_opportunity(o: OpportunityCreate):
     try:
         res = supabase.table("opportunities").insert(o.dict()).execute()
