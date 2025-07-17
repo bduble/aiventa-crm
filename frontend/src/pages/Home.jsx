@@ -1,3 +1,5 @@
+console.log("pages/Home.jsx loaded!");
+
 import { useEffect, useState, cloneElement } from 'react';
 import { Link } from "react-router-dom";
 import { motion as Motion } from "framer-motion";
