@@ -71,7 +71,7 @@ functions = [
 def get_inventory(args: dict) -> list:
     """Fetch inventory rows matching the provided filters."""
     q = (
-        supabase.from_("inventory")
+        supabase.from_("ai_inventory_context")
         .select("stock,vin,year,make,model,trim,internet_price,miles")
         .ilike("model", f"%{args['model']}%")
         .lte("internet_price", args.get("max_price", 999999))
@@ -126,19 +126,16 @@ async def ask(request: Request):
     # If it's obviously an inventory question, inject context directly
     if _is_inventory_question(question):
         res = (
-            supabase.table("inventory")
-            .select("year,make,model,vin,status")
+            supabase.table("ai_inventory_context")
+            .select("*")
             .limit(5)
             .execute()
         )
         rows = res.data or []
-        summary = "\n".join(
-            f"{r['year']} {r['make']} {r['model']} | VIN: {r['vin']} | Status: {r['status']}"
-            for r in rows
-        )
+        context_block = json.dumps(rows)
         prompt = (
             "You are the aiVenta CRM Assistant. Here is the current inventory data:\n"
-            f"{summary}\n"
+            f"{context_block}\n"
             "Answer the user's question using this inventory data.\n"
             f"User: {question}\nAI:"
         )

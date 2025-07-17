@@ -35,5 +35,6 @@ def test_ai_ask_inventory_keyword():
 
     assert response.status_code == 200
     assert response.json() == {"answer": "ok"}
-    mock_table.select.assert_called_with("year,make,model,vin,status")
+    mock_supabase.table.assert_called_with("ai_inventory_context")
+    mock_table.select.assert_called_with("*")
     mock_openai.chat.completions.create.assert_called_once()
