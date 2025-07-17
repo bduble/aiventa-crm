@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Smile, Heart, X } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, Tooltip } from 'recharts';
 

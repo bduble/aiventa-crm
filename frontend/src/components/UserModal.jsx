@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 
 export default function UserModal({ isOpen, onClose, onSubmit, initialData }) {
   const [form, setForm] = useState({

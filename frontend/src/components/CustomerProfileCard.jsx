@@ -1,5 +1,5 @@
 // frontend/src/components/CustomerProfileCard.jsx
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 import { Phone, MessageCircle, Mail, Edit, Save, X } from "lucide-react";
 import { formatDateTime } from "../utils/formatDateTime";
 

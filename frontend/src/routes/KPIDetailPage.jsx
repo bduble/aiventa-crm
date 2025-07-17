@@ -1,4 +1,3 @@
-import React from 'react';
 import { useParams } from 'react-router-dom';
 import SalesPerformanceKPI from '../components/SalesPerformanceKPI';
 import LeadPerformanceKPI from '../components/LeadPerformanceKPI';

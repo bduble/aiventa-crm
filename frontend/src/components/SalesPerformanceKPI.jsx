@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function SalesPerformanceKPI() {
   const [stats, setStats] = useState({ demo: 0, worksheet: 0, offer: 0, sold: 0 });

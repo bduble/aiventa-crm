@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BarChart3 } from 'lucide-react';
 
 export default function SalesTeamActivity() {

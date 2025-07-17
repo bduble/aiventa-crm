@@ -1,4 +1,3 @@
-import React from 'react'
 import { formatDateTime } from '../utils/formatDateTime'
 
 export default function LedgerEntry({ entry }) {

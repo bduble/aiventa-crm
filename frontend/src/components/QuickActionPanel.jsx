@@ -1,4 +1,3 @@
-import React from "react";
 import { PlusCircle, Users, Car } from "lucide-react";
 import { Link } from "react-router-dom";
 

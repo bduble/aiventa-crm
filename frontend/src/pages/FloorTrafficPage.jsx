@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import FloorTrafficTable from '../components/FloorTrafficTable';
 import FloorTrafficModal from '../components/FloorTrafficModal';

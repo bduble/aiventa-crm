@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import { useMemo } from 'react';
 
 export default function FilterPanel({ filters, onChange, options = {} }) {
   const handleInput = e => {

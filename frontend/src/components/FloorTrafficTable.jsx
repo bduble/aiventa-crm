@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Phone, MessageCircle, Mail, Pencil } from 'lucide-react';
 import { formatTime } from '../utils/formatDateTime';
 export default function FloorTrafficTable({ rows, onEdit, onToggle }) {
