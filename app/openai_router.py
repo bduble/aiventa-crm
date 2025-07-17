@@ -13,9 +13,10 @@ response once complete while ``ask_stream`` yields tokens as they arrive.
 """
 
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
 from app.openai_client import get_openai_client
 from app.db import supabase
+from datetime import datetime, timezone
 import asyncio
 import json
 import os
@@ -281,4 +282,126 @@ async def ask_stream(q: str):
         "Connection": "keep-alive",
     }
     return StreamingResponse(event_stream(), headers=headers)
+
+
+# ---------------------------------------------------------------------------
+# AI context aggregation
+# ---------------------------------------------------------------------------
+
+def get_inventory_with_comps() -> list:
+    """Return inventory rows with recent market comps attached."""
+    inv_res = supabase.table("ai_inventory_context").select("*").execute()
+    inventory = inv_res.data or []
+
+    for car in inventory:
+        car_id = car.get("id")
+        comps_res = (
+            supabase.table("market_comps")
+            .select("source,year,make,model,trim,mileage,price,url,created_at")
+            .eq("inventory_id", car_id)
+            .order("created_at", desc=True)
+            .limit(5)
+            .execute()
+        )
+        car["comps"] = comps_res.data or []
+
+    return inventory
+
+
+def get_overdue_followups() -> dict:
+    """Return overdue tasks and activities."""
+    now = datetime.now(timezone.utc)
+
+    tasks_res = (
+        supabase.table("tasks")
+        .select(
+            "id, customer_id, description, due_date, completed, assigned_to"
+        )
+        .eq("completed", False)
+        .lt("due_date", now.isoformat())
+        .order("due_date")
+        .limit(20)
+        .execute()
+    )
+    overdue_tasks = tasks_res.data or []
+
+    act_res = (
+        supabase.table("activities")
+        .select("id, subject, scheduled_at, performed_at, customer_id")
+        .is_("performed_at", None)
+        .lt("scheduled_at", now.isoformat())
+        .order("scheduled_at")
+        .limit(20)
+        .execute()
+    )
+    overdue_acts = act_res.data or []
+
+    return {"tasks": overdue_tasks, "activities": overdue_acts}
+
+
+def get_hot_leads() -> list:
+    """Return the most recent leads."""
+    leads_res = (
+        supabase.table("leads")
+        .select("id, name, email, phone, source, created_at")
+        .order("created_at", desc=True)
+        .limit(20)
+        .execute()
+    )
+    return leads_res.data or []
+
+
+@router.get("/context/full")
+def get_full_ai_context():
+    """Aggregate inventory, follow-ups and lead info for AI prompts."""
+    inventory = get_inventory_with_comps()
+    overdue = get_overdue_followups()
+    hot_leads = get_hot_leads()
+
+    inv_lines = []
+    for car in inventory:
+        line = (
+            f"- {car.get('year')} {car.get('make')} {car.get('model')} {car.get('trim')} "
+            f"| {car.get('mileage')} mi | ${car.get('price')} | Stock#: {car.get('stocknumber')}"
+        )
+        if car.get("comps"):
+            comps_lines = [
+                (
+                    f"    • [{c['source']}] {c['year']} {c['make']} {c['model']} {c['trim']} "
+                    f"| {c['mileage']} mi | ${c['price']} ({c['url']})"
+                )
+                for c in car["comps"]
+            ]
+            line += "\n" + "\n".join(comps_lines)
+        inv_lines.append(line)
+
+    overdue_lines = []
+    for task in overdue["tasks"]:
+        overdue_lines.append(
+            f"- Task for Customer ID {task['customer_id']}: {task['description']} (Due {task['due_date']}) [Assigned: {task['assigned_to']}]"
+        )
+    for act in overdue["activities"]:
+        overdue_lines.append(
+            f"- Activity '{act['subject']}' for Customer ID {act['customer_id']} (Was scheduled {act['scheduled_at']})"
+        )
+
+    hot_lines = []
+    for lead in hot_leads:
+        hot_lines.append(
+            f"- {lead['name']} ({lead['email']}, {lead['phone']}) from {lead['source']} [Received {lead['created_at']}]"
+        )
+
+    return JSONResponse(
+        content={
+            "inventory": inventory,
+            "overdue": overdue,
+            "hot_leads": hot_leads,
+            "ai_context_blocks": {
+                "inventory_block": "\n".join(inv_lines),
+                "overdue_block": "\n".join(overdue_lines),
+                "hot_leads_block": "\n".join(hot_lines),
+            },
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+    )
 
