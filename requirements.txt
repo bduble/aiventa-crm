@@ -7,3 +7,5 @@ openai
 httpx<0.28
 twilio
 python-multipart
+requests
+beautifulsoup4
