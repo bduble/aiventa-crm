@@ -190,6 +190,7 @@ export default function CustomerProfileCard({ customer, ledger = [], onSave }) {
             className="rounded-full p-2 hover:bg-blue-100"
             onClick={() => { logActivity('email', '', 'Email'); setShowEmailModal(true); }}
             title="Email"
+            aria-label="Email"
           >
             <Mail className="w-4 h-4" />
           </button>
