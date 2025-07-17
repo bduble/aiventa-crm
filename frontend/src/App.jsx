@@ -20,6 +20,10 @@ import ChatGPTPrompt          from "./components/ChatGPTPrompt";
 import KPIDetailPage          from "./routes/KPIDetailPage";
 import { Plus, User }         from "lucide-react";
 
+// Debug check
+console.log({ Home, Logo });
+
+
 export default function App() {
   // Track dark mode preference
   const [isDark, setIsDark] = useState(
