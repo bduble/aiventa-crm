@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast'
 import FilterPanel from '../components/FilterPanel'
 import Pagination from '../components/Pagination'
@@ -8,10 +9,14 @@ import VehicleModal from '../components/VehicleModal'
 
 export default function InventoryPage() {
   const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api'
+  const location = useLocation()
+
+  const params = new URLSearchParams(location.search)
+  const initialSearch = params.get('q') || ''
 
   const [vehicles, setVehicles] = useState([])
   const [filtered, setFiltered] = useState([])
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(initialSearch)
   const [debounced, setDebounced] = useState('')
   const [filters, setFilters] = useState({
     make: [],
@@ -34,6 +39,12 @@ export default function InventoryPage() {
   const [error, setError] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState(null)
+
+  // Update search when URL query changes
+  useEffect(() => {
+    const p = new URLSearchParams(location.search)
+    setSearch(p.get('q') || '')
+  }, [location.search])
 
   const makeOptions = useMemo(
     () => Array.from(new Set(vehicles.map(v => v.make).filter(Boolean))).sort(),
