@@ -3,7 +3,7 @@ console.log("pages/Home.jsx loaded!");
 import { useEffect, useState, cloneElement } from 'react';
 import { Link } from "react-router-dom";
 import { motion as Motion } from "framer-motion";
-import { Sparkline } from "react-sparklines"; // Add sparklines for KPI cards
+import { Sparklines, SparklinesLine } from "react-sparklines"; // Use the main component, not Sparkline (typo in some builds!)
 
 import Logo from "../components/Logo";
 import SalesTeamActivity from "../components/SalesTeamActivity";
@@ -22,24 +22,34 @@ import QuickActionPanel from "../components/QuickActionPanel";
 import SmartSearchBar from "../components/SmartSearchBar";
 // import MultiRooftopSwitcher from "../components/MultiRooftopSwitcher";
 
-console.log({ SalesTeamActivity, SalesPerformanceKPI, LeadPerformanceKPI, InventorySnapshot, AIOverview, ServiceDepartmentPerformance, CustomerSatisfaction, MarketingCampaignROI })
-
 import useAuth from "../hooks/useAuth";
+
+// For debug: check if all components exist
+console.log({
+  SalesTeamActivity,
+  SalesPerformanceKPI,
+  LeadPerformanceKPI,
+  InventorySnapshot,
+  AIOverview,
+  ServiceDepartmentPerformance,
+  CustomerSatisfaction,
+  MarketingCampaignROI
+});
 
 export default function Home() {
   const [showHero, setShowHero] = useState(true);
   const { user } = useAuth();
 
-useEffect(() => {
-  console.log("Setting timeout for hero...");
-  const t = setTimeout(() => {
-    console.log("Timeout complete, hiding hero!");
-    setShowHero(false);
-  }, 2200);
-  return () => clearTimeout(t);
-}, []);
+  useEffect(() => {
+    console.log("Setting timeout for hero...");
+    const t = setTimeout(() => {
+      console.log("Timeout complete, hiding hero!");
+      setShowHero(false);
+    }, 2200);
+    return () => clearTimeout(t);
+  }, []);
 
-
+  // Use Sparklines for correct import!
   const AnimatedCard = ({ to, children, delay = 0, sparklineData }) => (
     <Link
       to={to}
@@ -50,15 +60,11 @@ useEffect(() => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay, duration: 0.55 }}
       >
-        {/* KPI with optional sparkline */}
         <div className="flex flex-col gap-2">
           {sparklineData && (
-            <Sparkline
-              data={sparklineData}
-              width={100}
-              height={20}
-              style={{ marginBottom: "0.5rem" }}
-            />
+            <Sparklines data={sparklineData} width={100} height={20} style={{ marginBottom: "0.5rem" }}>
+              <SparklinesLine color="#2563eb" />
+            </Sparklines>
           )}
           {cloneElement(children, { countUp: true })}
         </div>
@@ -68,7 +74,6 @@ useEffect(() => {
 
   return (
     <div className="w-full min-h-screen bg-gradient-to-tr from-blue-900 via-gray-950 to-green-500 relative">
-      {/* Always-on AI Widget */}
       <AIWidget />
 
       {/* HERO */}
@@ -110,7 +115,7 @@ useEffect(() => {
           transition={{ duration: 0.95, delay: 0.15 }}
           className="max-w-8xl mx-auto py-8 px-2 md:px-6 space-y-10 relative"
         >
-          {/* Top Bar: Notifications, Rooftop Switcher, Profile, etc */}
+          {/* Top Bar */}
           <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
             <NotificationsBar />
             {/* <MultiRooftopSwitcher /> */}
@@ -118,7 +123,6 @@ useEffect(() => {
               <span className="rounded-full bg-blue-100 px-3 py-1 font-medium text-blue-900">
                 {user?.name || "User"}
               </span>
-              {/* Add profile dropdown, dark mode toggle, etc */}
             </div>
           </div>
 
@@ -157,14 +161,13 @@ useEffect(() => {
             </AnimatedCard>
           </div>
 
-          {/* Always-on AI assistant for power users (can minimize/maximize) */}
+          {/* Always-on AI assistant */}
           <div className="fixed right-4 bottom-4 z-50">
             <AIWidget />
           </div>
         </Motion.div>
       )}
 
-      {/* Optional: Add subtle animated BG */}
       <style>{`
         @keyframes pulseBG {
           0%, 100% { opacity: 1; }
