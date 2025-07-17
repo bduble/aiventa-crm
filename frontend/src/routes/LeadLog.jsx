@@ -98,7 +98,7 @@ export default function LeadLog() {
             className="border flex-1 p-2 rounded dark:bg-gray-900 dark:border-gray-600"
           />
           <button onClick={askQuestion} className="bg-electricblue text-white px-3 py-2 rounded">
-            Ask ChatGPT
+            Ask aiVenta
           </button>
         </div>
         {answer && <p className="border p-2 rounded bg-gray-50 dark:bg-gray-900 dark:border-gray-700 whitespace-pre-wrap">{answer}</p>}
