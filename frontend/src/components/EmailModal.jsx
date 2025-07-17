@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
 
 export default function EmailModal({ isOpen, onClose, customer }) {
   const [toEmail, setToEmail] = useState(customer?.email || '');
@@ -47,7 +45,12 @@ export default function EmailModal({ isOpen, onClose, customer }) {
           placeholder="Subject"
           className="w-full border rounded px-3 py-2"
         />
-        <ReactQuill theme="snow" value={body} onChange={setBody} className="bg-white" />
+        <textarea
+          value={body}
+          onChange={e => setBody(e.target.value)}
+          className="w-full border rounded px-3 py-2"
+          rows={6}
+        />
         <div className="flex justify-end gap-2">
           <button type="button" onClick={onClose} className="px-3 py-2 border rounded">
             Cancel
