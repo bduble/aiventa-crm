@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Phone, MessageCircle, Mail, Edit, Save, X } from "lucide-react";
 import { formatDateTime } from "../utils/formatDateTime";
+import EmailModal from "./EmailModal";
 
 // --- Helper: Get initials for avatar ---
 function getInitials(name, fallback = "?") {
@@ -121,6 +122,7 @@ export default function CustomerProfileCard({ customer, ledger = [], onSave }) {
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState(customer);
   const [activeTab, setActiveTab] = useState("Details");
+  const [showEmailModal, setShowEmailModal] = useState(false);
   const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api'
   const CURRENT_USER_ID = 1
 
@@ -186,8 +188,9 @@ export default function CustomerProfileCard({ customer, ledger = [], onSave }) {
         {email && (
           <button
             className="rounded-full p-2 hover:bg-blue-100"
-            onClick={() => { logActivity('email', '', 'Email'); window.location.href = `mailto:${email}` }}
+            onClick={() => { logActivity('email', '', 'Email'); setShowEmailModal(true); }}
             title="Email"
+            aria-label="Email"
           >
             <Mail className="w-4 h-4" />
           </button>
@@ -197,6 +200,7 @@ export default function CustomerProfileCard({ customer, ledger = [], onSave }) {
   }
 
   return (
+    <>
     <div className="rounded-lg shadow bg-white p-6 space-y-4 max-w-3xl mx-auto mt-8">
       {/* --- Top: Avatar, Name, Tags, Actions --- */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
@@ -294,5 +298,11 @@ export default function CustomerProfileCard({ customer, ledger = [], onSave }) {
         )}
       </div>
     </div>
+    <EmailModal
+      isOpen={showEmailModal}
+      onClose={() => setShowEmailModal(false)}
+      customer={customer}
+    />
+    </>
   );
 }
