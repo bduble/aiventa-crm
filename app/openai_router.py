@@ -239,7 +239,8 @@ async def ask_stream(q: str):
 
         # Forward token chunks to the client as SSE messages
         async for chunk in second:
-            if tok := chunk.choices[0].delta.get("content"):
+            tok = getattr(chunk.choices[0].delta, "content", None)
+            if tok:
                 yield f"data: {tok}\n\n"
             await asyncio.sleep(0)
         yield "data: [DONE]\n\n"
