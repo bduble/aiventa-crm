@@ -22,6 +22,8 @@ import QuickActionPanel from "../components/QuickActionPanel";
 import SmartSearchBar from "../components/SmartSearchBar";
 // import MultiRooftopSwitcher from "../components/MultiRooftopSwitcher";
 
+console.log({ SalesTeamActivity, SalesPerformanceKPI, LeadPerformanceKPI, InventorySnapshot, AIOverview, ServiceDepartmentPerformance, CustomerSatisfaction, MarketingCampaignROI })
+
 import useAuth from "../hooks/useAuth";
 
 export default function Home() {
@@ -30,6 +32,7 @@ export default function Home() {
 
   useEffect(() => {
     const t = setTimeout(() => setShowHero(false), 2200);
+    console.log('showHero', showHero)
     return () => clearTimeout(t);
   }, []);
 
