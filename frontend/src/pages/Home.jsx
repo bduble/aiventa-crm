@@ -30,11 +30,15 @@ export default function Home() {
   const [showHero, setShowHero] = useState(true);
   const { user } = useAuth();
 
-  useEffect(() => {
-    const t = setTimeout(() => setShowHero(false), 2200);
-    console.log('showHero', showHero)
-    return () => clearTimeout(t);
-  }, []);
+useEffect(() => {
+  console.log("Setting timeout for hero...");
+  const t = setTimeout(() => {
+    console.log("Timeout complete, hiding hero!");
+    setShowHero(false);
+  }, 2200);
+  return () => clearTimeout(t);
+}, []);
+
 
   const AnimatedCard = ({ to, children, delay = 0, sparklineData }) => (
     <Link
