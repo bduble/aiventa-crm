@@ -104,7 +104,7 @@ useEffect(() => {
 
       {/* DASHBOARD */}
       {!showHero && (
-        <Motion.div
+       // <Motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.95, delay: 0.15 }}
@@ -161,7 +161,7 @@ useEffect(() => {
           <div className="fixed right-4 bottom-4 z-50">
             <AIWidget />
           </div>
-        </Motion.div>
+       // </Motion.div>
       )}
 
       {/* Optional: Add subtle animated BG */}
