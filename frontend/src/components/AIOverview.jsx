@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 export default function AIOverview() {

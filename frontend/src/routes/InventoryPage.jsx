@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react';
 import toast from 'react-hot-toast'
 import FilterPanel from '../components/FilterPanel'
 import Pagination from '../components/Pagination'

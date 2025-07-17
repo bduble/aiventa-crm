@@ -1,4 +1,3 @@
-import React from 'react'
 
 export default function FieldRow({ label, value, editMode, onChange, type = 'text' }) {
   if (editMode) {

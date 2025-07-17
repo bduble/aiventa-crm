@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from 'react';
 import CreateLeadForm from "../components/CreateLeadForm";
 import CreateFloorTrafficForm from "../components/CreateFloorTrafficForm";
 

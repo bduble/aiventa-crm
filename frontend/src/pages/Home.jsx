@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, cloneElement } from 'react';
 import { Link } from "react-router-dom";
 import { motion as Motion } from "framer-motion";
 import { Sparkline } from "react-sparklines"; // Add sparklines for KPI cards
@@ -51,7 +51,7 @@ export default function Home() {
               style={{ marginBottom: "0.5rem" }}
             />
           )}
-          {React.cloneElement(children, { countUp: true })}
+          {cloneElement(children, { countUp: true })}
         </div>
       </Motion.div>
     </Link>

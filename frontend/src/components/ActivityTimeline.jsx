@@ -1,5 +1,4 @@
 // frontend/src/components/ActivityTimeline.jsx
-import React from 'react'
 
 export default function ActivityTimeline() {
   return (
