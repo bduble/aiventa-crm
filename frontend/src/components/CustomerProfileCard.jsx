@@ -134,7 +134,9 @@ export default function CustomerProfileCard({ customer, ledger = [], onSave }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
-    } catch {}
+    } catch (err) {
+      console.error('Failed to log activity', err)
+    }
   }
 
   // Simulated tags: you might fetch or compute these

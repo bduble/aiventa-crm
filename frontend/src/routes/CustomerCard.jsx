@@ -5,7 +5,7 @@ import {
   Phone, MessageCircle, Mail, Edit, Save, X, Flame, User, Calendar, Star, MapPin,
   Sun, Moon, BadgeCheck, Upload, Cloud, Users, Globe, File, Map, CheckCircle, Plus
 } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion as Motion, AnimatePresence } from 'framer-motion'
 import clsx from 'clsx'
 
 function getInitials(name = '') {
@@ -69,7 +69,9 @@ export default function CustomerCard({ userRole = "sales" }) {
       })
       fetch(`${API_BASE}/activities?customer_id=${id}`)
         .then(r => r.json()).then(setLedger)
-    } catch {}
+    } catch (err) {
+      console.error('Failed to log activity', err)
+    }
   }
 
   useEffect(() => {
@@ -135,7 +137,9 @@ export default function CustomerCard({ userRole = "sales" }) {
       setCustomer(data)
       setEdited(data)
       setEditMode(false)
-    } catch (err) { alert('Failed to save') }
+    } catch (err) {
+      console.error('Failed to save', err)
+    }
   }
   const handleCancel = () => { setEdited(customer); setEditMode(false) }
 
@@ -266,9 +270,9 @@ export default function CustomerCard({ userRole = "sales" }) {
             ? <img src={customer.avatar_url} alt="avatar" className="rounded-full w-16 h-16 object-cover" />
             : getInitials(customer.full_name || customer.name || customer.first_name || "U")}
           {inMarket &&
-            <motion.span {...ANIM_PROPS}
+            <Motion.span {...ANIM_PROPS}
               className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-2 py-1 shadow font-bold animate-pulse"
-            >IN MARKET</motion.span>}
+            >IN MARKET</Motion.span>}
           {isOnline &&
             <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 border-2 border-white rounded-full shadow"></span>}
         </div>
@@ -360,42 +364,45 @@ export default function CustomerCard({ userRole = "sales" }) {
       <div>
         <AnimatePresence mode="wait">
           {tab === 'profile' && (
-            <motion.div key="profile" {...ANIM_PROPS}>
+            <Motion.div key="profile" {...ANIM_PROPS}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {profileFields.map(({ key, label, icon: Icon }) => (
-                  <div key={key} className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 py-2">
-                    <Icon className="w-5 h-5 text-blue-500" />
-                    <span className="font-medium w-28">{label}</span>
-                    {editMode ? (
-                      <input
-                        className="bg-slate-100 dark:bg-slate-800 border rounded px-2 py-1 flex-1"
-                        type={key === 'email' ? 'email' : key === 'phone' ? 'tel' : 'text'}
-                        value={edited?.[key] ?? ''}
-                        onChange={e => setEdited({ ...edited, [key]: e.target.value })}
-                        placeholder={label}
-                      />
-                    ) : (
-                      <span className="flex-1">{customer[key] ?? <span className="text-slate-400 italic">Not set</span>}</span>
-                    )}
-                  </div>
-                ))}
+                {profileFields.map(({ key, label, icon }) => {
+                  const IconComp = icon;
+                  return (
+                    <div key={key} className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 py-2">
+                      <IconComp className="w-5 h-5 text-blue-500" />
+                      <span className="font-medium w-28">{label}</span>
+                      {editMode ? (
+                        <input
+                          className="bg-slate-100 dark:bg-slate-800 border rounded px-2 py-1 flex-1"
+                          type={key === 'email' ? 'email' : key === 'phone' ? 'tel' : 'text'}
+                          value={edited?.[key] ?? ''}
+                          onChange={e => setEdited({ ...edited, [key]: e.target.value })}
+                          placeholder={label}
+                        />
+                      ) : (
+                        <span className="flex-1">{customer[key] ?? <span className="text-slate-400 italic">Not set</span>}</span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-            </motion.div>
+            </Motion.div>
           )}
 
           {tab === 'ledger' && (
-            <motion.div key="ledger" {...ANIM_PROPS}>
+            <Motion.div key="ledger" {...ANIM_PROPS}>
               <h3 className="font-bold mb-2">Activity Timeline</h3>
               <div className="max-h-64 overflow-y-auto bg-slate-50 dark:bg-slate-800 rounded p-2 border">
                 <AnimatePresence>
                   {ledger.length ? ledger.map((entry, idx) =>
-                    <motion.div key={entry.id} {...ANIM_PROPS} transition={{ delay: idx * 0.04 }}>
+                    <Motion.div key={entry.id} {...ANIM_PROPS} transition={{ delay: idx * 0.04 }}>
                       <div className="mb-2">
                         <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{formatDateTime(entry.created_at)}</span>
                         <div>{entry.note}</div>
                         <div className="text-xs text-slate-400">{entry.activity_type}</div>
                       </div>
-                    </motion.div>
+                    </Motion.div>
                   ) : <div className="text-slate-400">No activity yet.</div>}
                 </AnimatePresence>
               </div>
@@ -403,20 +410,20 @@ export default function CustomerCard({ userRole = "sales" }) {
                 <textarea className="flex-1 border rounded p-2 bg-white dark:bg-slate-900" rows={2} placeholder="Add note..." value={note} onChange={e => setNote(e.target.value)} />
                 <button className="px-3 py-1 bg-blue-700 text-white rounded" onClick={handleAddNote}>Add</button>
               </div>
-            </motion.div>
+            </Motion.div>
           )}
 
           {tab === 'deals' && (
-            <motion.div key="deals" {...ANIM_PROPS}>
+            <Motion.div key="deals" {...ANIM_PROPS}>
               <div className="text-slate-500 text-center py-8 text-lg">
                 <Star className="mx-auto mb-2 w-6 h-6" />
                 Deals module coming soon!
               </div>
-            </motion.div>
+            </Motion.div>
           )}
 
           {tab === 'ai' && (
-            <motion.div key="ai" {...ANIM_PROPS}>
+            <Motion.div key="ai" {...ANIM_PROPS}>
               <h3 className="font-bold mb-2">AI Insights</h3>
               {aiInfo?.summary && <div className="mb-2">{aiInfo.summary}</div>}
               {aiInfo?.next_steps?.length > 0 && (
@@ -448,11 +455,11 @@ export default function CustomerCard({ userRole = "sales" }) {
                   </button>
                 </div>
               )}
-            </motion.div>
+            </Motion.div>
           )}
 
           {tab === 'tasks' && (
-            <motion.div key="tasks" {...ANIM_PROPS}>
+            <Motion.div key="tasks" {...ANIM_PROPS}>
               <div className="flex items-center mb-3">
                 <h3 className="font-bold flex-1">Tasks & Reminders</h3>
                 <button className="bg-blue-700 text-white px-2 py-1 rounded flex items-center gap-1" onClick={() => setShowTaskModal(true)}><Plus className="w-4 h-4" /> New Task</button>
@@ -468,11 +475,11 @@ export default function CustomerCard({ userRole = "sales" }) {
                   </div>
                 )) : <div className="text-slate-400 py-8 text-center">No tasks yet.</div>}
               </div>
-            </motion.div>
+            </Motion.div>
           )}
 
           {tab === 'appointments' && (
-            <motion.div key="appointments" {...ANIM_PROPS}>
+            <Motion.div key="appointments" {...ANIM_PROPS}>
               <div className="flex items-center mb-3">
                 <h3 className="font-bold flex-1">Appointments</h3>
                 <button className="bg-blue-700 text-white px-2 py-1 rounded flex items-center gap-1" onClick={() => setShowApptModal(true)}><Plus className="w-4 h-4" /> Book Appt</button>
@@ -485,11 +492,11 @@ export default function CustomerCard({ userRole = "sales" }) {
                   </div>
                 )) : <div className="text-slate-400 py-8 text-center">No appointments yet.</div>}
               </div>
-            </motion.div>
+            </Motion.div>
           )}
 
           {tab === 'docs' && (
-            <motion.div key="docs" {...ANIM_PROPS}>
+            <Motion.div key="docs" {...ANIM_PROPS}>
               <div className="mb-3 flex items-center gap-3">
                 <File className="w-5 h-5" />
                 <h3 className="font-bold">Documents & Uploads</h3>
@@ -510,11 +517,11 @@ export default function CustomerCard({ userRole = "sales" }) {
                 )}
                 {!files.length && <div className="col-span-2 text-slate-400">No documents uploaded yet.</div>}
               </div>
-            </motion.div>
+            </Motion.div>
           )}
 
           {tab === 'map' && (
-            <motion.div key="map" {...ANIM_PROPS}>
+            <Motion.div key="map" {...ANIM_PROPS}>
               <div className="flex items-center gap-2 mb-3">
                 <Map className="w-5 h-5" />
                 <h3 className="font-bold">Customer Location</h3>
@@ -529,7 +536,7 @@ export default function CustomerCard({ userRole = "sales" }) {
                   title="Customer Location Map"
                 />
               ) : <div className="text-slate-400">No address provided.</div>}
-            </motion.div>
+            </Motion.div>
           )}
         </AnimatePresence>
       </div>

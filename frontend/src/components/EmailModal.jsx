@@ -1,10 +1,16 @@
+import { useState, useRef } from 'react';
 import { useState } from 'react';
-
 export default function EmailModal({ isOpen, onClose, customer }) {
   const [toEmail, setToEmail] = useState(customer?.email || '');
   const [subject, setSubject] = useState('');
+
+  const [bodyHtml, setBodyHtml] = useState('');
+  const [status, setStatus] = useState('');
+  const editorRef = useRef(null);
+
   const [body, setBody] = useState('');
   const [status, setStatus] = useState('');
+
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
@@ -16,7 +22,11 @@ export default function EmailModal({ isOpen, onClose, customer }) {
         body: JSON.stringify({
           to_email: toEmail,
           subject,
+
+          body: bodyHtml,
+
           body,
+
           customer_id: customer?.id,
         }),
       });
@@ -45,6 +55,26 @@ export default function EmailModal({ isOpen, onClose, customer }) {
           placeholder="Subject"
           className="w-full border rounded px-3 py-2"
         />
+
+        <div className="flex gap-2 text-sm">
+          <button type="button" onClick={() => document.execCommand('bold')} className="px-2 py-1 border rounded">
+            <strong>B</strong>
+          </button>
+          <button type="button" onClick={() => document.execCommand('italic')} className="px-2 py-1 border rounded italic">
+            I
+          </button>
+          <button type="button" onClick={() => document.execCommand('underline')} className="px-2 py-1 border rounded underline">
+            U
+          </button>
+        </div>
+        <div
+          ref={editorRef}
+          contentEditable
+          onInput={e => setBodyHtml(e.currentTarget.innerHTML)}
+          className="border rounded px-3 py-2 min-h-[150px] bg-white text-black dark:bg-gray-700 dark:text-white"
+        />
+
+        <ReactQuill theme="snow" value={body} onChange={setBody} className="bg-white" />
         <textarea
           value={body}
           onChange={e => setBody(e.target.value)}
