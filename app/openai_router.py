@@ -98,6 +98,13 @@ TOOLS = {
 }
 
 
+# Simple keyword check for inventory queries
+def _is_inventory_question(text: str) -> bool:
+    tokens = text.lower()
+    keywords = ["inventory", "vehicle", "vehicles", "car", "cars", "stock"]
+    return any(k in tokens for k in keywords)
+
+
 # ---------------------------------------------------------------------------
 # /ai/ask endpoint
 # ---------------------------------------------------------------------------
@@ -116,7 +123,33 @@ async def ask(request: Request):
     if not openai:
         return {"answer": "OpenAI API key not configured"}
 
-    # First pass – let GPT decide whether a tool is required
+    # If it's obviously an inventory question, inject context directly
+    if _is_inventory_question(question):
+        res = (
+            supabase.table("inventory")
+            .select("year,make,model,vin,status")
+            .limit(5)
+            .execute()
+        )
+        rows = res.data or []
+        summary = "\n".join(
+            f"{r['year']} {r['make']} {r['model']} | VIN: {r['vin']} | Status: {r['status']}"
+            for r in rows
+        )
+        prompt = (
+            "You are the aiVenta CRM Assistant. Here is the current inventory data:\n"
+            f"{summary}\n"
+            "Answer the user's question using this inventory data.\n"
+            f"User: {question}\nAI:"
+        )
+        second = await openai.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "system", "content": prompt}],
+            max_tokens=350,
+        )
+        return {"answer": second.choices[0].message.content.strip()}
+
+    # Otherwise, let GPT decide whether a tool is required
     first = await openai.chat.completions.create(
         model="gpt-4o-mini",
         temperature=0,
