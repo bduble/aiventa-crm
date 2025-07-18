@@ -22,6 +22,7 @@ def scrape_cars_com(year: int, make: str, model: str, trim: str | None = None,
     query = "&".join(f"{k}={v}" for k, v in params.items() if v)
     url = f"{base_url}?{query}"
     headers = {"User-Agent": "Mozilla/5.0"}
+    print("Scraping URL:", url)
     r = requests.get(url, headers=headers, timeout=30)
     soup = BeautifulSoup(r.text, "html.parser")
     cars = []
