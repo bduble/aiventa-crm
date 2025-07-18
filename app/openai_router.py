@@ -73,7 +73,7 @@ def get_inventory(args: dict) -> list:
     """Fetch inventory rows matching the provided filters."""
     q = (
         supabase.from_("ai_inventory_context")
-        .select("stock,vin,year,make,model,trim,internet_price,miles")
+        .select("stocknumber,vin,year,make,model,trim,sellingprice,miles")
         .ilike("model", f"%{args['model']}%")
         .lte("internet_price", args.get("max_price", 999999))
         .limit(args.get("limit", 5))
