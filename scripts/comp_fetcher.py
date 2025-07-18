@@ -2,6 +2,7 @@ import time
 import requests
 from datetime import datetime
 from supabase import create_client, Client
+from bs4 import BeautifulSoup
 
 # Configure your Supabase client
 SUPABASE_URL = "https://ckdwsvviiuhyqzroswfe.supabase.co"
@@ -16,17 +17,33 @@ def scrape_cars_com(year, make, model, trim, zipcode, radius=200):
     try:
         r = requests.get(url, headers=headers, timeout=10)
         r.raise_for_status()
-        # Parse response and extract comps...
-        comps = []  # Replace this with your parsing logic
-        # Example stub:
-        # comps.append({
-        #     "year": year, "make": make, "model": model, "trim": trim,
-        #     "mileage": ..., "price": ..., "source": "Cars.com", "url": ...
-        # })
+        soup = BeautifulSoup(r.text, "lxml")
+        comps = []
+        for card in soup.select("[data-test='vehicleCard']"):
+            try:
+                price = card.select_one("[data-test='vehicleCardPricingBlockPrice']").text.strip().replace("$", "").replace(",", "")
+                mileage = card.select_one("[data-test='vehicleMileage']").text.strip().replace(",", "").replace(" mi.", "")
+                title = card.select_one("h2").text.strip()
+                vehicle_url = "https://www.cars.com" + card.select_one("a")["href"]
+
+                comps.append({
+                    "year": year,
+                    "make": make,
+                    "model": model,
+                    "trim": trim,
+                    "mileage": int(mileage) if mileage.isdigit() else None,
+                    "price": int(price) if price.isdigit() else None,
+                    "source": "Cars.com",
+                    "url": vehicle_url
+                })
+            except Exception as parse_e:
+                continue
+        print(f"Fetched {len(comps)} comps for {year} {make} {model}")
         return comps
     except Exception as e:
         print(f"Failed to fetch comps for {year} {make} {model}: {e}")
         return []
+
 
 def fetch_inventory():
     res = supabase.table("ai_inventory_context").select("*").execute()
