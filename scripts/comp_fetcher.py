@@ -15,7 +15,8 @@ def scrape_cars_com(year, make, model, trim, zipcode, radius=200):
         "User-Agent": "Mozilla/5.0 (compatible; aiVentaBot/1.0)",
     }
     try:
-        r = requests.get(url, headers=headers, timeout=10)
+        print("Scraping URL:", url)
+        r = requests.get(url, headers=headers, timeout=30)
         r.raise_for_status()
         soup = BeautifulSoup(r.text, "lxml")
         comps = []
