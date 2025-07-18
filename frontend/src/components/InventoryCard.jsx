@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import AIInventoryReview from './AIInventoryReview';
 import {
   ChevronLeft,
   ChevronRight,
@@ -63,6 +64,7 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
 
   const [current, setCurrent] = useState(0);
   const [open, setOpen] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
   const prevImage = () =>
     setCurrent((i) => (i === 0 ? displayImages.length - 1 : i - 1));
   const nextImage = () =>
@@ -200,6 +202,12 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
               Edit
             </button>
           )}
+          <button
+            onClick={() => setReviewOpen(true)}
+            className="px-3 py-1 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700 transition"
+          >
+            AI Review
+          </button>
           {onToggle && (
             <button
               onClick={() => onToggle(vehicle)}
@@ -237,6 +245,12 @@ export default function InventoryCard({ vehicle, onEdit, onToggle }) {
           </div>
         </div>
       )}
+      <AIInventoryReview
+        vehicleId={vehicle.id}
+        open={reviewOpen}
+        onClose={() => setReviewOpen(false)}
+      />
     </div>
   );
 }
+
