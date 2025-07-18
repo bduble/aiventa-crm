@@ -18,6 +18,27 @@ def scrape_cars_com(year, make, model, trim, zipcode, radius=200):
         print("Scraping URL:", url)
         r = requests.get(url, headers=headers, timeout=30)
         r.raise_for_status()
+        r = requests.get(url, headers=headers, timeout=30)
+if r.status_code != 200:
+    print(f"Non-200 response: {r.status_code}")
+    return []
+
+# Check for signs of bot-blocking
+robot_keywords = [
+    "are you a robot",
+    "unusual traffic",
+    "verify you are human",
+    "access denied",
+    "captcha"
+]
+lowered = r.text.lower()
+if any(keyword in lowered for keyword in robot_keywords):
+    print("⚠️  Bot or CAPTCHA detected on Cars.com!")
+    # Optionally save response for inspection:
+    with open("carscom_blocked.html", "w", encoding="utf-8") as f:
+        f.write(r.text)
+    return []
+
         soup = BeautifulSoup(r.text, "lxml")
         comps = []
         for card in soup.select("[data-test='vehicleCard']"):
