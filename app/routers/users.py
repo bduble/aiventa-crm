@@ -56,7 +56,10 @@ def get_user(user_id: int = Path(..., description="The ID of the user to retriev
 @router.post("/", response_model=User, status_code=201)
 def create_user(user: UserCreate):
     """Create a new user."""
-    payload = user.dict()
+    # Use field aliases so we send `name` to the database instead of
+    # `full_name`. Without this Supabase rejects the insert because the
+    # column name doesn't exist.
+    payload = user.model_dump(by_alias=True)
     try:
         res = supabase.table("users").insert(payload).execute()
     except APIError as e:
@@ -71,7 +74,8 @@ def create_user_noslash(user: UserCreate):
 @router.put("/{user_id}", response_model=User)
 def update_user(user_id: int, user: UserCreate):
     """Update an existing user."""
-    payload = user.dict()
+    # Same as create_user - dump using aliases for correct column names
+    payload = user.model_dump(by_alias=True)
     try:
         res = (
             supabase
