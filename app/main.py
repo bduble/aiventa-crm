@@ -1,5 +1,3 @@
-print(app.routes)
-
 # app/main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -98,6 +96,7 @@ app.include_router(search_router,        prefix=f"{api_prefix}",              ta
 # NEW: AI assistant routes (POST /api/ai/ask, GET /api/ai/ask-stream)
 app.include_router(ai_router,            prefix=f"{api_prefix}",              tags=["ai"])
 
+print(app.routes) 
 # ── Serve React build (catch-all) ───────────────────────────────────────────
 # Placed LAST so it doesn’t shadow API routes.
 app.mount(
