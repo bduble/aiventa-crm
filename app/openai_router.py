@@ -16,6 +16,7 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse, JSONResponse
 from app.openai_client import get_openai_client
 from app.db import supabase
+from app.comp_check import aggregate_comps
 from datetime import datetime, timezone
 import asyncio
 import json
@@ -404,4 +405,50 @@ def get_full_ai_context():
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     )
+
+
+@router.get("/inventory/{item_id}/review")
+async def inventory_ai_review(item_id: int, zipcode: str = "76504", radius: int = 200):
+    """Return an AI generated market review for a specific inventory item."""
+    res = (
+        supabase.table("inventory")
+        .select("id,year,make,model,trim,sellingprice,mileage")
+        .eq("id", item_id)
+        .maybe_single()
+        .execute()
+    )
+    vehicle = res.data
+    if not vehicle:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+    comps = aggregate_comps(vehicle["year"], vehicle["make"], vehicle["model"], vehicle.get("trim"), zipcode, radius)
+    num_available = len(comps.get("comps", []))
+
+    openai = get_openai_client()
+    if not openai:
+        analysis = "OpenAI API key not configured"
+    else:
+        prompt = (
+            "You are an expert automotive pricing assistant. "
+            f"Consider this vehicle: {vehicle}. "
+            f"{num_available} comparable vehicles were found within {radius} miles. "
+            f"Market average price is ${comps['market_avg']:,}. "
+            f"Typical range is ${comps['market_low']:,}-${comps['market_high']:,}. "
+            "Provide a brief pricing recommendation." 
+        )
+        resp = await openai.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "system", "content": prompt}],
+            max_tokens=150,
+        )
+        analysis = resp.choices[0].message.content.strip()
+
+    return {
+        "vehicle": vehicle,
+        "num_available": num_available,
+        "market_avg": comps.get("market_avg"),
+        "market_low": comps.get("market_low"),
+        "market_high": comps.get("market_high"),
+        "analysis": analysis,
+    }
 
