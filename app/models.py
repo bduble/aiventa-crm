@@ -1,7 +1,7 @@
 # app/models.py
 
 from datetime import date, datetime, time
-from typing import Optional, List
+from typing import Optional, List, Literal, Any
 from pydantic import BaseModel, EmailStr, root_validator, validator, ConfigDict, Field
 
 # ── Analytics Schema ─────────────────────────────────────────────────────────
@@ -328,4 +328,40 @@ class InventoryItemUpdate(CamelModel):
     status_code: Optional[str] = None
     days_in_stock: Optional[int] = None
     image_url: Optional[List[str]] = None
+
+
+# ── Appraisals ───────────────────────────────────────────────────────────────
+
+class AppraisalBase(BaseModel):
+    customer_id: int
+    vehicle_vin: str
+    year: Optional[int] = None
+    make: Optional[str] = None
+    model: Optional[str] = None
+    trim: Optional[str] = None
+    mileage: Optional[int] = None
+    exterior_color: Optional[str] = None
+    interior_color: Optional[str] = None
+    engine: Optional[str] = None
+    transmission: Optional[str] = None
+    drivetrain: Optional[str] = None
+    condition_score: Optional[float] = None
+    damage_report: Optional[Any] = None
+    notes: Optional[str] = None
+    appraisal_value: Optional[float] = None
+    actual_acv: Optional[float] = None
+    payoff_amount: Optional[float] = None
+    status: Optional[Literal["Draft", "Final", "Rejected"]] = "Draft"
+
+
+class AppraisalCreate(AppraisalBase):
+    pass
+
+
+class Appraisal(AppraisalBase):
+    id: str
+    created_by: Optional[int] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
 
