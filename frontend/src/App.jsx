@@ -1,5 +1,6 @@
 // src/App.jsx
 import { useState, useEffect, useRef } from 'react';
+import { useTheme } from './context/ThemeContext.jsx';
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 
 import LeadLog                from "./routes/LeadLog";
@@ -27,21 +28,12 @@ console.log({ Home, Logo });
 
 
 export default function App() {
-  // Track dark mode preference
-  const [isDark, setIsDark] = useState(
-    window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false
-  );
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [customerMenuOpen, setCustomerMenuOpen] = useState(false);
   const [logMenuOpen, setLogMenuOpen] = useState(false);
   const [lightText, setLightText] = useState(false);
   const navRef = useRef(null);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const handler = (e) => setIsDark(e.matches);
-    mediaQuery.addEventListener("change", handler);
-    return () => mediaQuery.removeEventListener("change", handler);
-  }, []);
 
   useEffect(() => {
     const navEl = navRef.current;
