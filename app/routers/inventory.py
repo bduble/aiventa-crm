@@ -102,6 +102,11 @@ def inventory_snapshot():
     new_count = sum(1 for r in rows if str(r.get("type", "")).lower() == "new")
     used_count = sum(1 for r in rows if str(r.get("type", "")).lower() == "used")
     return {"total": len(rows), "new": new_count, "used": used_count}
+    total = len(rows)
+    new_count = sum(1 for r in rows if str(r.get("type", "")).lower() == "new")
+    used_count = sum(1 for r in rows if str(r.get("type", "")).lower() == "used")
+
+    return {"total": total, "new": new_count, "used": used_count}
 
 @router.get("/{item_id}", response_model=InventoryItem)
 def get_inventory_item(item_id: int):
