@@ -62,23 +62,20 @@ def lead_overview():
     }
 
 @router.get("/inventory-overview")
-def inventory_overview():
-    """Return inventory snapshot metrics."""
+async def inventory_overview():
+    """
+    Return inventory snapshot metrics with full buckets and live stats.
+    """
     try:
-        snapshot = inventory.inventory_snapshot()
-    except Exception:
-        snapshot = {"total": 0, "new": 0, "used": 0}
-    total = snapshot.get("total", 0)
-    new_count = snapshot.get("new", 0)
-    used_count = snapshot.get("used", 0)
-    return {
-        "total": total,
-        "newCount": new_count,
-        "usedCount": used_count,
-        "avgDays": 0,
-        "turnRate": 0,
-        "overThirty": 0,
-    }
+        snapshot = await inventory.inventory_snapshot()
+    except Exception as e:
+        print("Inventory snapshot error:", e)
+        snapshot = {
+            "total": 0, "newCount": 0, "usedCount": 0,
+            "avgDays": 0, "turnRate": 0, "overThirty": 0,
+            "buckets": {"0-30": 0, "31-45": 0, "46-60": 0, "61-90": 0, "90+": 0}
+        }
+    return snapshot
 
 @router.get("/ai-overview")
 def ai_overview():
