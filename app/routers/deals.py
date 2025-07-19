@@ -10,6 +10,11 @@ import logging
 
 router = APIRouter()
 
+@router.get("")
+@router.get("/", include_in_schema=False)
+def list_deals():
+    return []
+
 # ── Permissions Stub ─────────────────────────────
 def get_current_user():
     # TODO: Replace with your real user/session logic
