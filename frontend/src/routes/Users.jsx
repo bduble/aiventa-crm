@@ -9,6 +9,7 @@ export default function Users() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [role, setRole] = useState("Sales");
   const [saving, setSaving] = useState(false);
   const [editId, setEditId] = useState(null);
 
@@ -38,6 +39,7 @@ export default function Users() {
     setFirstName(nameParts[0] || "");
     setLastName(nameParts.slice(1).join(" ") || "");
     setEmail(user.email);
+    setRole(user.role || "Sales");
     setError("");
   };
 
@@ -46,6 +48,7 @@ export default function Users() {
     setFirstName("");
     setLastName("");
     setEmail("");
+    setRole("Sales");
     setError("");
   };
 
@@ -56,6 +59,7 @@ export default function Users() {
     const payload = {
       name: `${firstName} ${lastName}`.trim(),
       email: email.trim(),
+      role,
     };
     try {
       let res, updatedUser;
@@ -134,6 +138,16 @@ export default function Users() {
               onChange={(e) => setEmail(e.target.value)}
               required
             />
+            <select
+              className="border rounded p-2 w-full"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              required
+            >
+              <option value="Sales">Sales</option>
+              <option value="Manager">Manager</option>
+              <option value="Admin">Admin</option>
+            </select>
             <div className="flex gap-2">
               <Button type="submit" disabled={saving} className="w-32">
                 {saving
@@ -172,7 +186,7 @@ export default function Users() {
                 <span>
                   <span className="font-medium">{u.name}</span>
                   <span className="text-gray-400 ml-2 text-sm">
-                    ({u.email})
+                    ({u.email} • {u.role})
                   </span>
                 </span>
                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
