@@ -94,14 +94,16 @@ def list_inventory_noslash(
 
 @router.get(
     "/snapshot",
-    summary="Return counts of total, new, and used inventory items.",
+    summary="Return full inventory stats for KPI dashboard, including buckets."
 )
 def inventory_snapshot():
     try:
+        # Only pull "in_stock" vehicles and necessary columns
         res = (
             supabase
             .table("inventory")
-            .select("type")  # inventory_type replaced by 'type'
+            .select("type, \"Days In Stock\", \"StatusCode\"")
+            .eq("StatusCode", "in_stock")
             .execute()
         )
     except APIError as e:
@@ -113,14 +115,36 @@ def inventory_snapshot():
 
     rows = res.data or []
     total = len(rows)
-    new_count = sum(
-        1 for r in rows if str(r.get("type", "")).lower() == "new"
-    )
-    used_count = sum(
-        1 for r in rows if str(r.get("type", "")).lower() == "used"
+    new_count = sum(1 for r in rows if str(r.get("type", "")).lower() == "new")
+    used_count = sum(1 for r in rows if str(r.get("type", "")).lower() == "used")
+
+    # Days In Stock stats & buckets
+    days_list = [r.get("Days In Stock") for r in rows if r.get("Days In Stock") is not None]
+    avg_days = round(sum(days_list) / len(days_list), 1) if days_list else 0
+    turn_rate = avg_days  # Adjust if you want a different calculation
+
+    over_thirty = round(
+        (sum(1 for d in days_list if d > 30) / len(days_list) * 100) if days_list else 0,
+        1
     )
 
-    return {"total": total, "new": new_count, "used": used_count}
+    buckets = {
+        "0-30": sum(1 for d in days_list if 0 <= d <= 30),
+        "31-45": sum(1 for d in days_list if 31 <= d <= 45),
+        "46-60": sum(1 for d in days_list if 46 <= d <= 60),
+        "61-90": sum(1 for d in days_list if 61 <= d <= 90),
+        "90+": sum(1 for d in days_list if d > 90),
+    }
+
+    return {
+        "total": total,
+        "newCount": new_count,
+        "usedCount": used_count,
+        "avgDays": avg_days,
+        "turnRate": turn_rate,
+        "overThirty": over_thirty,
+        "buckets": buckets,
+    }
 
 @router.get("/{item_id}", response_model=InventoryItem)
 def get_inventory_item(item_id: int):
