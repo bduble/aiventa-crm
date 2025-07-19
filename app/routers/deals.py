@@ -10,9 +10,13 @@ import logging
 
 router = APIRouter()
 
-@router.get("")
-@router.get("/", include_in_schema=False)
-def list_deals():
+@router.get("/", response_model=List[Deal])
+@router.get("", response_model=List[Deal], include_in_schema=False)
+def list_deals(
+    customer_id: Optional[int] = None,
+    status: Optional[str] = None,
+    month: Optional[str] = None  # e.g. "2025-07"
+):
     return []
 
 # ── Permissions Stub ─────────────────────────────
