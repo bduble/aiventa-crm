@@ -21,7 +21,7 @@ export default function Users() {
   }, [API_BASE]);
 
   const fetchUsers = () => {
-    fetch(`${API_BASE}/users`)
+    fetch(`${API_BASE}/users/`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to load users");
         return res.json();
@@ -78,7 +78,7 @@ export default function Users() {
           users.map((u) => (u.id === editId ? updatedUser : u))
         );
       } else {
-        res = await fetch(`${API_BASE}/users`, {
+        res = await fetch(`${API_BASE}/users/`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
