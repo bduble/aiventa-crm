@@ -1,5 +1,3 @@
-# app/routers/inventory.py
-
 import logging
 from fastapi import APIRouter, HTTPException, status, Query
 from postgrest.exceptions import APIError
@@ -97,13 +95,14 @@ def list_inventory_noslash(
     summary="Return full inventory stats for KPI dashboard, including buckets."
 )
 def inventory_snapshot():
+    from datetime import datetime, timezone
+
     try:
         # Only pull "in_stock" vehicles and necessary columns
         res = (
             supabase
             .table("inventory")
-            .select("type, \"Days In Stock\", \"StatusCode\"")
-            .eq("StatusCode", "in_stock")
+            .select("type, date_added, \"Days In Stock\", \"StatusCode\"")
             .execute()
         )
     except APIError as e:
@@ -114,12 +113,31 @@ def inventory_snapshot():
         )
 
     rows = res.data or []
-    total = len(rows)
-    new_count = sum(1 for r in rows if str(r.get("type", "")).lower() == "new")
-    used_count = sum(1 for r in rows if str(r.get("type", "")).lower() == "used")
+    # Only count in_stock
+    filtered = [r for r in rows if str(r.get("StatusCode", "")).lower() == "in_stock"]
 
-    # Days In Stock stats & buckets
-    days_list = [r.get("Days In Stock") for r in rows if r.get("Days In Stock") is not None]
+    total = len(filtered)
+    new_count = sum(1 for r in filtered if str(r.get("type", "")).lower() == "new")
+    used_count = sum(1 for r in filtered if str(r.get("type", "")).lower() == "used")
+
+    # Dynamically compute days in stock
+    days_list = []
+    for r in filtered:
+        d = r.get("Days In Stock")
+        if d is None:
+            date_added = r.get("date_added")
+            if date_added:
+                try:
+                    if isinstance(date_added, str):
+                        dt_added = datetime.fromisoformat(date_added)
+                    else:
+                        dt_added = date_added
+                    d = (datetime.now(timezone.utc) - dt_added).days
+                except Exception:
+                    d = None
+        if isinstance(d, (int, float)) and d >= 0:
+            days_list.append(int(d))
+
     avg_days = round(sum(days_list) / len(days_list), 1) if days_list else 0
     turn_rate = avg_days  # Adjust if you want a different calculation
 
