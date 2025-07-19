@@ -6,7 +6,7 @@ const BUCKETS = [
   { label: "46-60 Days", key: "46-60", color: "bg-orange-200" },
   { label: "61-90 Days", key: "61-90", color: "bg-orange-300" },
   { label: "90+ Days", key: "90+", color: "bg-red-300" }
-]
+];
 
 function getHealthColor(avgDays) {
   if (avgDays < 30) return "bg-green-400";
@@ -16,62 +16,26 @@ function getHealthColor(avgDays) {
 }
 
 function getGaugeWidth(avgDays) {
-  // Pressure gauge width from 10 to 100%, clamped
   let width = Math.min(100, Math.max(10, (avgDays / 90) * 100));
   return width + '%';
 }
 
-export default function InventorySnapshot() {
-  const [stats, setStats] = useState({
-    total: 0,
-    newCount: 0,
-    usedCount: 0,
-    avgDays: 0,
-    turnRate: 0,
-    buckets: {
-      "0-30": 0, "31-45": 0, "46-60": 0, "61-90": 0, "90+": 0
-    }
-  });
-
-  useEffect(() => {
-    const API_BASE = import.meta.env.PROD ? import.meta.env.VITE_API_BASE_URL : '/api';
-    const fetchStats = async () => {
-      try {
-        const res = await fetch(`${API_BASE}/analytics/inventory-overview`);
-        if (!res.ok) return;
-        const data = await res.json();
-        setStats({
-          total: data.total ?? 0,
-          newCount: data.newCount ?? 0,
-          usedCount: data.usedCount ?? 0,
-          avgDays: data.avgDays ?? 0,
-          turnRate: data.turnRate ?? 0,
-          buckets: data.buckets ?? { "0-30": 0, "31-45": 0, "46-60": 0, "61-90": 0, "90+": 0 }
-        });
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchStats();
-  }, []);
-
+function InventoryCard({ title, stats }) {
   return (
-    <div className="bg-white p-4 rounded-2xl shadow space-y-3">
-      <h3 className="font-bold text-lg">Inventory Snapshot</h3>
+    <div className="bg-white p-4 rounded-2xl shadow space-y-3 w-full">
+      <h3 className="font-bold text-lg">{title} Inventory</h3>
       <div>
-        <span className="text-2xl font-bold">Total Inventory: {stats.total}</span>
-        <div className="text-xs text-gray-500">New: {stats.newCount} &bull; Used: {stats.usedCount}</div>
+        <span className="text-2xl font-bold">Total: {stats.total}</span>
       </div>
       <div className="grid grid-cols-2 gap-2 text-xs">
         <span>Avg Days in Stock: <span className="font-semibold">{stats.avgDays}</span></span>
         <span>Turn Rate: <span className="font-semibold">{stats.turnRate} days</span></span>
       </div>
-      {/* Age Buckets */}
       <div className="flex justify-between items-end gap-2 pt-2">
         {BUCKETS.map(b => (
           <div key={b.key} className="flex flex-col items-center">
             <div className={`${b.color} rounded-lg w-12 h-8 flex items-center justify-center font-bold`}>
-              {stats.buckets[b.key] ?? 0}
+              {stats.buckets?.[b.key] ?? 0}
             </div>
             <div className="text-xs text-gray-700 mt-1">{b.label}</div>
           </div>
@@ -89,6 +53,39 @@ export default function InventorySnapshot() {
           <div className="text-xs font-semibold mt-1">Health</div>
         </div>
       </div>
+    </div>
+  );
+}
+
+export default function InventorySnapshot() {
+  const [data, setData] = useState({
+    new: { total: 0, avgDays: 0, turnRate: 0, buckets: { "0-30": 0, "31-45": 0, "46-60": 0, "61-90": 0, "90+": 0 } },
+    used: { total: 0, avgDays: 0, turnRate: 0, buckets: { "0-30": 0, "31-45": 0, "46-60": 0, "61-90": 0, "90+": 0 } },
+  });
+
+  useEffect(() => {
+    const API_BASE = import.meta.env.PROD ? import.meta.env.VITE_API_BASE_URL : '/api';
+    const fetchStats = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/analytics/inventory-overview`);
+        if (!res.ok) return;
+        const json = await res.json();
+        setData({
+          new: json.new ?? data.new,
+          used: json.used ?? data.used,
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchStats();
+    // eslint-disable-next-line
+  }, []);
+
+  return (
+    <div className="flex flex-col md:flex-row gap-6 w-full">
+      <InventoryCard title="New" stats={data.new} />
+      <InventoryCard title="Used" stats={data.used} />
     </div>
   );
 }
