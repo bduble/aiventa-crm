@@ -105,10 +105,14 @@ export default function InventorySnapshot() {
 
   return (
     <>
-      <div className="flex flex-col md:flex-row gap-6 w-full">
-        <InventoryCard title="New" stats={data.new} type="new" onBucketClick={handleBucketClick} />
-        <InventoryCard title="Used" stats={data.used} type="used" onBucketClick={handleBucketClick} />
-      </div>
+      <div className="flex flex-col gap-6 w-full">
+  <div className="max-w-md mx-auto">
+    <InventoryCard ... />
+  </div>
+  <div className="max-w-md mx-auto">
+    <InventoryCard ... />
+  </div>
+</div>
       {modalOpen && modalParams && (
         <VehicleBucketOverlay
           {...modalParams}
