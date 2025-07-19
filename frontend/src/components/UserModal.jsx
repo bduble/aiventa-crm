@@ -4,17 +4,17 @@ export default function UserModal({ isOpen, onClose, onSubmit, initialData }) {
   const [form, setForm] = useState({
     name: '',
     email: '',
-    role: '',
+    role: 'Sales',
     permissions: []
   })
 
   useEffect(() => {
-    setForm({
-      name: initialData?.name || '',
-      email: initialData?.email || '',
-      role: initialData?.role || '',
-      permissions: initialData?.permissions || []
-    })
+      setForm({
+        name: initialData?.name || '',
+        email: initialData?.email || '',
+        role: initialData?.role || 'Sales',
+        permissions: initialData?.permissions || []
+      })
   }, [initialData])
 
   if (!isOpen) return null
@@ -72,9 +72,10 @@ export default function UserModal({ isOpen, onClose, onSubmit, initialData }) {
               onChange={handleChange}
             >
               <option value="">Select role</option>
-              <option value="admin">Admin</option>
-              <option value="sales">Sales</option>
-              <option value="manager">Manager</option>
+              {/* values must match backend enum exactly */}
+              <option value="Admin">Admin</option>
+              <option value="Sales">Sales</option>
+              <option value="Manager">Manager</option>
             </select>
           </div>
           <div>
