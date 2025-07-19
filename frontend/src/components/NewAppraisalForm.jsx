@@ -1,9 +1,14 @@
 import { useState } from 'react';
 
-export default function NewAppraisalForm({ onClose, customers = [] }) {
+// Props:
+// - onClose: function to close the modal
+// - customers: array of customer objects (for dropdown) (optional)
+// - customer: customer object (for context use, locks customer) (optional)
+// - reloadAppraisals: callback to refresh parent data (optional)
+export default function NewAppraisalForm({ onClose, customers = [], customer = null, reloadAppraisals }) {
   const [form, setForm] = useState({
     vin: "",
-    customerId: "",
+    customerId: customer?.id || "",
     year: "",
     make: "",
     model: "",
@@ -23,7 +28,7 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
     setError("");
     const payload = {
       vehicle_vin: form.vin,
-      customer_id: form.customerId,
+      customer_id: form.customerId || null, // null if not attached
       year: form.year ? Number(form.year) : undefined,
       make: form.make,
       model: form.model,
@@ -36,8 +41,8 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
         body: JSON.stringify(payload)
       });
       if (!res.ok) throw new Error("Failed to create appraisal");
+      reloadAppraisals && reloadAppraisals();
       onClose();
-      // Optional: Notify parent to reload data
     } catch (err) {
       setError(err.message);
     } finally {
@@ -47,22 +52,27 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Customer Select Dropdown */}
-      <label className="block">
-        Customer
-        <select
-          className="border rounded p-2 w-full"
-          name="customerId"
-          value={form.customerId}
-          onChange={handleChange}
-          required
-        >
-          <option value="">Select Customer</option>
-          {customers.map(c => (
-            <option key={c.id} value={c.id}>{c.name} ({c.email})</option>
-          ))}
-        </select>
-      </label>
+      {/* Customer Dropdown or Locked Customer */}
+      {!customer ? (
+        <label className="block">
+          Customer
+          <select
+            className="border rounded p-2 w-full"
+            name="customerId"
+            value={form.customerId}
+            onChange={handleChange}
+          >
+            <option value="">No Customer</option>
+            {customers.map(c => (
+              <option key={c.id} value={c.id}>{c.name} ({c.email})</option>
+            ))}
+          </select>
+        </label>
+      ) : (
+        <div className="font-medium mb-2">
+          Customer: <span className="text-blue-600">{customer.name} ({customer.email})</span>
+        </div>
+      )}
       <label className="block">
         VIN <input className="border rounded p-2 w-full" name="vin" value={form.vin} onChange={handleChange} required />
       </label>
@@ -99,7 +109,7 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
         />
       </div>
       <div className="flex gap-2">
-        <button type="submit" disabled={saving} className="bg-electricblue text-white px-4 py-2 rounded">
+        <button type="submit" disabled={saving} className="bg-blue-600 text-white px-4 py-2 rounded">
           {saving ? "Saving..." : "Create"}
         </button>
         <button type="button" onClick={onClose} className="border px-4 py-2 rounded">Cancel</button>
