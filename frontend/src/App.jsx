@@ -16,6 +16,7 @@ import Home                   from "./pages/Home";
 import NewEntryPage           from "./pages/NewEntryPage";
 import Logo                   from "./components/Logo";
 import ReconPage              from "./pages/ReconPage";
+import AppraisalsPage         from "./pages/AppraisalsPage";
 import ChatGPTPrompt          from "./components/ChatGPTPrompt";
 import KPIDetailPage          from "./routes/KPIDetailPage";
 import { Plus, User }         from "lucide-react";
@@ -94,6 +95,7 @@ export default function App() {
     { to: "/",         label: "Home"             },
     { to: "/users",    label: "Users"            },
     { to: "/inventory",label: "Inventory"        },
+    { to: "/appraisals", label: "Appraisals"     },
     { to: "/recon",    label: "Recon"            },
     {
       to: "/new",
@@ -240,6 +242,7 @@ export default function App() {
           <Route path="/customers/:id" element={<CustomerCard />} />
           <Route path="/users" element={<UsersPage />} />
           <Route path="/inventory" element={<InventoryPage />} />
+          <Route path="/appraisals" element={<AppraisalsPage />} />
           <Route path="/recon" element={<ReconPage />} />
           <Route path="/activities" element={<ActivityTimeline />} />
           <Route path="/floor-traffic" element={<FloorTrafficPage />} />
