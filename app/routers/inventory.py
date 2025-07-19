@@ -90,21 +90,18 @@ def list_inventory_noslash(
         fuel_type, drivetrain
     )
 
-@router.get(
-    "/snapshot",
-    summary="Return full inventory stats for KPI dashboard, split new/used."
-)
+@router.get("/snapshot")
 def inventory_snapshot():
     try:
         res = supabase.table("inventory").select("type").execute()
     except APIError as e:
         logging.error("Error fetching inventory snapshot: %s", e)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
     rows = res.data or []
+    new_count = sum(1 for r in rows if str(r.get("type", "")).lower() == "new")
+    used_count = sum(1 for r in rows if str(r.get("type", "")).lower() == "used")
+    return {"total": len(rows), "new": new_count, "used": used_count}
     total = len(rows)
     new_count = sum(1 for r in rows if str(r.get("type", "")).lower() == "new")
     used_count = sum(1 for r in rows if str(r.get("type", "")).lower() == "used")
