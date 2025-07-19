@@ -67,7 +67,8 @@ async def inventory_overview():
     Return inventory snapshot metrics with full buckets and live stats.
     """
     try:
-        snapshot = await inventory.inventory_snapshot()
+        # FIXED: do not await, just call the function (assuming it's not async)
+        snapshot = inventory.inventory_snapshot()
     except Exception as e:
         print("Inventory snapshot error:", e)
         snapshot = {
