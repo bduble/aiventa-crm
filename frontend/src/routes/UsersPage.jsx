@@ -29,7 +29,7 @@ export default function UsersPage() {
     setIsLoading(true)
     setError('')
     try {
-      const res = await fetch(`${API_BASE}/users`)
+      const res = await fetch(`${API_BASE}/users/`)
       if (!res.ok) throw new Error('Failed to load users')
       const data = await res.json()
       setUsers(data)
