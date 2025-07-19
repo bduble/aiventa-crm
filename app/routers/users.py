@@ -48,7 +48,7 @@ def get_user(user_id: int = Path(..., description="The ID of the user to retriev
         raise HTTPException(404, detail="User not found")
     return res.data
 
-@router.post("/", response_model=User, status_code=201)
+@router.post("/", status_code=201)
 def create_user(user: UserCreate):
     payload = user.model_dump(by_alias=True)
     try:

@@ -75,7 +75,7 @@ export default function UsersPage() {
   const handleSubmit = async data => {
     try {
       const isEdit = !!editing
-      const url = `${API_BASE}/users${isEdit ? '/' + editing.id : ''}`
+      const url = isEdit ? `${API_BASE}/users/${editing.id}` : `${API_BASE}/users/`
       const method = isEdit ? 'PUT' : 'POST'
       const res = await fetch(url, {
         method,
