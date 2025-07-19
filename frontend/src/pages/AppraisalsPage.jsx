@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import NewAppraisalForm from './NewAppraisalForm';
+import NewAppraisalForm from '../components/NewAppraisalForm'; // Adjust import if needed
 
 export default function AppraisalsPage() {
   const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
@@ -7,7 +7,6 @@ export default function AppraisalsPage() {
   const [customers, setCustomers] = useState([]);
   const [showForm, setShowForm] = useState(false);
 
-  // Load appraisals
   const reloadAppraisals = () => {
     fetch(`${API_BASE}/appraisals/`)
       .then(res => res.json())
@@ -16,7 +15,6 @@ export default function AppraisalsPage() {
 
   useEffect(() => { reloadAppraisals(); }, [API_BASE]);
 
-  // Load customers
   useEffect(() => {
     fetch(`${API_BASE}/customers`)
       .then(res => res.json())
@@ -33,7 +31,46 @@ export default function AppraisalsPage() {
       >
         New Appraisal
       </button>
-      {/* ... your table goes here ... */}
+
+      <div className="overflow-x-auto">
+        <table className="w-full border text-sm">
+          {/* your table headers and rows, mapping over appraisals */}
+          <thead>
+            <tr>
+              <th className="p-2">Customer</th>
+              <th className="p-2">VIN</th>
+              <th className="p-2">Year</th>
+              <th className="p-2">Make</th>
+              <th className="p-2">Model</th>
+              <th className="p-2">Mileage</th>
+              <th className="p-2">Status</th>
+              <th className="p-2">Appraised Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            {appraisals.map(a => (
+              <tr key={a.id} className="odd:bg-gray-50 hover:bg-gray-100">
+                <td className="p-2 whitespace-nowrap">{a.customer_id}</td>
+                <td className="p-2 whitespace-nowrap">{a.vehicle_vin}</td>
+                <td className="p-2 whitespace-nowrap">{a.year}</td>
+                <td className="p-2 whitespace-nowrap">{a.make}</td>
+                <td className="p-2 whitespace-nowrap">{a.model}</td>
+                <td className="p-2 whitespace-nowrap">{a.mileage}</td>
+                <td className="p-2 whitespace-nowrap">{a.status}</td>
+                <td className="p-2 whitespace-nowrap">{a.appraisal_value}</td>
+              </tr>
+            ))}
+            {appraisals.length === 0 && (
+              <tr>
+                <td colSpan="8" className="p-2 text-center text-gray-500">
+                  No appraisals found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
       {showForm && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/30 z-50">
           <div className="bg-white rounded p-8 shadow w-full max-w-md">
