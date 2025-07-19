@@ -22,6 +22,7 @@ from app.routers.appointments   import router as appointments_router
 from app.routers.deals          import router as deals_router
 from app.routers.comps          import router as comps_router    # ← NEW
 from app.routers.search         import router as search_router
+from app.routers.appraisals     import router as appraisals_router
 from app.openai_router          import router as ai_router       # ← NEW
 
 # ── App init ────────────────────────────────────────────────────────────────
@@ -90,6 +91,7 @@ app.include_router(analytics_router,     prefix=f"{api_prefix}/analytics",    ta
 app.include_router(tasks_router,         prefix=f"{api_prefix}/tasks",        tags=["tasks"])
 app.include_router(appointments_router,  prefix=f"{api_prefix}/appointments", tags=["appointments"])
 app.include_router(deals_router,         prefix=f"{api_prefix}/deals",        tags=["deals"])
+app.include_router(appraisals_router,   prefix=f"{api_prefix}/appraisals",   tags=["appraisals"])
 app.include_router(comps_router,         prefix=f"{api_prefix}",              tags=["comps"])
 app.include_router(search_router,        prefix=f"{api_prefix}",              tags=["search"])
 
