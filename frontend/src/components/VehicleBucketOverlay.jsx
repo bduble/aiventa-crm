@@ -13,7 +13,7 @@ export default function VehicleBucketOverlay({ type, bucketKey, min, max, onClos
   // Fetch vehicles on open
   useEffect(() => {
     setLoading(true);
-    fetch(`/api/inventory?type=${type}&days_min=${min}&days_max=${max}`)
+    fetch(`/api/inventory/?type=${type}&days_min=${min}&days_max=${max}`)
       .then(res => res.json())
       .then(data => setVehicles(data))
       .finally(() => setLoading(false));
