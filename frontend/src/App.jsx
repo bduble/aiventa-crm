@@ -14,6 +14,7 @@ import FloorTrafficPage       from "./pages/FloorTrafficPage";
 import CreateFloorTrafficForm from "./components/CreateFloorTrafficForm";
 import Home                   from "./pages/Home";
 import NewEntryPage           from "./pages/NewEntryPage";
+import EditAppraisalPage      from "./pages/EditAppraisalPage";
 import Logo                   from "./components/Logo";
 import ReconPage              from "./pages/ReconPage";
 import AppraisalsPage         from "./pages/AppraisalsPage";
@@ -247,6 +248,7 @@ export default function App() {
           <Route path="/activities" element={<ActivityTimeline />} />
           <Route path="/floor-traffic" element={<FloorTrafficPage />} />
           <Route path="/floor-traffic/new" element={<CreateFloorTrafficForm />} />
+          <Route path="/appraisals/:id" element={<EditAppraisalPage />} />
           <Route path="/kpi/:id" element={<KPIDetailPage />} />
         </Routes>
       </div>
