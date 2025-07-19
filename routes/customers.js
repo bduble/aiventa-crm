@@ -1,7 +1,11 @@
 import express from 'express';
 import supabase from '../lib/supabaseClient.js';
+import NewAppraisalForm from '../components/NewAppraisalForm'; // adjust path if needed
+
 
 const router = express.Router();
+const [showAppraisalForm, setShowAppraisalForm] = useState(false);
+
 
 // GET /api/customers
 router.get(['/customers', '/customers/'], async (req, res, next) => {
