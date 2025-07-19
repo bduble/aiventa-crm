@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import VehicleBucketOverlay from './VehicleBucketOverlay'
 
 const BUCKETS = [
   { label: "0-30 Days", key: "0-30", color: "bg-green-200" },
@@ -7,6 +8,14 @@ const BUCKETS = [
   { label: "61-90 Days", key: "61-90", color: "bg-orange-300" },
   { label: "90+ Days", key: "90+", color: "bg-red-300" }
 ];
+
+const bucketRanges = {
+  "0-30": [0, 30],
+  "31-45": [31, 45],
+  "46-60": [46, 60],
+  "61-90": [61, 90],
+  "90+": [91, 9999],
+};
 
 function getHealthColor(avgDays) {
   if (avgDays < 30) return "bg-green-400";
@@ -20,9 +29,9 @@ function getGaugeWidth(avgDays) {
   return width + '%';
 }
 
-function InventoryCard({ title, stats }) {
+function InventoryCard({ title, stats, type, onBucketClick }) {
   return (
-    <div className="bg-white p-4 rounded-2xl shadow space-y-3 w-full">
+    <div className="bg-white p-4 rounded-2xl shadow hover:shadow-xl border border-gray-100 transition-all space-y-3 w-full">
       <h3 className="font-bold text-lg">{title} Inventory</h3>
       <div>
         <span className="text-2xl font-bold">Total: {stats.total}</span>
@@ -34,7 +43,11 @@ function InventoryCard({ title, stats }) {
       <div className="flex justify-between items-end gap-2 pt-2">
         {BUCKETS.map(b => (
           <div key={b.key} className="flex flex-col items-center">
-            <div className={`${b.color} rounded-lg w-12 h-8 flex items-center justify-center font-bold`}>
+            <div
+              className={`${b.color} rounded-lg w-12 h-8 flex items-center justify-center font-bold cursor-pointer hover:scale-105 transition`}
+              onClick={() => onBucketClick(type, b.key)}
+              title={`Show vehicles in ${title} - ${b.label}`}
+            >
               {stats.buckets?.[b.key] ?? 0}
             </div>
             <div className="text-xs text-gray-700 mt-1">{b.label}</div>
@@ -62,6 +75,8 @@ export default function InventorySnapshot() {
     new: { total: 0, avgDays: 0, turnRate: 0, buckets: { "0-30": 0, "31-45": 0, "46-60": 0, "61-90": 0, "90+": 0 } },
     used: { total: 0, avgDays: 0, turnRate: 0, buckets: { "0-30": 0, "31-45": 0, "46-60": 0, "61-90": 0, "90+": 0 } },
   });
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalParams, setModalParams] = useState(null);
 
   useEffect(() => {
     const API_BASE = import.meta.env.PROD ? import.meta.env.VITE_API_BASE_URL : '/api';
@@ -82,10 +97,24 @@ export default function InventorySnapshot() {
     // eslint-disable-next-line
   }, []);
 
+  function handleBucketClick(type, bucketKey) {
+    const [min, max] = bucketRanges[bucketKey];
+    setModalParams({ type, bucketKey, min, max });
+    setModalOpen(true);
+  }
+
   return (
-    <div className="flex flex-col md:flex-row gap-6 w-full">
-      <InventoryCard title="New" stats={data.new} />
-      <InventoryCard title="Used" stats={data.used} />
-    </div>
+    <>
+      <div className="flex flex-col md:flex-row gap-6 w-full">
+        <InventoryCard title="New" stats={data.new} type="new" onBucketClick={handleBucketClick} />
+        <InventoryCard title="Used" stats={data.used} type="used" onBucketClick={handleBucketClick} />
+      </div>
+      {modalOpen && modalParams && (
+        <VehicleBucketOverlay
+          {...modalParams}
+          onClose={() => setModalOpen(false)}
+        />
+      )}
+    </>
   );
 }
