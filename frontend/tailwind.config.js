@@ -1,6 +1,6 @@
 export default {
   content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
-  darkMode: 'media', // respect OS setting; or 'class' to toggle manually
+  darkMode: 'class', // use class strategy so ThemeContext can control dark mode
   theme: {
     extend: {
       colors: {

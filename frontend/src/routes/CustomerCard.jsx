@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTheme } from '../context/ThemeContext.jsx';
 import { useParams, Link } from 'react-router-dom'
 import { formatDateTime } from '../utils/formatDateTime'
 import {
@@ -49,7 +50,7 @@ export default function CustomerCard({ userRole = "sales" }) {
   const [note, setNote] = useState('')
   const [aiInfo, setAiInfo] = useState({})
   const [tab, setTab] = useState('profile')
-  const [theme, setTheme] = useState(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+  const { theme, setTheme } = useTheme()
   const [isOnline, setIsOnline] = useState(false)
   const [social, setSocial] = useState({ linkedin: '', facebook: '', twitter: '', found: false })
   const [files, setFiles] = useState([])
@@ -160,9 +161,6 @@ export default function CustomerCard({ userRole = "sales" }) {
     fetch(`${API_BASE}/customers/${id}/files`).then(r => r.json()).then(docs => setFiles(docs || []))
   }
 
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark')
-  }, [theme])
 
   if (loading) return <div className="flex justify-center items-center h-48">Loading...</div>
   if (!customer) return <div>Customer not found</div>
