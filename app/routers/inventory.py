@@ -95,15 +95,8 @@ def list_inventory_noslash(
     summary="Return full inventory stats for KPI dashboard, split new/used."
 )
 def inventory_snapshot():
-    from datetime import datetime, timezone
-
     try:
-        res = (
-            supabase
-            .table("inventory")
-            .select("type, date_added, \"Days In Stock\", \"StatusCode\"")
-            .execute()
-        )
+        res = supabase.table("inventory").select("type").execute()
     except APIError as e:
         logging.error("Error fetching inventory snapshot: %s", e)
         raise HTTPException(
@@ -112,48 +105,11 @@ def inventory_snapshot():
         )
 
     rows = res.data or []
-    filtered = [r for r in rows if r.get("StatusCode", "") == "in_stock"]
+    total = len(rows)
+    new_count = sum(1 for r in rows if str(r.get("type", "")).lower() == "new")
+    used_count = sum(1 for r in rows if str(r.get("type", "")).lower() == "used")
 
-    def compute_stats(filtered_rows):
-        days_list = []
-        for r in filtered_rows:
-            d = r.get("Days In Stock")
-            if d is None and r.get("date_added"):
-                try:
-                    if isinstance(r["date_added"], str):
-                        dt_added = datetime.fromisoformat(r["date_added"].replace('Z', '+00:00'))
-                    else:
-                        dt_added = r["date_added"]
-                    d = (datetime.now(timezone.utc) - dt_added).days
-                except Exception as e:
-                    logging.warning(f"Could not parse date_added: {r['date_added']}, error: {e}")
-                    d = None
-            if isinstance(d, (int, float)) and d >= 0:
-                days_list.append(int(d))
-
-        avg_days = round(sum(days_list) / len(days_list), 1) if days_list else 0
-        turn_rate = avg_days
-        buckets = {
-            "0-30": sum(1 for d in days_list if 0 <= d <= 30),
-            "31-45": sum(1 for d in days_list if 31 <= d <= 45),
-            "46-60": sum(1 for d in days_list if 46 <= d <= 60),
-            "61-90": sum(1 for d in days_list if 61 <= d <= 90),
-            "90+": sum(1 for d in days_list if d > 90),
-        }
-        return {
-            "total": len(filtered_rows),
-            "avgDays": avg_days,
-            "turnRate": turn_rate,
-            "buckets": buckets
-        }
-
-    new_rows = [r for r in filtered if str(r.get("type", "")).lower() == "new"]
-    used_rows = [r for r in filtered if str(r.get("type", "")).lower() == "used"]
-
-    return {
-        "new": compute_stats(new_rows),
-        "used": compute_stats(used_rows),
-    }
+    return {"total": total, "new": new_count, "used": used_count}
 
 @router.get("/{item_id}", response_model=InventoryItem)
 def get_inventory_item(item_id: int):

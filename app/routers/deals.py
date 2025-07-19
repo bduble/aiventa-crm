@@ -52,11 +52,7 @@ def list_deals(
             # Filter for deals sold this month
             query = query.gte("sold_date", f"{month}-01").lte("sold_date", f"{month}-31")
         res = query.execute()
-        deals = res.data or []
-        # Add days_to_book to each deal
-        for deal in deals:
-            deal["days_to_book"] = days_to_book(deal.get("sold_date"), deal.get("booked_date"))
-        return deals
+        return res.data or []
     except APIError as e:
         raise HTTPException(400, detail=e.message)
 
@@ -77,9 +73,7 @@ def get_deal(deal_id: int):
     if not res.data:
         raise HTTPException(status_code=404, detail="Deal not found")
 
-    deal = res.data
-    deal["days_to_book"] = days_to_book(deal.get("sold_date"), deal.get("booked_date"))
-    return deal
+    return res.data
 
 @router.post("/", response_model=Deal, status_code=status.HTTP_201_CREATED, dependencies=[Depends(manager_required)])
 @router.post("", response_model=Deal, include_in_schema=False, status_code=status.HTTP_201_CREATED, dependencies=[Depends(manager_required)])
@@ -118,9 +112,7 @@ def update_deal(deal_id: int, deal: DealUpdate, user=Depends(get_current_user)):
         if not res.data:
             raise HTTPException(status_code=404, detail="Deal not found")
         log_audit_action(deal_id, "update", user["id"], str(payload))
-        deal = res.data[0]
-        deal["days_to_book"] = days_to_book(deal.get("sold_date"), deal.get("booked_date"))
-        return deal
+        return res.data[0]
     except APIError as e:
         raise HTTPException(400, detail=e.message)
 
@@ -148,9 +140,7 @@ def unwind_deal(
         if not res.data:
             raise HTTPException(status_code=404, detail="Deal not found")
         log_audit_action(deal_id, "unwind", user["id"], reason)
-        deal = res.data[0]
-        deal["days_to_book"] = days_to_book(deal.get("sold_date"), deal.get("booked_date"))
-        return deal
+        return res.data[0]
     except APIError as e:
         raise HTTPException(400, detail=e.message)
 
