@@ -372,4 +372,36 @@ class Appraisal(AppraisalBase):
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
+# ── Deals ─────────────────────────────────────────────────────────────────
+
+class DealBase(BaseModel):
+    customer_id: int
+    vehicle: Optional[str] = None
+    trade: Optional[str] = None
+    amount: Optional[float] = None
+    stage: Optional[str] = "new"
+    status: Optional[str] = None
+    notes: Optional[str] = None
+    salesperson: Optional[str] = None
+    sold: Optional[bool] = None
+    close_date: Optional[str] = None
+
+class DealCreate(DealBase):
+    pass
+
+class DealUpdate(BaseModel):
+    customer_id: Optional[int] = None
+    vehicle: Optional[str] = None
+    trade: Optional[str] = None
+    amount: Optional[float] = None
+    stage: Optional[str] = None
+    status: Optional[str] = None
+    notes: Optional[str] = None
+    salesperson: Optional[str] = None
+    sold: Optional[bool] = None
+    close_date: Optional[str] = None
+
+class Deal(DealBase):
+    id: int
+
 
