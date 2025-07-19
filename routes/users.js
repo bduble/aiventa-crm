@@ -6,7 +6,7 @@ import supabase from '../lib/supabaseClient.js';
 
 const router = express.Router();
 
-// GET /api/users
+// GET /api/users/
 router.get('/users', async (req, res, next) => {
   try {
     const { data, error } = await supabase.from('users').select('*');
@@ -35,7 +35,7 @@ router.get('/users/:id', async (req, res, next) => {
   }
 });
 
-// POST /api/users
+// POST /api/users/
 router.post('/users', async (req, res, next) => {
   try {
     const payload = req.body;
