@@ -20,6 +20,7 @@ import NotificationsBar from "../components/NotificationsBar";
 import ProductivityWidget from "../components/ProductivityWidget";
 import QuickActionPanel from "../components/QuickActionPanel";
 import SmartSearchBar from "../components/SmartSearchBar";
+import KpiInventoryDetail from "../components/KpiInventoryDetail";
 // import MultiRooftopSwitcher from "../components/MultiRooftopSwitcher";
 
 import useAuth from "../hooks/useAuth";
@@ -38,6 +39,7 @@ console.log({
 
 export default function Home() {
   const [showHero, setShowHero] = useState(true);
+  const [openKpi, setOpenKpi] = useState(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -50,9 +52,10 @@ export default function Home() {
   }, []);
 
   // Use Sparklines for correct import!
-  const AnimatedCard = ({ to, children, delay = 0, sparklineData }) => (
+  const AnimatedCard = ({ to = '#', onClick, children, delay = 0, sparklineData }) => (
     <Link
       to={to}
+      onClick={onClick}
       className="group block bg-white rounded-2xl shadow-xl p-7 hover:shadow-2xl hover:bg-blue-50 transition"
     >
       <Motion.div
@@ -135,28 +138,28 @@ export default function Home() {
 
           {/* KPIs Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-            <AnimatedCard to="/kpi/sales-activity" delay={0.08} sparklineData={[8, 9, 12, 10, 14, 17]}>
+            <AnimatedCard to="#" onClick={() => setOpenKpi('sales-activity')} delay={0.08} sparklineData={[8, 9, 12, 10, 14, 17]}>
               <SalesTeamActivity />
             </AnimatedCard>
-            <AnimatedCard to="/kpi/sales-performance" delay={0.15} sparklineData={[22, 28, 25, 27, 32, 30]}>
+            <AnimatedCard to="#" onClick={() => setOpenKpi('sales-performance')} delay={0.15} sparklineData={[22, 28, 25, 27, 32, 30]}>
               <SalesPerformanceKPI />
             </AnimatedCard>
-            <AnimatedCard to="/kpi/lead-performance" delay={0.21} sparklineData={[45, 44, 48, 51, 47, 53]}>
+            <AnimatedCard to="#" onClick={() => setOpenKpi('lead-performance')} delay={0.21} sparklineData={[45, 44, 48, 51, 47, 53]}>
               <LeadPerformanceKPI />
             </AnimatedCard>
-            <AnimatedCard to="/kpi/inventory-snapshot" delay={0.26} sparklineData={[202, 207, 208, 205, 200, 199]}>
+            <AnimatedCard to="#" onClick={() => setOpenKpi('inventory-snapshot')} delay={0.26} sparklineData={[202, 207, 208, 205, 200, 199]}>
               <InventorySnapshot />
             </AnimatedCard>
-            <AnimatedCard to="/kpi/ai-overview" delay={0.32}>
+            <AnimatedCard to="#" onClick={() => setOpenKpi('ai-overview')} delay={0.32}>
               <AIOverview />
             </AnimatedCard>
-            <AnimatedCard to="/kpi/service-performance" delay={0.36} sparklineData={[97, 105, 110, 102, 108, 111]}>
+            <AnimatedCard to="#" onClick={() => setOpenKpi('service-performance')} delay={0.36} sparklineData={[97, 105, 110, 102, 108, 111]}>
               <ServiceDepartmentPerformance />
             </AnimatedCard>
-            <AnimatedCard to="/kpi/customer-satisfaction" delay={0.4} sparklineData={[4.5, 4.7, 4.8, 4.9, 4.7, 5.0]}>
+            <AnimatedCard to="#" onClick={() => setOpenKpi('customer-satisfaction')} delay={0.4} sparklineData={[4.5, 4.7, 4.8, 4.9, 4.7, 5.0]}>
               <CustomerSatisfaction />
             </AnimatedCard>
-            <AnimatedCard to="/kpi/marketing-roi" delay={0.45} sparklineData={[1.4, 2.1, 2.0, 2.2, 2.5, 2.7]}>
+            <AnimatedCard to="#" onClick={() => setOpenKpi('marketing-roi')} delay={0.45} sparklineData={[1.4, 2.1, 2.0, 2.2, 2.5, 2.7]}>
               <MarketingCampaignROI />
             </AnimatedCard>
           </div>
@@ -166,6 +169,10 @@ export default function Home() {
             <AIWidget />
           </div>
         </Motion.div>
+      )}
+
+      {openKpi === 'inventory-snapshot' && (
+        <KpiInventoryDetail onClose={() => setOpenKpi(null)} />
       )}
 
       <style>{`
