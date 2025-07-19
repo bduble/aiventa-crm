@@ -1,4 +1,3 @@
-// src/App.jsx
 import { useState, useEffect, useRef } from 'react';
 import { useTheme } from './context/ThemeContext.jsx';
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
@@ -21,11 +20,11 @@ import ReconPage              from "./pages/ReconPage";
 import AppraisalsPage         from "./pages/AppraisalsPage";
 import ChatGPTPrompt          from "./components/ChatGPTPrompt";
 import KPIDetailPage          from "./routes/KPIDetailPage";
+import DealsPage              from "./pages/DealsPage"; // <-- Add this line!
 import { Plus, User }         from "lucide-react";
 
 // Debug check
 console.log({ Home, Logo });
-
 
 export default function App() {
   const { theme } = useTheme();
@@ -88,6 +87,7 @@ export default function App() {
     { to: "/",         label: "Home"             },
     { to: "/users",    label: "Users"            },
     { to: "/inventory",label: "Inventory"        },
+    { to: "/deals",    label: <span className="font-bold text-blue-700">Deals</span> }, // <--- DEALS tab!
     { to: "/appraisals", label: "Appraisals"     },
     { to: "/recon",    label: "Recon"            },
     {
@@ -235,6 +235,7 @@ export default function App() {
           <Route path="/customers/:id" element={<CustomerCard />} />
           <Route path="/users" element={<UsersPage />} />
           <Route path="/inventory" element={<InventoryPage />} />
+          <Route path="/deals" element={<DealsPage />} /> {/* <-- Add this! */}
           <Route path="/appraisals" element={<AppraisalsPage />} />
           <Route path="/recon" element={<ReconPage />} />
           <Route path="/activities" element={<ActivityTimeline />} />
