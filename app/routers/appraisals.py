@@ -107,3 +107,9 @@ def delete_appraisal(appraisal_id: str):
         raise HTTPException(404, detail=e.message)
     return None
 
+
+@router.post("/{appraisal_id}/images")
+def upload_appraisal_images(appraisal_id: str):
+    """Handle uploaded images and run AI to update the damage report (stub)."""
+    return {"success": True}
+

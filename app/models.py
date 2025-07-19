@@ -1,7 +1,7 @@
 # app/models.py
 
 from datetime import date, datetime, time
-from typing import Optional, List, Literal, Any
+from typing import Optional, List, Literal
 from pydantic import BaseModel, EmailStr, root_validator, validator, ConfigDict, Field
 
 # ── Analytics Schema ─────────────────────────────────────────────────────────
@@ -332,6 +332,14 @@ class InventoryItemUpdate(CamelModel):
 
 # ── Appraisals ───────────────────────────────────────────────────────────────
 
+class DamageReport(BaseModel):
+    """Basic structure for AI-generated damage reports."""
+    dents: Optional[int] = 0
+    scratches: Optional[int] = 0
+    tire: Optional[str] = None
+    # Additional fields can be added as needed
+
+
 class AppraisalBase(BaseModel):
     customer_id: int
     vehicle_vin: str
@@ -346,7 +354,7 @@ class AppraisalBase(BaseModel):
     transmission: Optional[str] = None
     drivetrain: Optional[str] = None
     condition_score: Optional[float] = None
-    damage_report: Optional[Any] = None
+    damage_report: Optional[DamageReport] = None
     notes: Optional[str] = None
     appraisal_value: Optional[float] = None
     actual_acv: Optional[float] = None
