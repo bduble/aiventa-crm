@@ -45,7 +45,7 @@ export default function DealsPage() {
   const [savingId, setSavingId] = useState(null);
 
   useEffect(() => {
-    fetch("/api/deals")
+    fetch("/api/deals/")
       .then((res) => res.json())
       .then((data) => setDeals(data));
   }, [refresh]);
