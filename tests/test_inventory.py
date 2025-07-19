@@ -71,9 +71,9 @@ def test_filter_inventory_query_params():
 
 def test_inventory_snapshot():
     sample = [
-        {"type": "new"},
-        {"type": "used"},
-        {"type": "new"},
+        {"type": "new", "StatusCode": "in_stock"},
+        {"type": "used", "StatusCode": "in_stock"},
+        {"type": "new", "StatusCode": "in_stock"},
     ]
     exec_result = MagicMock(data=sample, error=None)
     mock_table = MagicMock()
@@ -85,4 +85,29 @@ def test_inventory_snapshot():
         response = client.get("/api/inventory/snapshot")
 
     assert response.status_code == 200
-    assert response.json() == {"total": 3, "new": 2, "used": 1}
+    assert response.json() == {
+        "new": {
+            "total": 2,
+            "avgDays": 0,
+            "turnRate": 0,
+            "buckets": {
+                "0-30": 0,
+                "31-45": 0,
+                "46-60": 0,
+                "61-90": 0,
+                "90+": 0,
+            },
+        },
+        "used": {
+            "total": 1,
+            "avgDays": 0,
+            "turnRate": 0,
+            "buckets": {
+                "0-30": 0,
+                "31-45": 0,
+                "46-60": 0,
+                "61-90": 0,
+                "90+": 0,
+            },
+        },
+    }

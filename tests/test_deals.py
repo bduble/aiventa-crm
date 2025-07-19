@@ -19,7 +19,7 @@ def test_list_deals():
         "sold": None,
         "close_date": None,
     }]
-    exec_result = MagicMock(data=sample, error=None)
+    exec_result = MagicMock(data=[sample[0].copy()], error=None)
     mock_table = MagicMock()
     mock_table.select.return_value.execute.return_value = exec_result
     mock_supabase = MagicMock()
@@ -46,7 +46,7 @@ def test_get_deal():
         "sold": None,
         "close_date": None,
     }
-    exec_result = MagicMock(data=sample, error=None)
+    exec_result = MagicMock(data=sample.copy(), error=None)
     mock_select = MagicMock()
     mock_select.eq.return_value.maybe_single.return_value.execute.return_value = exec_result
     mock_table = MagicMock()
@@ -77,7 +77,7 @@ def test_create_deal():
         "sold": None,
         "close_date": None,
     }
-    exec_result = MagicMock(data=[sample], error=None)
+    exec_result = MagicMock(data=[sample.copy()], error=None)
     mock_table = MagicMock()
     mock_table.insert.return_value.execute.return_value = exec_result
     mock_supabase = MagicMock()
@@ -104,7 +104,7 @@ def test_update_deal():
         "sold": None,
         "close_date": None,
     }
-    exec_result = MagicMock(data=[sample], error=None)
+    exec_result = MagicMock(data=[sample.copy()], error=None)
     mock_table = MagicMock()
     mock_table.update.return_value.eq.return_value.execute.return_value = exec_result
     mock_supabase = MagicMock()
