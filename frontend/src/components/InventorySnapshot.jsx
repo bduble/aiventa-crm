@@ -56,11 +56,14 @@ function InventoryCard({ title, stats, type, onBucketClick }) {
         {/* Pressure Gauge */}
         <div className="flex flex-col items-center ml-3">
           <div className="relative h-10 w-7 flex items-end">
-            <div className={`absolute bottom-0 left-0 w-full rounded-xl ${getHealthColor(stats.avgDays)}`}
+            <div
+              className="absolute bottom-0 left-0 w-full rounded-xl"
               style={{
                 height: getGaugeWidth(stats.avgDays),
+                backgroundColor: getHealthColor(stats.avgDays).replace('bg-', '').replace('-', ''),
                 transition: 'height 0.4s'
-              }} />
+              }}
+            />
             <div className="absolute bottom-0 left-0 w-full border-2 border-gray-300 h-full rounded-xl" />
           </div>
           <div className="text-xs font-semibold mt-1">Health</div>
@@ -83,14 +86,25 @@ export default function InventorySnapshot() {
     const fetchStats = async () => {
       try {
         const res = await fetch(`${API_BASE}/analytics/inventory-overview`);
-        if (!res.ok) return;
+        console.log("API called:", `${API_BASE}/analytics/inventory-overview`);
+        if (!res.ok) {
+          console.error("Response not OK:", res.status, res.statusText);
+          return;
+        }
         const json = await res.json();
+        console.log("Raw API response:", json);
+
+        // Defensive: check if expected shape is present
+        if (!json || (!json.new && !json.used)) {
+          console.warn("API returned unexpected shape. Data:", json);
+        }
+
         setData({
           new: json.new ?? data.new,
           used: json.used ?? data.used,
         });
       } catch (err) {
-        console.error(err);
+        console.error("Fetch failed:", err);
       }
     };
     fetchStats();
@@ -103,11 +117,6 @@ export default function InventorySnapshot() {
     setModalOpen(true);
   }
 
-  function handleCloseModal() {
-    setModalOpen(false);
-    setModalParams(null);
-  }
-
   return (
     <>
       <div className="max-w-md mx-auto">
@@ -118,7 +127,7 @@ export default function InventorySnapshot() {
           onBucketClick={handleBucketClick}
         />
       </div>
-      <div className="max-w-md mx-auto mt-4">
+      <div className="max-w-md mx-auto">
         <InventoryCard
           title="Used"
           stats={data.used}
@@ -126,13 +135,15 @@ export default function InventorySnapshot() {
           onBucketClick={handleBucketClick}
         />
       </div>
-      {modalOpen && modalParams && (
-        <VehicleBucketOverlay
-          open={modalOpen}
-          params={modalParams}
-          onClose={handleCloseModal}
-        />
-      )}
+      {/* 
+        If you use the VehicleBucketOverlay modal, you can render it here:
+        {modalOpen && (
+          <VehicleBucketOverlay
+            {...modalParams}
+            onClose={() => setModalOpen(false)}
+          />
+        )}
+      */}
     </>
   );
 }
