@@ -1,7 +1,5 @@
-# app/models.py
-
 from datetime import date, datetime, time
-from typing import Optional, List, Literal
+from typing import Optional, List, Literal, Union
 from pydantic import BaseModel, EmailStr, root_validator, validator, ConfigDict, Field
 
 # ── Analytics Schema ─────────────────────────────────────────────────────────
@@ -14,7 +12,7 @@ class MonthMetrics(BaseModel):
 
 # ── Leads ──────────────────────────────────────────────────────────────────────
 class Lead(BaseModel):
-    id: str  # UUID as string
+    id: str
     name: str
     email: Optional[str]
 
@@ -24,7 +22,7 @@ class LeadCreate(BaseModel):
 
 # ── Contacts ───────────────────────────────────────────────────────────────────
 class Contact(BaseModel):
-    id: str  # UUID
+    id: str
     lead_id: Optional[str]
     account_id: Optional[str]
     name: str
@@ -47,7 +45,7 @@ class ContactUpdate(BaseModel):
 
 # ── Customers ─────────────────────────────────────────────────────────────────
 class Customer(BaseModel):
-    id: str  # UUID
+    id: str
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
@@ -90,7 +88,7 @@ class Opportunity(BaseModel):
     id: str
     account_id: str
     name: str
-    stage: str   # e.g. "Prospecting", "Negotiation", "Closed Won", etc.
+    stage: str
     amount: Optional[float]
 
 class OpportunityCreate(BaseModel):
@@ -110,7 +108,7 @@ class OpportunityUpdate(BaseModel):
 # ── Activities ─────────────────────────────────────────────────────────────────
 class Activity(BaseModel):
     id: str
-    activity_type: str        # e.g. "call", "email", "task", "view"
+    activity_type: str
     subject: Optional[str] = None
     note: Optional[str] = None
     customer_id: Optional[str] = None
@@ -196,7 +194,6 @@ class FloorTrafficCustomerUpdate(BaseModel):
     notes: Optional[str] = None
 
 class CustomerFloorTrafficCreate(BaseModel):
-    """Simplified payload when logging an existing customer."""
     visit_time: datetime
     salesperson: str
     demo: Optional[bool] = None
@@ -212,11 +209,10 @@ def to_camel(string: str) -> str:
     return parts[0] + ''.join(word.capitalize() for word in parts[1:])
 
 class CamelModel(BaseModel):
-    """Base model that converts snake_case fields to camelCase aliases."""
     model_config = ConfigDict(validate_by_name=True, alias_generator=to_camel)
 
 class InventoryItem(CamelModel):
-    id: str
+    id: Union[int, str]
     stocknumber: Optional[str] = None
     vin: Optional[str] = None
     year: Optional[int] = None
@@ -240,6 +236,14 @@ class InventoryItem(CamelModel):
     link: Optional[str] = None
     image_link: Optional[str] = None
     additional_image_link: Optional[str] = None
+    additional_image_link_1: Optional[str] = None
+    additional_image_link_2: Optional[str] = None
+    additional_image_link_3: Optional[str] = None
+    additional_image_link_4: Optional[str] = None
+    additional_image_link_5: Optional[str] = None
+    additional_image_link_6: Optional[str] = None
+    additional_image_link_7: Optional[str] = None
+    additional_image_link_8: Optional[str] = None
     dealership_name: Optional[str] = None
     dealership_address: Optional[str] = None
     primary_key: Optional[str] = None
@@ -247,7 +251,15 @@ class InventoryItem(CamelModel):
     video_player_url: Optional[str] = None
     status_code: Optional[str] = None
     days_in_stock: Optional[int] = None
-    image_url: Optional[List[str]] = None
+    image_url: Optional[List[str]] = Field(None, alias="Image URL")
+    vehicle_option: Optional[str] = None
+    version_mod_date: Optional[datetime] = None
+    certified_dup: Optional[bool] = Field(None, alias="Certified")
+    version_mod_date_dup: Optional[datetime] = Field(None, alias="Version_Mod.Date")
+    status_code_dup: Optional[str] = Field(None, alias="StatusCode")
+    video_player_url_dup: Optional[str] = Field(None, alias="VideoPlayerURL")
+    days_in_stock_dup: Optional[int] = Field(None, alias="Days In Stock")
+    vehicle_type: Optional[str] = None
 
 class InventoryItemCreate(CamelModel):
     stocknumber: Optional[str] = None
@@ -273,6 +285,14 @@ class InventoryItemCreate(CamelModel):
     link: Optional[str] = None
     image_link: Optional[str] = None
     additional_image_link: Optional[str] = None
+    additional_image_link_1: Optional[str] = None
+    additional_image_link_2: Optional[str] = None
+    additional_image_link_3: Optional[str] = None
+    additional_image_link_4: Optional[str] = None
+    additional_image_link_5: Optional[str] = None
+    additional_image_link_6: Optional[str] = None
+    additional_image_link_7: Optional[str] = None
+    additional_image_link_8: Optional[str] = None
     dealership_name: Optional[str] = None
     dealership_address: Optional[str] = None
     primary_key: Optional[str] = None
@@ -280,7 +300,15 @@ class InventoryItemCreate(CamelModel):
     video_player_url: Optional[str] = None
     status_code: Optional[str] = None
     days_in_stock: Optional[int] = None
-    image_url: Optional[List[str]] = None
+    image_url: Optional[List[str]] = Field(None, alias="Image URL")
+    vehicle_option: Optional[str] = None
+    version_mod_date: Optional[datetime] = None
+    certified_dup: Optional[bool] = Field(None, alias="Certified")
+    version_mod_date_dup: Optional[datetime] = Field(None, alias="Version_Mod.Date")
+    status_code_dup: Optional[str] = Field(None, alias="StatusCode")
+    video_player_url_dup: Optional[str] = Field(None, alias="VideoPlayerURL")
+    days_in_stock_dup: Optional[int] = Field(None, alias="Days In Stock")
+    vehicle_type: Optional[str] = None
 
 class InventoryItemUpdate(CamelModel):
     stocknumber: Optional[str] = None
@@ -306,6 +334,14 @@ class InventoryItemUpdate(CamelModel):
     link: Optional[str] = None
     image_link: Optional[str] = None
     additional_image_link: Optional[str] = None
+    additional_image_link_1: Optional[str] = None
+    additional_image_link_2: Optional[str] = None
+    additional_image_link_3: Optional[str] = None
+    additional_image_link_4: Optional[str] = None
+    additional_image_link_5: Optional[str] = None
+    additional_image_link_6: Optional[str] = None
+    additional_image_link_7: Optional[str] = None
+    additional_image_link_8: Optional[str] = None
     dealership_name: Optional[str] = None
     dealership_address: Optional[str] = None
     primary_key: Optional[str] = None
@@ -313,7 +349,15 @@ class InventoryItemUpdate(CamelModel):
     video_player_url: Optional[str] = None
     status_code: Optional[str] = None
     days_in_stock: Optional[int] = None
-    image_url: Optional[List[str]] = None
+    image_url: Optional[List[str]] = Field(None, alias="Image URL")
+    vehicle_option: Optional[str] = None
+    version_mod_date: Optional[datetime] = None
+    certified_dup: Optional[bool] = Field(None, alias="Certified")
+    version_mod_date_dup: Optional[datetime] = Field(None, alias="Version_Mod.Date")
+    status_code_dup: Optional[str] = Field(None, alias="StatusCode")
+    video_player_url_dup: Optional[str] = Field(None, alias="VideoPlayerURL")
+    days_in_stock_dup: Optional[int] = Field(None, alias="Days In Stock")
+    vehicle_type: Optional[str] = None
 
 # ── Appraisals ───────────────────────────────────────────────────────────────
 class DamageReport(BaseModel):
@@ -322,7 +366,7 @@ class DamageReport(BaseModel):
     tire: Optional[str] = None
 
 class AppraisalBase(BaseModel):
-    customer_id: str  # UUID
+    customer_id: str
     vehicle_vin: str
     year: Optional[int] = None
     make: Optional[str] = None
@@ -380,5 +424,5 @@ class DealUpdate(BaseModel):
     close_date: Optional[str] = None
 
 class Deal(DealBase):
-    id: int | str  # ← allows both int and str for flexibility
+    id: Union[int, str]
 
