@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
 
-# ── Import routers ──────────────────────────────────────────────────────────
+# ── Import routers ──
 from app.routers.leads          import router as leads_router
 from app.routers.users          import router as users_router
 from app.routers.floor_traffic  import router as floor_traffic_router
@@ -20,40 +20,41 @@ from app.routers.analytics      import router as analytics_router
 from app.routers.tasks          import router as tasks_router
 from app.routers.appointments   import router as appointments_router
 from app.routers.deals          import router as deals_router
-from app.routers.comps          import router as comps_router    # ← NEW
+from app.routers.comps          import router as comps_router
 from app.routers.search         import router as search_router
 from app.routers.appraisals     import router as appraisals_router
-from app.openai_router          import router as ai_router       # ← NEW
+from app.openai_router          import router as ai_router
 
-# ── App init ────────────────────────────────────────────────────────────────
+# ── App init ──
 app = FastAPI(title="aiVenta CRM API")
 
-# ── Dynamic CORS whitelist ─────────────────────────────────────────────────
+# ── CORS Config ──
 def build_allowed_origins() -> list[str]:
-    env_val = os.getenv("CORS_ORIGINS", "")
-    origins = [o.strip().rstrip("/") for o in env_val.split(",") if o.strip()]
+    origins = set()
 
-    if frontend := os.getenv("FRONTEND_URL"):
-        origins.append(frontend.strip().rstrip("/"))
+    # Always allow local dev (React/Vite)
+    origins.add("http://localhost:3000")
+    origins.add("http://127.0.0.1:3000")
 
-    if vercel := os.getenv("VERCEL_URL"):
-        origins.append(f"https://{vercel.strip().rstrip('/')}")
+    # Add env-configured domains
+    for env_var in ["CORS_ORIGINS", "FRONTEND_URL", "VERCEL_URL", "RENDER_EXTERNAL_URL"]:
+        val = os.getenv(env_var, "")
+        if val:
+            for url in val.split(","):
+                url = url.strip().rstrip("/")
+                if url and not url.startswith("http"):
+                    url = f"https://{url}"
+                origins.add(url)
 
-    if render := os.getenv("RENDER_EXTERNAL_URL"):
-        origins.append(f"https://{render.strip().rstrip('/')}")
+    # Always add your deployed frontend!
+    origins.add("https://aiventa-crm.vercel.app")
 
-    # dedupe while preserving order
-    seen, deduped = set(), []
-    for o in origins:
-        if o not in seen:
-            deduped.append(o)
-            seen.add(o)
+    # Dedupe and filter empties
+    return [o for o in origins if o]
 
-    return deduped or ["*"]
-
-allowed_origins   = build_allowed_origins()
+allowed_origins = build_allowed_origins()
 allow_credentials = False if "*" in allowed_origins else True
-allow_origin_regex = None if "*" in allowed_origins else r"https://.*\.vercel\.app$"
+allow_origin_regex = None
 
 app.add_middleware(
     CORSMiddleware,
@@ -64,7 +65,7 @@ app.add_middleware(
     allow_headers     = ["*"],
 )
 
-# ── Health endpoints ───────────────────────────────────────────────────────
+# ── Health endpoints ──
 @app.get("/", tags=["root"])
 async def read_root():
     return {"message": "Welcome to aiVenta!"}
@@ -73,7 +74,7 @@ async def read_root():
 async def health_check():
     return {"status": "ok"}
 
-# ── API routers (@ /api/*) ─────────────────────────────────────────────────
+# ── API routers (@ /api/*) ──
 api_prefix = "/api"
 
 app.include_router(leads_router,         prefix=f"{api_prefix}/leads",        tags=["leads"])
@@ -91,16 +92,14 @@ app.include_router(analytics_router,     prefix=f"{api_prefix}/analytics",    ta
 app.include_router(tasks_router,         prefix=f"{api_prefix}/tasks",        tags=["tasks"])
 app.include_router(appointments_router,  prefix=f"{api_prefix}/appointments", tags=["appointments"])
 app.include_router(deals_router,         prefix=f"{api_prefix}/deals",        tags=["deals"])
-app.include_router(appraisals_router,   prefix=f"{api_prefix}/appraisals",   tags=["appraisals"])
+app.include_router(appraisals_router,    prefix=f"{api_prefix}/appraisals",   tags=["appraisals"])
 app.include_router(comps_router,         prefix=f"{api_prefix}",              tags=["comps"])
 app.include_router(search_router,        prefix=f"{api_prefix}",              tags=["search"])
-
-# NEW: AI assistant routes (POST /api/ai/ask, GET /api/ai/ask-stream)
 app.include_router(ai_router,            prefix=f"{api_prefix}",              tags=["ai"])
 
-print(app.routes) 
-# ── Serve React build (catch-all) ───────────────────────────────────────────
-# Placed LAST so it doesn’t shadow API routes.
+print("Allowed origins for CORS:", allowed_origins)
+
+# ── Serve React build (catch-all) ──
 app.mount(
     "/",
     StaticFiles(directory="frontend/dist", html=True),
