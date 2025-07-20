@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
+// Use env var for backend URL!
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
+
 const STATUS_COLORS = {
   Pending: "bg-yellow-100 text-yellow-800",
   Delivered: "bg-blue-100 text-blue-900",
@@ -39,15 +42,20 @@ export default function DealsPage() {
   const [selectedDeal, setSelectedDeal] = useState(null);
   const [editing, setEditing] = useState(false);
   const [refresh, setRefresh] = useState(0);
+  const [error, setError] = useState("");
 
   // In-table edit state
   const [editCell, setEditCell] = useState({ id: null, field: null, value: "" });
   const [savingId, setSavingId] = useState(null);
 
   useEffect(() => {
-    fetch("/api/deals/")
-      .then((res) => res.json())
-      .then((data) => setDeals(data));
+    fetch(`${API_BASE}/api/deals/`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to load deals");
+        return res.json();
+      })
+      .then((data) => setDeals(data))
+      .catch(() => setError("Could not load deals. Check your backend connection."));
   }, [refresh]);
 
   function handleEdit(deal) {
@@ -57,7 +65,7 @@ export default function DealsPage() {
 
   function handleUnwind(deal) {
     if (!window.confirm("Unwind this deal?")) return;
-    fetch(`/api/deals/${deal.id}/unwind`, {
+    fetch(`${API_BASE}/api/deals/${deal.id}/unwind`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ reason: "Manager unwind from UI" }),
@@ -77,7 +85,7 @@ export default function DealsPage() {
       back_gross: parseFloat(form.back_gross.value) || 0,
       total_gross: parseFloat(form.total_gross.value) || 0,
     };
-    fetch(`/api/deals/${selectedDeal.id}`, {
+    fetch(`${API_BASE}/api/deals/${selectedDeal.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updated),
@@ -129,7 +137,7 @@ export default function DealsPage() {
     ) {
       val = parseFloat(val) || 0;
     }
-    fetch(`/api/deals/${editCell.id}`, {
+    fetch(`${API_BASE}/api/deals/${editCell.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ [editCell.field]: val }),
@@ -153,6 +161,11 @@ export default function DealsPage() {
   return (
     <div className="p-6">
       <h1 className="text-3xl font-bold mb-6">Deals – Current Month</h1>
+      {error && (
+        <div className="mb-4 bg-red-100 text-red-800 rounded px-4 py-2 font-bold">
+          {error}
+        </div>
+      )}
       <div className="overflow-x-auto rounded-lg shadow mb-8">
         <table className="min-w-full text-sm bg-white rounded-xl">
           <thead>
