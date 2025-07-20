@@ -12,10 +12,9 @@ class MonthMetrics(BaseModel):
     customer_offer_count: int
     sold_count: int
 
-
 # ── Leads ──────────────────────────────────────────────────────────────────────
 class Lead(BaseModel):
-    id: int | str
+    id: str  # UUID as string
     name: str
     email: Optional[str]
 
@@ -23,12 +22,11 @@ class LeadCreate(BaseModel):
     name: str
     email: Optional[str]
 
-
 # ── Contacts ───────────────────────────────────────────────────────────────────
 class Contact(BaseModel):
-    id: int | str
-    lead_id: Optional[int]
-    account_id: Optional[int]
+    id: str  # UUID
+    lead_id: Optional[str]
+    account_id: Optional[str]
     name: str
     email: Optional[str]
     phone: Optional[str]
@@ -47,10 +45,9 @@ class ContactUpdate(BaseModel):
     email: Optional[str]
     phone: Optional[str]
 
-
 # ── Customers ─────────────────────────────────────────────────────────────────
 class Customer(BaseModel):
-    id: int                         # string PK
+    id: str  # UUID
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
@@ -74,10 +71,9 @@ class CustomerUpdate(BaseModel):
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
 
-
 # ── Accounts ───────────────────────────────────────────────────────────────────
 class Account(BaseModel):
-    id: int | str
+    id: str
     name: str
     industry: Optional[str]
 
@@ -89,11 +85,10 @@ class AccountUpdate(BaseModel):
     name: Optional[str]
     industry: Optional[str]
 
-
 # ── Opportunities ──────────────────────────────────────────────────────────────
 class Opportunity(BaseModel):
-    id: int | str
-    account_id: int | str
+    id: str
+    account_id: str
     name: str
     stage: str   # e.g. "Prospecting", "Negotiation", "Closed Won", etc.
     amount: Optional[float]
@@ -106,52 +101,50 @@ class OpportunityCreate(BaseModel):
 
 class OpportunityUpdate(BaseModel):
     name: Optional[str]
-    account_id: Optional[int]
-    contact_id: Optional[int]
+    account_id: Optional[str]
+    contact_id: Optional[str]
     stage: Optional[str]
     amount: Optional[float]
     close_date: Optional[date]
 
-
 # ── Activities ─────────────────────────────────────────────────────────────────
 class Activity(BaseModel):
-    id: int | str
+    id: str
     activity_type: str        # e.g. "call", "email", "task", "view"
     subject: Optional[str] = None
     note: Optional[str] = None
-    customer_id: Optional[int] = None
-    user_id: Optional[int] = None
+    customer_id: Optional[str] = None
+    user_id: Optional[str] = None
     created_at: Optional[datetime] = None
-    related_lead_id: Optional[int] = None
-    related_contact_id: Optional[int] = None
-    related_account_id: Optional[int] = None
-    related_opportunity_id: Optional[int] = None
+    related_lead_id: Optional[str] = None
+    related_contact_id: Optional[str] = None
+    related_account_id: Optional[str] = None
+    related_opportunity_id: Optional[str] = None
 
 class ActivityCreate(BaseModel):
     activity_type: str
     subject: Optional[str] = None
     note: Optional[str]
-    customer_id: Optional[int] = None
-    user_id: Optional[int] = None
-    related_lead_id: Optional[int] = None
-    related_contact_id: Optional[int] = None
-    related_account_id: Optional[int] = None
-    related_opportunity_id: Optional[int] = None
+    customer_id: Optional[str] = None
+    user_id: Optional[str] = None
+    related_lead_id: Optional[str] = None
+    related_contact_id: Optional[str] = None
+    related_account_id: Optional[str] = None
+    related_opportunity_id: Optional[str] = None
 
 class ActivityUpdate(BaseModel):
-    customer_id: Optional[int] = None
+    customer_id: Optional[str] = None
     contact_id: Optional[str] = None
     opportunity_id: Optional[str] = None
     activity_type: Optional[str] = None
     subject: Optional[str] = None
     note: Optional[str] = None
-    user_id: Optional[int] = None
+    user_id: Optional[str] = None
     date: Optional[date] = None
-
 
 # ── Floor Traffic Log ─────────────────────────────────────────────────────────
 class FloorTrafficCustomer(BaseModel):
-    id: int | str
+    id: str
     salesperson: str
     name: str = Field(alias="customer_name")
     first_name: Optional[str] = None
@@ -202,7 +195,6 @@ class FloorTrafficCustomerUpdate(BaseModel):
     status: Optional[str] = None
     notes: Optional[str] = None
 
-
 class CustomerFloorTrafficCreate(BaseModel):
     """Simplified payload when logging an existing customer."""
     visit_time: datetime
@@ -214,7 +206,6 @@ class CustomerFloorTrafficCreate(BaseModel):
     notes: Optional[str] = None
     time_out: Optional[datetime] = None
 
-
 # ── Inventory ─────────────────────────────────────────────────────────────────
 def to_camel(string: str) -> str:
     parts = string.split('_')
@@ -225,21 +216,21 @@ class CamelModel(BaseModel):
     model_config = ConfigDict(validate_by_name=True, alias_generator=to_camel)
 
 class InventoryItem(CamelModel):
-    id: int
-    stocknumber: Optional[str] = None          # 'stocknumber'
+    id: str
+    stocknumber: Optional[str] = None
     vin: Optional[str] = None
     year: Optional[int] = None
     make: Optional[str] = None
     model: Optional[str] = None
     trim: Optional[str] = None
-    sellingprice: Optional[float] = None       # 'sellingprice'
+    sellingprice: Optional[float] = None
     msrp: Optional[float] = None
     mileage: Optional[int] = None
-    exterior_color: Optional[str] = None       # 'exterior_color'
-    interior_color: Optional[str] = None       # 'interior_color'
-    certified: Optional[bool] = None           # 'certified'
-    type: Optional[str] = None                 # 'type'
-    drive_type: Optional[str] = None           # 'drive_type'
+    exterior_color: Optional[str] = None
+    interior_color: Optional[str] = None
+    certified: Optional[bool] = None
+    type: Optional[str] = None
+    drive_type: Optional[str] = None
     transmission: Optional[str] = None
     engine: Optional[str] = None
     cylinders: Optional[int] = None
@@ -249,20 +240,16 @@ class InventoryItem(CamelModel):
     link: Optional[str] = None
     image_link: Optional[str] = None
     additional_image_link: Optional[str] = None
-    # Add any other additional_image_link_N if you want
     dealership_name: Optional[str] = None
     dealership_address: Optional[str] = None
     primary_key: Optional[str] = None
     primary_key_raw: Optional[str] = None
-    video_player_url: Optional[str] = None     # 'VideoPlayerURL'
+    video_player_url: Optional[str] = None
     status_code: Optional[str] = None
     days_in_stock: Optional[int] = None
-    # For photos array/json
-    image_url: Optional[List[str]] = None      # if you want the JSON array
-    # Add any other fields as needed
+    image_url: Optional[List[str]] = None
 
 class InventoryItemCreate(CamelModel):
-    # Same fields as InventoryItem, but all Optional except what you require for creation
     stocknumber: Optional[str] = None
     vin: Optional[str] = None
     year: Optional[int] = None
@@ -296,7 +283,6 @@ class InventoryItemCreate(CamelModel):
     image_url: Optional[List[str]] = None
 
 class InventoryItemUpdate(CamelModel):
-    # Same as above, all Optional
     stocknumber: Optional[str] = None
     vin: Optional[str] = None
     year: Optional[int] = None
@@ -329,19 +315,14 @@ class InventoryItemUpdate(CamelModel):
     days_in_stock: Optional[int] = None
     image_url: Optional[List[str]] = None
 
-
 # ── Appraisals ───────────────────────────────────────────────────────────────
-
 class DamageReport(BaseModel):
-    """Basic structure for AI-generated damage reports."""
     dents: Optional[int] = 0
     scratches: Optional[int] = 0
     tire: Optional[str] = None
-    # Additional fields can be added as needed
-
 
 class AppraisalBase(BaseModel):
-    customer_id: int
+    customer_id: str  # UUID
     vehicle_vin: str
     year: Optional[int] = None
     make: Optional[str] = None
@@ -361,21 +342,18 @@ class AppraisalBase(BaseModel):
     payoff_amount: Optional[float] = None
     status: Optional[Literal["Draft", "Final", "Rejected"]] = "Draft"
 
-
 class AppraisalCreate(AppraisalBase):
     pass
 
-
 class Appraisal(AppraisalBase):
     id: str
-    created_by: Optional[int] = None
+    created_by: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
 # ── Deals ─────────────────────────────────────────────────────────────────
-
 class DealBase(BaseModel):
-    customer_id: int
+    customer_id: str   # UUID
     vehicle: Optional[str] = None
     trade: Optional[str] = None
     amount: Optional[float] = None
@@ -385,12 +363,20 @@ class DealBase(BaseModel):
     salesperson: Optional[str] = None
     sold: Optional[bool] = None
     close_date: Optional[str] = None
+    front_gross: Optional[float] = None
+    back_gross: Optional[float] = None
+    total_gross: Optional[float] = None
+    trade_id: Optional[str] = None
+    unwind_reason: Optional[str] = None
+    unwind_by: Optional[str] = None
+    unwind_date: Optional[str] = None
+    audit: Optional[dict] = None
 
 class DealCreate(DealBase):
     pass
 
 class DealUpdate(BaseModel):
-    customer_id: Optional[int] = None
+    customer_id: Optional[str] = None
     vehicle: Optional[str] = None
     trade: Optional[str] = None
     amount: Optional[float] = None
@@ -400,8 +386,14 @@ class DealUpdate(BaseModel):
     salesperson: Optional[str] = None
     sold: Optional[bool] = None
     close_date: Optional[str] = None
+    front_gross: Optional[float] = None
+    back_gross: Optional[float] = None
+    total_gross: Optional[float] = None
+    trade_id: Optional[str] = None
+    unwind_reason: Optional[str] = None
+    unwind_by: Optional[str] = None
+    unwind_date: Optional[str] = None
+    audit: Optional[dict] = None
 
 class Deal(DealBase):
-    id: int
-
-
+    id: str   # UUID
