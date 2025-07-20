@@ -353,7 +353,7 @@ class Appraisal(AppraisalBase):
 
 # ── Deals ─────────────────────────────────────────────────────────────────
 class DealBase(BaseModel):
-    customer_id: str   # UUID
+    customer_id: Optional[str] = None
     vehicle: Optional[str] = None
     trade: Optional[str] = None
     amount: Optional[float] = None
@@ -363,14 +363,6 @@ class DealBase(BaseModel):
     salesperson: Optional[str] = None
     sold: Optional[bool] = None
     close_date: Optional[str] = None
-    front_gross: Optional[float] = None
-    back_gross: Optional[float] = None
-    total_gross: Optional[float] = None
-    trade_id: Optional[str] = None
-    unwind_reason: Optional[str] = None
-    unwind_by: Optional[str] = None
-    unwind_date: Optional[str] = None
-    audit: Optional[dict] = None
 
 class DealCreate(DealBase):
     pass
@@ -386,14 +378,7 @@ class DealUpdate(BaseModel):
     salesperson: Optional[str] = None
     sold: Optional[bool] = None
     close_date: Optional[str] = None
-    front_gross: Optional[float] = None
-    back_gross: Optional[float] = None
-    total_gross: Optional[float] = None
-    trade_id: Optional[str] = None
-    unwind_reason: Optional[str] = None
-    unwind_by: Optional[str] = None
-    unwind_date: Optional[str] = None
-    audit: Optional[dict] = None
 
 class Deal(DealBase):
-    id: str   # UUID
+    id: int | str  # ← allows both int and str for flexibility
+
