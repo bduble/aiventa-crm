@@ -1,6 +1,6 @@
-from datetime import date, datetime, time
+from datetime import date, datetime
 from typing import Optional, List, Literal, Union
-from pydantic import BaseModel, EmailStr, root_validator, validator, ConfigDict, Field
+from pydantic import BaseModel, EmailStr, validator, Field, ConfigDict
 
 # ── Analytics Schema ─────────────────────────────────────────────────────────
 class MonthMetrics(BaseModel):
@@ -45,7 +45,7 @@ class ContactUpdate(BaseModel):
 
 # ── Customers ─────────────────────────────────────────────────────────────────
 class Customer(BaseModel):
-    id: Union[int, str]           # Accepts int or str
+    id: Union[int, str]
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
@@ -142,7 +142,7 @@ class ActivityUpdate(BaseModel):
 
 # ── Floor Traffic Log ─────────────────────────────────────────────────────────
 class FloorTrafficCustomer(BaseModel):
-    id: str
+    id: Union[int, str]
     salesperson: str
     name: str = Field(alias="customer_name")
     first_name: Optional[str] = None
@@ -157,6 +157,7 @@ class FloorTrafficCustomer(BaseModel):
     status: Optional[str] = None
     notes: Optional[str] = None
     created_at: datetime
+
     model_config = ConfigDict(populate_by_name=True)
 
 class FloorTrafficCustomerCreate(BaseModel):
@@ -204,6 +205,7 @@ class CustomerFloorTrafficCreate(BaseModel):
     time_out: Optional[datetime] = None
 
 # ── Inventory ─────────────────────────────────────────────────────────────────
+
 def to_camel(string: str) -> str:
     parts = string.split('_')
     return parts[0] + ''.join(word.capitalize() for word in parts[1:])
@@ -248,20 +250,16 @@ class InventoryItem(CamelModel):
     dealership_address: Optional[str] = None
     primary_key: Optional[str] = None
     primary_key_raw: Optional[str] = None
-    video_player_url: Optional[str] = None
-    status_code: Optional[str] = None
-    days_in_stock: Optional[int] = None
-    image_url: Optional[List[str]] = Field(None, alias="Image URL")
+    video_player_url: Optional[str] = Field(None, alias="VideoPlayerURL")
+    status_code: Optional[str] = Field(None, alias="StatusCode")
+    days_in_stock: Optional[int] = Field(None, alias="Days In Stock")
+    image_url: Optional[str] = Field(None, alias="Image URL")  # change to List[str] if you have array!
     vehicle_option: Optional[str] = None
-    version_mod_date: Optional[datetime] = None
-    certified_dup: Optional[bool] = Field(None, alias="Certified")
-    version_mod_date_dup: Optional[datetime] = Field(None, alias="Version_Mod.Date")
-    status_code_dup: Optional[str] = Field(None, alias="StatusCode")
-    video_player_url_dup: Optional[str] = Field(None, alias="VideoPlayerURL")
-    days_in_stock_dup: Optional[int] = Field(None, alias="Days In Stock")
+    version_mod_date: Optional[datetime] = Field(None, alias="Version_Mod.Date")
     vehicle_type: Optional[str] = None
 
 class InventoryItemCreate(CamelModel):
+    # Same as InventoryItem, minus id and plus all optionals for creation.
     stocknumber: Optional[str] = None
     vin: Optional[str] = None
     year: Optional[int] = None
@@ -297,20 +295,16 @@ class InventoryItemCreate(CamelModel):
     dealership_address: Optional[str] = None
     primary_key: Optional[str] = None
     primary_key_raw: Optional[str] = None
-    video_player_url: Optional[str] = None
-    status_code: Optional[str] = None
-    days_in_stock: Optional[int] = None
-    image_url: Optional[List[str]] = Field(None, alias="Image URL")
+    video_player_url: Optional[str] = Field(None, alias="VideoPlayerURL")
+    status_code: Optional[str] = Field(None, alias="StatusCode")
+    days_in_stock: Optional[int] = Field(None, alias="Days In Stock")
+    image_url: Optional[str] = Field(None, alias="Image URL")
     vehicle_option: Optional[str] = None
-    version_mod_date: Optional[datetime] = None
-    certified_dup: Optional[bool] = Field(None, alias="Certified")
-    version_mod_date_dup: Optional[datetime] = Field(None, alias="Version_Mod.Date")
-    status_code_dup: Optional[str] = Field(None, alias="StatusCode")
-    video_player_url_dup: Optional[str] = Field(None, alias="VideoPlayerURL")
-    days_in_stock_dup: Optional[int] = Field(None, alias="Days In Stock")
+    version_mod_date: Optional[datetime] = Field(None, alias="Version_Mod.Date")
     vehicle_type: Optional[str] = None
 
 class InventoryItemUpdate(CamelModel):
+    # All fields optional for PATCH
     stocknumber: Optional[str] = None
     vin: Optional[str] = None
     year: Optional[int] = None
@@ -346,17 +340,12 @@ class InventoryItemUpdate(CamelModel):
     dealership_address: Optional[str] = None
     primary_key: Optional[str] = None
     primary_key_raw: Optional[str] = None
-    video_player_url: Optional[str] = None
-    status_code: Optional[str] = None
-    days_in_stock: Optional[int] = None
-    image_url: Optional[List[str]] = Field(None, alias="Image URL")
+    video_player_url: Optional[str] = Field(None, alias="VideoPlayerURL")
+    status_code: Optional[str] = Field(None, alias="StatusCode")
+    days_in_stock: Optional[int] = Field(None, alias="Days In Stock")
+    image_url: Optional[str] = Field(None, alias="Image URL")
     vehicle_option: Optional[str] = None
-    version_mod_date: Optional[datetime] = None
-    certified_dup: Optional[bool] = Field(None, alias="Certified")
-    version_mod_date_dup: Optional[datetime] = Field(None, alias="Version_Mod.Date")
-    status_code_dup: Optional[str] = Field(None, alias="StatusCode")
-    video_player_url_dup: Optional[str] = Field(None, alias="VideoPlayerURL")
-    days_in_stock_dup: Optional[int] = Field(None, alias="Days In Stock")
+    version_mod_date: Optional[datetime] = Field(None, alias="Version_Mod.Date")
     vehicle_type: Optional[str] = None
 
 # ── Appraisals ───────────────────────────────────────────────────────────────
@@ -425,4 +414,3 @@ class DealUpdate(BaseModel):
 
 class Deal(DealBase):
     id: Union[int, str]
-
