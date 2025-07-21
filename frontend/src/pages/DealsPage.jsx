@@ -28,7 +28,7 @@ function formatDays(n) {
 
 const EDITABLE_FIELDS = [
   "salesperson",
-  "customer_id",
+  "customer_name",
   "vehicle",
   "trade",
   "front_gross",
@@ -78,7 +78,7 @@ export default function DealsPage() {
     const updated = {
       status: form.status.value,
       salesperson: form.salesperson.value,
-      customer_id: form.customer_id.value,
+      customer_name: form.customer_name.value,
       vehicle: form.vehicle.value,
       trade: form.trade.value,
       front_gross: parseFloat(form.front_gross.value) || 0,
@@ -309,10 +309,10 @@ export default function DealsPage() {
                   />
                 </label>
                 <label className="block flex-1">
-                  Customer ID
+                  Customer
                   <input
-                    name="customer_id"
-                    defaultValue={selectedDeal?.customer_id || ""}
+                    name="customer_name"
+                    defaultValue={selectedDeal?.customer_name || ""}
                     className="border rounded w-full p-2"
                   />
                 </label>
