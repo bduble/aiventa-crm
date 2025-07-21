@@ -1,5 +1,4 @@
 from fastapi import APIRouter, HTTPException
-
 from app.routers import floor_traffic, leads, inventory
 from app.openai_client import get_openai_client
 
@@ -30,6 +29,7 @@ async def month_summary():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.get("/sales-overview")
 def sales_overview():
     """Return basic sales metrics for the month."""
@@ -44,6 +44,7 @@ def sales_overview():
         "conversionRate": round((sold / conversion_base) * 100, 2),
         "daily": [],
     }
+
 
 @router.get("/lead-overview")
 def lead_overview():
@@ -61,22 +62,44 @@ def lead_overview():
         ],
     }
 
+
 @router.get("/inventory-overview")
-async def inventory_overview():
+def inventory_overview():
     """
     Return inventory snapshot metrics with full buckets and live stats.
+    Responds with { new: { ... }, used: { ... } } for frontend.
     """
     try:
-        # FIXED: do not await, just call the function (assuming it's not async)
-        snapshot = inventory.inventory_snapshot()
+        snapshot = inventory.inventory_snapshot_full()  # Recommended: build this method as below
     except Exception as e:
         print("Inventory snapshot error:", e)
         snapshot = {
-            "total": 0, "newCount": 0, "usedCount": 0,
-            "avgDays": 0, "turnRate": 0, "overThirty": 0,
-            "buckets": {"0-30": 0, "31-45": 0, "46-60": 0, "61-90": 0, "90+": 0}
+            "new": {
+                "total": 0,
+                "avgDays": 0,
+                "turnRate": 0,
+                "buckets": {"0-30": 0, "31-45": 0, "46-60": 0, "61-90": 0, "90+": 0}
+            },
+            "used": {
+                "total": 0,
+                "avgDays": 0,
+                "turnRate": 0,
+                "buckets": {"0-30": 0, "31-45": 0, "46-60": 0, "61-90": 0, "90+": 0}
+            }
         }
     return snapshot
+
+# You must implement `inventory.inventory_snapshot_full()` to return this structure:
+# {
+#     "new": {
+#         "total": int,
+#         "avgDays": float,
+#         "turnRate": float,
+#         "buckets": { "0-30": int, ... }
+#     },
+#     "used": { ... }
+# }
+
 
 @router.get("/ai-overview")
 def ai_overview():
@@ -89,6 +112,7 @@ def ai_overview():
         "details": "No significant anomalies detected",
     }
 
+
 @router.get("/marketing-roi")
 def marketing_roi():
     """Return simple marketing ROI stats."""
@@ -99,6 +123,7 @@ def marketing_roi():
         "roi": 0,
         "conversionByChannel": [],
     }
+
 
 @router.get("/sales-team-activity")
 def sales_team_activity():
@@ -111,6 +136,7 @@ def sales_team_activity():
         "appraisalToTrade": "",
     }
 
+
 @router.get("/service-performance")
 def service_performance():
     """Return placeholder service department metrics."""
@@ -121,6 +147,7 @@ def service_performance():
         "csi": 0,
         "fixedCoverage": 0,
     }
+
 
 @router.get("/customer-satisfaction")
 def customer_satisfaction():
