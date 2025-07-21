@@ -26,7 +26,7 @@ def global_search(q: str = Query(..., min_length=1), limit: int = 5):
     try:
         inventory_query = (
             supabase
-            .table("inventory")
+            .table("inventory_with_days_in_stock")
             .select("id,make,model,vin,stocknumber,year")
             .or_(
                 f"make.ilike.%{q}%,model.ilike.%{q}%,vin.ilike.%{q}%,stocknumber.ilike.%{q}%"

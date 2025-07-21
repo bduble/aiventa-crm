@@ -411,7 +411,7 @@ def get_full_ai_context():
 async def inventory_ai_review(item_id: int, zipcode: str = "76504", radius: int = 200):
     """Return an AI generated market review for a specific inventory item."""
     res = (
-        supabase.table("inventory")
+        supabase.table("inventory_with_days_in_stock")
         .select("id,year,make,model,trim,sellingprice,mileage")
         .eq("id", item_id)
         .maybe_single()
