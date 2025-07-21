@@ -19,7 +19,7 @@ def test_global_search():
         tbl = MagicMock()
         if name == "customers":
             tbl.select.return_value = cust_query
-        elif name == "inventory":
+        elif name == "inventory_with_days_in_stock":
             tbl.select.return_value = inv_query
         return tbl
 
