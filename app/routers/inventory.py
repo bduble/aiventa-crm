@@ -19,7 +19,6 @@ def list_inventory(
     price_min: float | None = Query(None, description="Minimum selling price"),
     price_max: float | None = Query(None, description="Maximum selling price"),
     mileage_max: int | None = Query(None, description="Maximum mileage"),
-    condition: str | None = Query(None, description="Filter by condition"),
     inventory_type: str | None = Query(None, alias="type", description="Filter by type"),
     exterior_color: str | None = Query(None, description="Filter by exterior color"),
     fuel_type: str | None = Query(None, alias="fuelType", description="Filter by fuel type"),
@@ -38,17 +37,13 @@ def list_inventory(
         query = query.gte("year", year_min)
     if year_max is not None:
         query = query.lte("year", year_max)
-    # Use sellingprice column for price filters
     if price_min is not None:
         query = query.gte("sellingprice", price_min)
     if price_max is not None:
         query = query.lte("sellingprice", price_max)
     if mileage_max is not None:
         query = query.lte("mileage", mileage_max)
-    if condition:
-        query = query.eq("condition", condition)
     if inventory_type:
-        # actual column is 'type'
         query = query.eq("type", inventory_type)
     if exterior_color:
         query = query.ilike("exterior_color", f"%{exterior_color}%")
@@ -65,7 +60,6 @@ def list_inventory(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
-
     return res.data or []
 
 # Support '/api/inventory' without trailing slash
@@ -78,7 +72,6 @@ def list_inventory_noslash(
     price_min: float | None = Query(None),
     price_max: float | None = Query(None),
     mileage_max: int | None = Query(None),
-    condition: str | None = Query(None),
     inventory_type: str | None = Query(None, alias="type"),
     exterior_color: str | None = Query(None),
     fuel_type: str | None = Query(None, alias="fuelType"),
@@ -86,27 +79,92 @@ def list_inventory_noslash(
 ):
     return list_inventory(
         make, model, year_min, year_max, price_min, price_max,
-        mileage_max, condition, inventory_type, exterior_color,
+        mileage_max, inventory_type, exterior_color,
         fuel_type, drivetrain
     )
 
 @router.get("/snapshot")
 def inventory_snapshot():
+    """Simple count stats (legacy, but keep for reference)."""
     try:
         res = supabase.table("inventory").select("type").execute()
+        rows = res.data or []
+        new_count = sum(1 for r in rows if str(r.get("type", "")).lower() == "new")
+        used_count = sum(1 for r in rows if str(r.get("type", "")).lower() == "used")
+        return {"total": len(rows), "new": new_count, "used": used_count}
     except APIError as e:
         logging.error("Error fetching inventory snapshot: %s", e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
-    rows = res.data or []
-    new_count = sum(1 for r in rows if str(r.get("type", "")).lower() == "new")
-    used_count = sum(1 for r in rows if str(r.get("type", "")).lower() == "used")
-    return {"total": len(rows), "new": new_count, "used": used_count}
-    total = len(rows)
-    new_count = sum(1 for r in rows if str(r.get("type", "")).lower() == "new")
-    used_count = sum(1 for r in rows if str(r.get("type", "")).lower() == "used")
+# --------- BUCKETED FULL SNAPSHOT (for dashboard) -----------
+def bucket_days(days):
+    if days is None:
+        return None
+    if days <= 30:
+        return "0-30"
+    elif days <= 45:
+        return "31-45"
+    elif days <= 60:
+        return "46-60"
+    elif days <= 90:
+        return "61-90"
+    else:
+        return "90+"
 
-    return {"total": total, "new": new_count, "used": used_count}
+def summarize_inventory(records):
+    out = {
+        "total": 0,
+        "avgDays": 0,
+        "turnRate": 0,  # You can customize this calculation.
+        "buckets": {"0-30": 0, "31-45": 0, "46-60": 0, "61-90": 0, "90+": 0}
+    }
+    if not records:
+        return out
+
+    days_list = []
+    for rec in records:
+        # Accept several possible keys for 'Days In Stock'
+        days = (
+            rec.get("Days In Stock") or
+            rec.get("days_in_stock") or
+            rec.get("days_in_stock_dup") or
+            rec.get("days_in_stock") or
+            rec.get("days_in_stock_dup") or
+            rec.get("DaysInStock")
+        )
+        if days is None:
+            continue
+        try:
+            days = int(days)
+        except Exception:
+            continue
+        days_list.append(days)
+        bucket = bucket_days(days)
+        if bucket:
+            out["buckets"][bucket] += 1
+
+    out["total"] = len(records)
+    out["avgDays"] = round(sum(days_list) / len(days_list), 1) if days_list else 0
+    out["turnRate"] = round(out["total"] / (sum(days_list) or 1), 2) if days_list else 0  # crude logic!
+    return out
+
+@router.get("/snapshot-full")
+def inventory_snapshot_full():
+    """Return new/used inventory stats and bucket counts."""
+    try:
+        res = supabase.table("inventory").select("*").execute()
+        data = res.data or []
+    except APIError as e:
+        logging.error("Error fetching inventory for snapshot: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to fetch inventory")
+
+    new_cars = [rec for rec in data if str(rec.get("type", "")).lower() == "new"]
+    used_cars = [rec for rec in data if str(rec.get("type", "")).lower() == "used"]
+
+    return {
+        "new": summarize_inventory(new_cars),
+        "used": summarize_inventory(used_cars)
+    }
 
 @router.get("/{item_id}", response_model=InventoryItem)
 def get_inventory_item(item_id: int):
@@ -125,7 +183,6 @@ def get_inventory_item(item_id: int):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
-
     if not res.data:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
     return res.data
@@ -145,7 +202,6 @@ def create_inventory_item(item: InventoryItemCreate):
 
     return res.data[0]
 
-# Support POST without trailing slash
 @router.post("", include_in_schema=False, response_model=InventoryItem, status_code=status.HTTP_201_CREATED)
 def create_inventory_item_noslash(item: InventoryItemCreate):
     return create_inventory_item(item)
@@ -181,5 +237,4 @@ def delete_inventory_item(item_id: int):
 
     if not res.data:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
-    # returning None yields a 204 with no content
     return
