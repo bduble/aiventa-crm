@@ -85,8 +85,9 @@ export default function InventorySnapshot() {
     const API_BASE = import.meta.env.PROD ? import.meta.env.VITE_API_BASE_URL : '/api';
     const fetchStats = async () => {
       try {
-        const res = await fetch(`${API_BASE}/analytics/inventory-overview`);
-        console.log("API called:", `${API_BASE}/analytics/inventory-overview`);
+        const url = `${API_BASE}/analytics/inventory-overview`;
+        console.log("API called:", url);
+        const res = await fetch(url);
         if (!res.ok) {
           console.error("Response not OK:", res.status, res.statusText);
           return;
@@ -95,13 +96,9 @@ export default function InventorySnapshot() {
         console.log("Raw API response:", json);
 
         // Defensive: check if expected shape is present
-        if (!json || (!json.new && !json.used)) {
-          console.warn("API returned unexpected shape. Data:", json);
-        }
-
         setData({
-          new: json.new ?? data.new,
-          used: json.used ?? data.used,
+          new: (json && json.new) ? json.new : data.new,
+          used: (json && json.used) ? json.used : data.used,
         });
       } catch (err) {
         console.error("Fetch failed:", err);
@@ -136,7 +133,7 @@ export default function InventorySnapshot() {
         />
       </div>
       {/* 
-        If you use the VehicleBucketOverlay modal, you can render it here:
+        Uncomment below to enable the modal overlay for bucket details:
         {modalOpen && (
           <VehicleBucketOverlay
             {...modalParams}
