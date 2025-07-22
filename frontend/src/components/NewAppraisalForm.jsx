@@ -1,4 +1,8 @@
-import { useState } from 'react';
+import { useState } from "react";
+
+// Configure your API base URL (set REACT_APP_API_URL for production)
+const API_BASE =
+  process.env.REACT_APP_API_URL?.replace(/\/$/, "") || ""; // No trailing slash
 
 export default function NewAppraisalForm({ onClose, customers = [] }) {
   const [form, setForm] = useState({
@@ -10,16 +14,16 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
     trim: "",
     body: "",
     engine: "",
-    mileage: ""
+    mileage: "",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [decoding, setDecoding] = useState(false);
 
   // Handle input changes
-  const handleChange = e => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm(f => ({ ...f, [name]: value }));
+    setForm((f) => ({ ...f, [name]: value }));
   };
 
   // VIN Decoder
@@ -29,17 +33,16 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
     try {
       const vin = form.vin.trim();
       if (vin.length !== 17) throw new Error("VIN must be 17 characters.");
-      const res = await fetch(`/api/vin/decode/${vin}`);
+      const res = await fetch(`${API_BASE}/api/vin/decode/${vin}`);
       if (!res.ok) throw new Error("Could not decode VIN");
       const data = await res.json();
-      setForm(f => ({
+
+      // Merge all decoded fields into the form, keeping user changes
+      setForm((f) => ({
         ...f,
-        year: data.year ?? "",
-        make: data.make ?? "",
-        model: data.model ?? "",
-        trim: data.trim ?? "",
-        body: data.body ?? "",
-        engine: data.engine ?? ""
+        ...Object.fromEntries(
+          Object.entries(data).map(([k, v]) => [k, v ?? ""])
+        ),
       }));
     } catch (err) {
       setError(err.message);
@@ -65,10 +68,10 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
       mileage: form.mileage ? Number(form.mileage) : undefined,
     };
     try {
-      const res = await fetch('/api/appraisals/', {
+      const res = await fetch(`${API_BASE}/api/appraisals/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error("Failed to create appraisal");
       onClose();
@@ -92,8 +95,10 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
           required
         >
           <option value="">Select Customer</option>
-          {customers.map(c => (
-            <option key={c.id} value={c.id}>{c.name} ({c.email})</option>
+          {customers.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name} ({c.email})
+            </option>
           ))}
         </select>
       </label>
@@ -120,7 +125,7 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
           </button>
         </div>
       </label>
-      {/* Vehicle Details - Expanded */}
+      {/* Vehicle Details */}
       <div className="flex flex-wrap gap-2">
         <input
           className="border rounded p-2 flex-1 min-w-[80px]"
@@ -176,10 +181,20 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
       </div>
       {/* Action Buttons */}
       <div className="flex gap-2">
-        <button type="submit" disabled={saving} className="bg-electricblue text-white px-4 py-2 rounded">
+        <button
+          type="submit"
+          disabled={saving}
+          className="bg-electricblue text-white px-4 py-2 rounded"
+        >
           {saving ? "Saving..." : "Create"}
         </button>
-        <button type="button" onClick={onClose} className="border px-4 py-2 rounded">Cancel</button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="border px-4 py-2 rounded"
+        >
+          Cancel
+        </button>
       </div>
       {error && <div className="text-red-600">{error}</div>}
     </form>
