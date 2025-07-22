@@ -416,3 +416,28 @@ class DealUpdate(BaseModel):
 
 class Deal(DealBase):
     id: Union[int, str]
+
+# ── Users ───────────────────────────────────────────────────────────────
+class User(BaseModel):
+    id: Union[int, str]
+    name: str
+    email: EmailStr
+    is_active: Optional[bool] = True
+    role: Optional[str] = None        # e.g., 'admin', 'sales', etc.
+    phone: Optional[str] = None
+    created_at: Optional[datetime] = None
+
+class UserCreate(BaseModel):
+    name: str
+    email: EmailStr
+    password: str                     # Only on create (omit from regular User model)
+    role: Optional[str] = None
+    phone: Optional[str] = None
+
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None    # Optional for PATCH
+    is_active: Optional[bool] = None
+    role: Optional[str] = None
+    phone: Optional[str] = None
