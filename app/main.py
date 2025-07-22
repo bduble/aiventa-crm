@@ -24,6 +24,7 @@ from app.routers.comps          import router as comps_router
 from app.routers.search         import router as search_router
 from app.routers.appraisals     import router as appraisals_router
 from app.openai_router          import router as ai_router
+from app.routers.vin            import router as vin_router
 
 # ── App init ──
 app = FastAPI(title="aiVenta CRM API")
