@@ -11,10 +11,34 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [decoding, setDecoding] = useState(false);
 
   const handleChange = e => {
     const { name, value } = e.target;
     setForm(f => ({ ...f, [name]: value }));
+  };
+
+  // VIN Decoder
+  const handleDecodeVin = async () => {
+    setError("");
+    setDecoding(true);
+    try {
+      const vin = form.vin.trim();
+      if (vin.length !== 17) throw new Error("VIN must be 17 characters.");
+      const res = await fetch(`/api/vin/decode/${vin}`);
+      if (!res.ok) throw new Error("Could not decode VIN");
+      const data = await res.json();
+      setForm(f => ({
+        ...f,
+        year: data.year ?? "",
+        make: data.make ?? "",
+        model: data.model ?? ""
+      }));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setDecoding(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -37,7 +61,6 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
       });
       if (!res.ok) throw new Error("Failed to create appraisal");
       onClose();
-      // Optional: Notify parent to reload data
     } catch (err) {
       setError(err.message);
     } finally {
@@ -64,7 +87,26 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
         </select>
       </label>
       <label className="block">
-        VIN <input className="border rounded p-2 w-full" name="vin" value={form.vin} onChange={handleChange} required />
+        VIN
+        <div className="flex gap-2">
+          <input
+            className="border rounded p-2 w-full"
+            name="vin"
+            value={form.vin}
+            onChange={handleChange}
+            maxLength={17}
+            required
+          />
+          <button
+            type="button"
+            onClick={handleDecodeVin}
+            disabled={form.vin.length !== 17 || decoding}
+            className="bg-blue-500 text-white px-3 rounded disabled:opacity-50"
+            title="Decode VIN"
+          >
+            {decoding ? "Decoding..." : "Decode VIN"}
+          </button>
+        </div>
       </label>
       <div className="flex gap-2">
         <input
