@@ -7,12 +7,16 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
     year: "",
     make: "",
     model: "",
+    trim: "",
+    body: "",
+    engine: "",
     mileage: ""
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [decoding, setDecoding] = useState(false);
 
+  // Handle input changes
   const handleChange = e => {
     const { name, value } = e.target;
     setForm(f => ({ ...f, [name]: value }));
@@ -32,7 +36,10 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
         ...f,
         year: data.year ?? "",
         make: data.make ?? "",
-        model: data.model ?? ""
+        model: data.model ?? "",
+        trim: data.trim ?? "",
+        body: data.body ?? "",
+        engine: data.engine ?? ""
       }));
     } catch (err) {
       setError(err.message);
@@ -41,6 +48,7 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
     }
   };
 
+  // Handle submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -51,6 +59,9 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
       year: form.year ? Number(form.year) : undefined,
       make: form.make,
       model: form.model,
+      trim: form.trim,
+      body: form.body,
+      engine: form.engine,
       mileage: form.mileage ? Number(form.mileage) : undefined,
     };
     try {
@@ -86,6 +97,7 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
           ))}
         </select>
       </label>
+      {/* VIN Field and Decode Button */}
       <label className="block">
         VIN
         <div className="flex gap-2">
@@ -108,9 +120,10 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
           </button>
         </div>
       </label>
-      <div className="flex gap-2">
+      {/* Vehicle Details - Expanded */}
+      <div className="flex flex-wrap gap-2">
         <input
-          className="border rounded p-2 w-1/4"
+          className="border rounded p-2 flex-1 min-w-[80px]"
           name="year"
           type="number"
           placeholder="Year"
@@ -118,21 +131,42 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
           onChange={handleChange}
         />
         <input
-          className="border rounded p-2 w-1/4"
+          className="border rounded p-2 flex-1 min-w-[80px]"
           name="make"
           placeholder="Make"
           value={form.make}
           onChange={handleChange}
         />
         <input
-          className="border rounded p-2 w-1/4"
+          className="border rounded p-2 flex-1 min-w-[80px]"
           name="model"
           placeholder="Model"
           value={form.model}
           onChange={handleChange}
         />
         <input
-          className="border rounded p-2 w-1/4"
+          className="border rounded p-2 flex-1 min-w-[80px]"
+          name="trim"
+          placeholder="Trim"
+          value={form.trim}
+          onChange={handleChange}
+        />
+        <input
+          className="border rounded p-2 flex-1 min-w-[120px]"
+          name="body"
+          placeholder="Body Style"
+          value={form.body}
+          onChange={handleChange}
+        />
+        <input
+          className="border rounded p-2 flex-1 min-w-[100px]"
+          name="engine"
+          placeholder="Engine"
+          value={form.engine}
+          onChange={handleChange}
+        />
+        <input
+          className="border rounded p-2 flex-1 min-w-[80px]"
           name="mileage"
           type="number"
           placeholder="Mileage"
@@ -140,6 +174,7 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
           onChange={handleChange}
         />
       </div>
+      {/* Action Buttons */}
       <div className="flex gap-2">
         <button type="submit" disabled={saving} className="bg-electricblue text-white px-4 py-2 rounded">
           {saving ? "Saving..." : "Create"}
