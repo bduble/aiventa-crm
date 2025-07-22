@@ -1,4 +1,10 @@
-import { API_BASE } from './apiBase';
+import { useState } from "react";
+import { API_BASE, FALLBACK_VIN_DECODER } from "../apiBase"; // adjust path as needed
+
+console.log("VITE_API_URL:", import.meta.env.VITE_API_URL);
+console.log("API_BASE:", API_BASE);
+
+// ...rest of your code (identical to what you posted) ...
 
 // ...then in your fetch calls:
 const res = await fetch(`${API_BASE}/api/vin/decode/${vin}`);
