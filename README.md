@@ -18,6 +18,10 @@ npm install
 npm start
 ```
 
+The Express server will serve its own routes first and proxy any
+other `/api/*` requests to the FastAPI service configured via the
+`FASTAPI_URL` environment variable.
+
 ### React (frontend)
 
 ```bash
@@ -45,6 +49,7 @@ SUPABASE_URL=<your-supabase-url>
 SUPABASE_KEY=<your-supabase-key>
 CORS_ORIGINS=https://aiventa-crm.vercel.app,https://aiventa-g3al310q6-brian-dubles-projects.vercel.app
 FRONTEND_URL=https://aiventa-crm.vercel.app
+FASTAPI_URL=http://localhost:8000
 VITE_API_BASE_URL=http://localhost:8000
 VITE_SUPABASE_URL=<your-supabase-url>
 VITE_SUPABASE_KEY=<your-supabase-key>
