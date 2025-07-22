@@ -4,10 +4,30 @@ import { useState } from "react";
 const API_BASE =
   process.env.REACT_APP_API_URL?.replace(/\/$/, "") || ""; // No trailing slash
 
-// Example: Add a secondary (fallback) VIN decoder API
 const FALLBACK_VIN_DECODER =
   process.env.REACT_APP_FALLBACK_VIN_API?.replace(/\/$/, "") ||
   "https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVin";
+
+// Helper: safely parse integer or return undefined
+function safeInt(val) {
+  if (val === undefined || val === null) return undefined;
+  const num = Number(val);
+  return !isNaN(num) && Number.isFinite(num) ? num : undefined;
+}
+
+// Helper: parse NHTSA (fallback) data to your shape
+function parseNHTSA(data) {
+  const r = Array.isArray(data.Results) ? data.Results[0] : {};
+  return {
+    year: r.ModelYear || "",
+    make: r.Make || "",
+    model: r.Model || "",
+    trim: r.Trim || "",
+    body: r.BodyClass || "",
+    engine: r.EngineModel || "",
+    // Add more as needed, but don't submit non-schema fields
+  };
+}
 
 export default function NewAppraisalForm({ onClose, customers = [] }) {
   const [form, setForm] = useState({
@@ -24,19 +44,6 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [decoding, setDecoding] = useState(false);
-
-  // Helper: parse NHTSA (fallback) data to your shape
-  function parseNHTSA(data) {
-    const r = Array.isArray(data.Results) ? data.Results[0] : {};
-    return {
-      year: r.ModelYear || "",
-      make: r.Make || "",
-      model: r.Model || "",
-      trim: r.Trim || "",
-      body: r.BodyClass || "",
-      engine: r.EngineModel || "",
-    };
-  }
 
   // Handle input changes
   const handleChange = (e) => {
@@ -102,17 +109,21 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
     e.preventDefault();
     setSaving(true);
     setError("");
+
+    // Only include fields present in your Supabase schema
     const payload = {
       vehicle_vin: form.vin,
-      customer_id: form.customerId,
-      year: form.year ? Number(form.year) : undefined,
-      make: form.make,
-      model: form.model,
-      trim: form.trim,
-      body: form.body,
-      engine: form.engine,
-      mileage: form.mileage ? Number(form.mileage) : undefined,
+      customer_id: safeInt(form.customerId), // If numeric customer_id
+      year: safeInt(form.year),
+      make: form.make || undefined,
+      model: form.model || undefined,
+      trim: form.trim || undefined,
+      engine: form.engine || undefined,
+      mileage: safeInt(form.mileage),
+      // DO NOT submit body, fuel_type, series, doors unless those exist in your table
+      // ...add other fields your backend expects (exterior_color, interior_color, etc)
     };
+
     try {
       const res = await fetch(`${API_BASE}/api/appraisals/`, {
         method: "POST",
