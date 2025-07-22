@@ -4,6 +4,11 @@ import { useState } from "react";
 const API_BASE =
   process.env.REACT_APP_API_URL?.replace(/\/$/, "") || ""; // No trailing slash
 
+// Example: Add a secondary (fallback) VIN decoder API
+const FALLBACK_VIN_DECODER =
+  process.env.REACT_APP_FALLBACK_VIN_API?.replace(/\/$/, "") ||
+  "https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVin";
+
 export default function NewAppraisalForm({ onClose, customers = [] }) {
   const [form, setForm] = useState({
     vin: "",
@@ -20,32 +25,73 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
   const [error, setError] = useState("");
   const [decoding, setDecoding] = useState(false);
 
+  // Helper: parse NHTSA (fallback) data to your shape
+  function parseNHTSA(data) {
+    const r = Array.isArray(data.Results) ? data.Results[0] : {};
+    return {
+      year: r.ModelYear || "",
+      make: r.Make || "",
+      model: r.Model || "",
+      trim: r.Trim || "",
+      body: r.BodyClass || "",
+      engine: r.EngineModel || "",
+    };
+  }
+
   // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((f) => ({ ...f, [name]: value }));
   };
 
-  // VIN Decoder
+  // VIN Decoder (with fallback logic)
   const handleDecodeVin = async () => {
     setError("");
     setDecoding(true);
-    try {
-      const vin = form.vin.trim();
-      if (vin.length !== 17) throw new Error("VIN must be 17 characters.");
-      const res = await fetch(`${API_BASE}/api/vin/decode/${vin}`);
-      if (!res.ok) throw new Error("Could not decode VIN");
-      const data = await res.json();
+    const vin = form.vin.trim();
+    if (vin.length !== 17) {
+      setError("VIN must be 17 characters.");
+      setDecoding(false);
+      return;
+    }
 
-      // Merge all decoded fields into the form, keeping user changes
-      setForm((f) => ({
-        ...f,
-        ...Object.fromEntries(
-          Object.entries(data).map(([k, v]) => [k, v ?? ""])
-        ),
-      }));
+    // Attempt primary backend decode first
+    try {
+      const res = await fetch(`${API_BASE}/api/vin/decode/${vin}`);
+      if (res.ok) {
+        const data = await res.json();
+        setForm((f) => ({
+          ...f,
+          ...Object.fromEntries(Object.entries(data).map(([k, v]) => [k, v ?? ""])),
+        }));
+        setDecoding(false);
+        return;
+      } else if (res.status !== 404) {
+        throw new Error("Could not decode VIN (server error).");
+      }
     } catch (err) {
-      setError(err.message);
+      // Continue to fallback
+    }
+
+    // Fallback: Try public NHTSA decoder (or another backup)
+    try {
+      const fallbackUrl = `${FALLBACK_VIN_DECODER}/${vin}?format=json`;
+      const res = await fetch(fallbackUrl);
+      if (res.ok) {
+        const data = await res.json();
+        const parsed = parseNHTSA(data);
+        if (parsed.year || parsed.make || parsed.model) {
+          setForm((f) => ({ ...f, ...parsed }));
+        } else {
+          throw new Error("VIN could not be decoded by fallback service.");
+        }
+      } else {
+        throw new Error("VIN not found in fallback decoder.");
+      }
+    } catch (err) {
+      setError(
+        "We couldn't decode this VIN automatically. Please enter details manually."
+      );
     } finally {
       setDecoding(false);
     }
