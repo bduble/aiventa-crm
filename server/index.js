@@ -1,6 +1,7 @@
 // index.js
 import express from 'express';
 import cors from 'cors';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 import floorTrafficRouter from '../routes/floorTraffic.js';
 import leadsRouter from '../routes/leads.js';
 import customersRouter from '../routes/customers.js';
@@ -82,6 +83,13 @@ app.use('/api', usersRouter);
 app.use('/api', customersRouter);
 app.use('/api', dealsRouter);
 app.use('/api/inventory', inventoryRouter);
+
+// Proxy any remaining /api requests to the FastAPI service
+const FASTAPI_URL = process.env.FASTAPI_URL || 'http://localhost:8000';
+app.use('/api', createProxyMiddleware({
+  target: FASTAPI_URL,
+  changeOrigin: true,
+}));
 
 // Fallback for unknown routes
 app.use((req, res) => {
