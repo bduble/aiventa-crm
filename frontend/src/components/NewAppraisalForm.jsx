@@ -1,12 +1,16 @@
 import { useState } from "react";
 
-// Configure your API base URL (set REACT_APP_API_URL for production)
+// Use Vite environment variables!
 const API_BASE =
-  process.env.REACT_APP_API_URL?.replace(/\/$/, "") || ""; // No trailing slash
+  import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "";
 
 const FALLBACK_VIN_DECODER =
-  process.env.REACT_APP_FALLBACK_VIN_API?.replace(/\/$/, "") ||
+  import.meta.env.VITE_FALLBACK_VIN_API?.replace(/\/$/, "") ||
   "https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVin";
+
+// Debug: See if variables are correct in your browser console
+console.log("VITE_API_URL:", import.meta.env.VITE_API_URL);
+console.log("API_BASE:", API_BASE);
 
 // Helper: safely parse integer or return undefined
 function safeInt(val) {
@@ -113,21 +117,19 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
     // Only include fields present in your Supabase schema
     const payload = {
       vehicle_vin: form.vin,
-      customer_id: form.customerId,
+      customer_id: form.customerId, // UUID, don't use safeInt for UUIDs!
       year: safeInt(form.year),
       make: form.make || undefined,
       model: form.model || undefined,
       trim: form.trim || undefined,
       engine: form.engine || undefined,
       mileage: safeInt(form.mileage),
-      // DO NOT submit body, fuel_type, series, doors unless those exist in your table
-      // ...add other fields your backend expects (exterior_color, interior_color, etc)
+      // Add other fields your backend expects as needed
     };
-    
-      // 👇 Add this line before the fetch!
-    
-  console.log("POSTing to:", `${API_BASE}/api/appraisals/`);
-  console.log("Payload:", payload);
+
+    // Debugging output
+    console.log("POSTing to:", `${API_BASE}/api/appraisals/`);
+    console.log("Payload:", payload);
 
     try {
       const res = await fetch(`${API_BASE}/api/appraisals/`, {
