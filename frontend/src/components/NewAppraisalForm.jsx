@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { API_BASE } from './apiBase';
+
+// ...then in your fetch calls:
+const res = await fetch(`${API_BASE}/api/vin/decode/${vin}`);
 
 // Use Vite environment variables!
 const API_BASE =
