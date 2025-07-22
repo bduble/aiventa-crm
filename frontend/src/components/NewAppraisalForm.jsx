@@ -113,7 +113,7 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
     // Only include fields present in your Supabase schema
     const payload = {
       vehicle_vin: form.vin,
-      customer_id: safeInt(form.customerId), // If numeric customer_id
+      customer_id: form.customerId,
       year: safeInt(form.year),
       make: form.make || undefined,
       model: form.model || undefined,
