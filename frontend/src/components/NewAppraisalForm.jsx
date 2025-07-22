@@ -123,6 +123,11 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
       // DO NOT submit body, fuel_type, series, doors unless those exist in your table
       // ...add other fields your backend expects (exterior_color, interior_color, etc)
     };
+    
+      // 👇 Add this line before the fetch!
+    
+  console.log("POSTing to:", `${API_BASE}/api/appraisals/`);
+  console.log("Payload:", payload);
 
     try {
       const res = await fetch(`${API_BASE}/api/appraisals/`, {
