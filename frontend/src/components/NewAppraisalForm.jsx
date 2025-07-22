@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { API_BASE, FALLBACK_VIN_DECODER } from "./apiBase"; // adjust path as needed
+import { API_BASE, FALLBACK_VIN_DECODER } from "../apiBase"; // adjust path if needed
 
-// Debug: See if variables are correct in your browser console
+// Debug: Check your environment variables!
 console.log("VITE_API_URL:", import.meta.env.VITE_API_URL);
 console.log("API_BASE:", API_BASE);
 
@@ -110,7 +110,7 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
     // Only include fields present in your Supabase schema
     const payload = {
       vehicle_vin: form.vin,
-      customer_id: form.customerId, // UUID, don't use safeInt for UUIDs!
+      customer_id: form.customerId, // UUID, string
       year: safeInt(form.year),
       make: form.make || undefined,
       model: form.model || undefined,
