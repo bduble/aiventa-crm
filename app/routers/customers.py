@@ -1,5 +1,5 @@
 print("CUSTOMERS ROUTER LOADED")
-from fastapi import APIRouter, HTTPException, status, Query
+from fastapi import APIRouter, HTTPException, status, Query, UploadFile, File
 from datetime import datetime, timedelta
 from postgrest.exceptions import APIError
 from app.db import supabase
@@ -10,15 +10,14 @@ from app.models import (
     CustomerFloorTrafficCreate,
     FloorTrafficCustomer,
 )
-from fastapi import APIRouter, HTTPException, status, Query, UploadFile, File
-from postgrest.exceptions import APIError
-from app.db import supabase
+from app.openai_client import get_openai_client
 from pydantic import BaseModel
 import uuid
-from app.models import Customer, CustomerCreate, CustomerUpdate
-from app.openai_client import get_openai_client
 import json
+
 router = APIRouter()
+
+# ----------- Customer List/Search -----------
 @router.get(
     "/",
     response_model=list[Customer],
@@ -31,7 +30,7 @@ def list_customers(
 ):
     """
     List customers with optional search filters.
-    - q: simple ILIKE filter on the combined name column
+    - q: ILIKE filter on name
     - email: ILIKE filter on email
     - phone: ILIKE filter on phone
     """
@@ -48,29 +47,28 @@ def list_customers(
         raise HTTPException(status_code=400, detail=e.message)
 
     customers = res.data or []
-    # --- PATCH: Guarantee 'name' field for each customer ---
     for c in customers:
+        # Patch: Guarantee 'name'
         if not c.get("name"):
             c["name"] = (
                 (c.get("first_name", "") + " " + c.get("last_name", "")).strip()
                 or c.get("customer_name", "")
                 or ""
             )
-        # Patch for email: If it's an empty string, set to None (avoids Pydantic error)
+        # Patch: Convert empty email string to None
         if c.get("email", "") == "":
             c["email"] = None
 
     return customers
 
+# ----------- Get Single Customer -----------
 @router.get(
     "/{customer_id}",
     response_model=Customer,
     response_model_exclude_none=True,
 )
 def get_customer(customer_id: int):
-    """
-    Fetch a single customer by integer ID.
-    """
+    """Fetch a single customer by integer ID."""
     try:
         res = (
             supabase
@@ -85,8 +83,6 @@ def get_customer(customer_id: int):
 
     if not res.data:
         raise HTTPException(status_code=404, detail="Customer not found")
-
-    # --- PATCH: Guarantee 'name' field for single customer ---
     c = res.data
     if not c.get("name"):
         c["name"] = (
@@ -94,44 +90,37 @@ def get_customer(customer_id: int):
             or c.get("customer_name", "")
             or ""
         )
-    # Patch for email: If it's an empty string, set to None
     if c.get("email", "") == "":
         c["email"] = None
-
     return c
 
+# ----------- Create Customer -----------
 @router.post(
     "/",
     response_model=Customer,
     status_code=status.HTTP_201_CREATED,
 )
 def create_customer(c: CustomerCreate):
-    """
-    Insert a new customer.
-    """
+    """Insert a new customer."""
     try:
         res = supabase.table("customers").insert(c.dict()).execute()
     except APIError as e:
         raise HTTPException(status_code=400, detail=e.message)
-
     created = res.data[0]
-    # Patch for email: If it's an empty string, set to None
     if created.get("email", "") == "":
         created["email"] = None
     return created
 
+# ----------- Patch (Update) Customer -----------
 @router.patch(
     "/{customer_id}",
     response_model=Customer,
 )
 def update_customer(customer_id: int, c: CustomerUpdate):
-    """
-    Update existing customer fields.
-    """
+    """Update existing customer fields."""
     payload = {k: v for k, v in c.dict().items() if v is not None}
     if not payload:
         raise HTTPException(status_code=400, detail="No fields to update")
-
     try:
         res = (
             supabase
@@ -142,23 +131,20 @@ def update_customer(customer_id: int, c: CustomerUpdate):
         )
     except APIError as e:
         raise HTTPException(status_code=400, detail=e.message)
-
     if not res.data:
         raise HTTPException(status_code=404, detail="Customer not found")
     updated = res.data[0]
-    # Patch for email: If it's an empty string, set to None
     if updated.get("email", "") == "":
         updated["email"] = None
     return updated
 
+# ----------- Delete Customer -----------
 @router.delete(
     "/{customer_id}",
     status_code=status.HTTP_204_NO_CONTENT,
 )
 def delete_customer(customer_id: int):
-    """
-    Delete a customer by ID.
-    """
+    """Delete a customer by ID."""
     try:
         res = (
             supabase
@@ -169,13 +155,11 @@ def delete_customer(customer_id: int):
         )
     except APIError as e:
         raise HTTPException(status_code=400, detail=e.message)
-
     if not res.data:
         raise HTTPException(status_code=404, detail="Customer not found")
-    # Returning None yields an empty 204 response
     return
 
-
+# ----------- AI Customer Summary -----------
 @router.get("/{customer_id}/ai-summary")
 async def customer_ai_summary(customer_id: int):
     """Return an AI generated summary and messaging templates for the customer."""
@@ -189,10 +173,8 @@ async def customer_ai_summary(customer_id: int):
         )
     except APIError as e:
         raise HTTPException(status_code=400, detail=e.message)
-
     if not res.data:
         raise HTTPException(status_code=404, detail="Customer not found")
-
     customer = res.data
 
     client = get_openai_client()
@@ -203,7 +185,6 @@ async def customer_ai_summary(customer_id: int):
             "sms_template": "",
             "email_template": "",
         }
-
     prompt = (
         "Summarize this customer and suggest the best next step in bullet form. "
         "Also provide a short friendly SMS template and a short professional email "
@@ -211,7 +192,6 @@ async def customer_ai_summary(customer_id: int):
         "'sms_template', and 'email_template'.\n"
         f"Customer info: {json.dumps(customer)}"
     )
-
     try:
         chat = await client.chat.completions.create(
             model="gpt-3.5-turbo",
@@ -223,7 +203,7 @@ async def customer_ai_summary(customer_id: int):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
+# ----------- Add Customer to Floor Traffic -----------
 @router.post(
     "/{customer_id}/floor-traffic",
     response_model=FloorTrafficCustomer,
@@ -231,7 +211,6 @@ async def customer_ai_summary(customer_id: int):
 )
 async def add_customer_to_floor_log(customer_id: int, entry: CustomerFloorTrafficCreate):
     """Create a floor-traffic entry for an existing customer."""
-    # Fetch customer record
     try:
         res = (
             supabase.table("customers")
@@ -242,15 +221,13 @@ async def add_customer_to_floor_log(customer_id: int, entry: CustomerFloorTraffi
         )
     except APIError as e:
         raise HTTPException(status_code=400, detail=e.message)
-
     if not res.data:
         raise HTTPException(status_code=404, detail="Customer not found")
 
     customer = res.data
     first = customer.get("first_name") or ""
     last = customer.get("last_name") or ""
-
-    # Determine if they've visited in last 30 days
+    # Check if they've visited in last 30 days
     thirty_days_ago = datetime.utcnow() - timedelta(days=30)
     try:
         past = (
@@ -277,25 +254,23 @@ async def add_customer_to_floor_log(customer_id: int, entry: CustomerFloorTraffi
             "status": "Be-Back" if be_back else entry.status or None,
         }
     )
-
     try:
         res = supabase.table("floor_traffic_customers").insert(payload).execute()
     except APIError as e:
         raise HTTPException(status_code=400, detail=str(e))
-
     if not res.data:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Database insertion failed, no data returned.",
         )
-
     return res.data[0]
+
+# ----------- Customer Files (Upload/List) -----------
 class CustomerFile(BaseModel):
     id: int
     customer_id: int
     name: str
     url: str
-
 
 @router.get("/{customer_id}/files", response_model=list[CustomerFile])
 def list_customer_files(customer_id: int):
@@ -310,7 +285,6 @@ def list_customer_files(customer_id: int):
         return res.data or []
     except APIError as e:
         raise HTTPException(status_code=400, detail=e.message)
-
 
 @router.post(
     "/{customer_id}/files",
