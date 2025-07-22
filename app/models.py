@@ -387,6 +387,7 @@ class Appraisal(AppraisalBase):
 # ── Deals ─────────────────────────────────────────────────────────────────
 class DealBase(BaseModel):
     customer_id: Optional[str] = None
+    customer_name: Optional[str] = None
     vehicle: Optional[str] = None
     trade: Optional[str] = None
     amount: Optional[float] = None
@@ -402,6 +403,7 @@ class DealCreate(DealBase):
 
 class DealUpdate(BaseModel):
     customer_id: Optional[str] = None
+    customer_name: Optional[str] = None
     vehicle: Optional[str] = None
     trade: Optional[str] = None
     amount: Optional[float] = None
