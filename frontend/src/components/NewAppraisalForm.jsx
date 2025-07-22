@@ -9,10 +9,6 @@ console.log("API_BASE:", API_BASE);
 // ...then in your fetch calls:
 const res = await fetch(`${API_BASE}/api/vin/decode/${vin}`);
 
-// Use Vite environment variables!
-const API_BASE =
-  import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "";
-
 const FALLBACK_VIN_DECODER =
   import.meta.env.VITE_FALLBACK_VIN_API?.replace(/\/$/, "") ||
   "https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVin";
