@@ -61,6 +61,16 @@ def list_customers(
 
     return customers
 
+# ----------- No trailing slash support -----------
+@router.get("", include_in_schema=False, response_model=list[Customer], response_model_exclude_none=True)
+def list_customers_noslash(
+    q: str | None = Query(None, description="Search term for first or last name"),
+    email: str | None = Query(None, description="Filter by email"),
+    phone: str | None = Query(None, description="Filter by phone"),
+):
+    """Support /api/customers (no trailing slash)."""
+    return list_customers(q, email, phone)
+
 # ----------- Get Single Customer -----------
 @router.get(
     "/{customer_id}",
