@@ -165,3 +165,95 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
         <div className="flex gap-2">
           <input
             className="border rounded p-2 w-full"
+            name="vin"
+            value={form.vin}
+            onChange={handleChange}
+            maxLength={17}
+            required
+          />
+          <button
+            type="button"
+            onClick={handleDecodeVin}
+            disabled={form.vin.length !== 17 || decoding}
+            className="bg-blue-500 text-white px-3 rounded disabled:opacity-50"
+            title="Decode VIN"
+          >
+            {decoding ? "Decoding..." : "Decode VIN"}
+          </button>
+        </div>
+      </label>
+      {/* Vehicle Details */}
+      <div className="flex flex-wrap gap-2">
+        <input
+          className="border rounded p-2 flex-1 min-w-[80px]"
+          name="year"
+          type="number"
+          placeholder="Year"
+          value={form.year}
+          onChange={handleChange}
+        />
+        <input
+          className="border rounded p-2 flex-1 min-w-[80px]"
+          name="make"
+          placeholder="Make"
+          value={form.make}
+          onChange={handleChange}
+        />
+        <input
+          className="border rounded p-2 flex-1 min-w-[80px]"
+          name="model"
+          placeholder="Model"
+          value={form.model}
+          onChange={handleChange}
+        />
+        <input
+          className="border rounded p-2 flex-1 min-w-[80px]"
+          name="trim"
+          placeholder="Trim"
+          value={form.trim}
+          onChange={handleChange}
+        />
+        <input
+          className="border rounded p-2 flex-1 min-w-[120px]"
+          name="body"
+          placeholder="Body Style"
+          value={form.body}
+          onChange={handleChange}
+        />
+        <input
+          className="border rounded p-2 flex-1 min-w-[100px]"
+          name="engine"
+          placeholder="Engine"
+          value={form.engine}
+          onChange={handleChange}
+        />
+        <input
+          className="border rounded p-2 flex-1 min-w-[80px]"
+          name="mileage"
+          type="number"
+          placeholder="Mileage"
+          value={form.mileage}
+          onChange={handleChange}
+        />
+      </div>
+      {/* Action Buttons */}
+      <div className="flex gap-2">
+        <button
+          type="submit"
+          disabled={saving}
+          className="bg-electricblue text-white px-4 py-2 rounded"
+        >
+          {saving ? "Saving..." : "Create"}
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="border px-4 py-2 rounded"
+        >
+          Cancel
+        </button>
+      </div>
+      {error && <div className="text-red-600">{error}</div>}
+    </form>
+  );
+}
