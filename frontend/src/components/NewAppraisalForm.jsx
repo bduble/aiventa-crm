@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { API_BASE, FALLBACK_VIN_DECODER } from "../apiBase"; // adjust path if needed
+import { API_BASE, FALLBACK_VIN_DECODER } from "../apiBase";
 
 // Debug: Check your environment variables!
 console.log("VITE_API_URL:", import.meta.env.VITE_API_URL);
@@ -7,9 +7,18 @@ console.log("API_BASE:", API_BASE);
 
 // Helper: safely parse integer or return undefined
 function safeInt(val) {
-  if (val === undefined || val === null) return undefined;
+  if (val === undefined || val === null || val === "") return undefined;
   const num = Number(val);
   return !isNaN(num) && Number.isFinite(num) ? num : undefined;
+}
+
+// Helper: remove empty, undefined, or null fields from payload
+function cleanPayload(raw) {
+  return Object.fromEntries(
+    Object.entries(raw).filter(
+      ([, v]) => v !== undefined && v !== null && v !== ""
+    )
+  );
 }
 
 // Helper: parse NHTSA (fallback) data to your shape
@@ -22,7 +31,6 @@ function parseNHTSA(data) {
     trim: r.Trim || "",
     body: r.BodyClass || "",
     engine: r.EngineModel || "",
-    // Add more as needed, but don't submit non-schema fields
   };
 }
 
@@ -59,14 +67,15 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
       return;
     }
 
-    // Attempt primary backend decode first
     try {
       const res = await fetch(`${API_BASE}/api/vin/decode/${vin}`);
       if (res.ok) {
         const data = await res.json();
         setForm((f) => ({
           ...f,
-          ...Object.fromEntries(Object.entries(data).map(([k, v]) => [k, v ?? ""])),
+          ...Object.fromEntries(
+            Object.entries(data).map(([k, v]) => [k, v ?? ""])
+          ),
         }));
         setDecoding(false);
         return;
@@ -108,19 +117,21 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
     setError("");
 
     // Only include fields present in your Supabase schema
-    const payload = {
+    const rawPayload = {
       vehicle_vin: form.vin,
-      customer_id: form.customerId, // UUID, string
-      year: safeInt(form.year),
+      customer_id: form.customerId, // UUID string, required
+      year: safeInt(form.year),     // integer
       make: form.make || undefined,
       model: form.model || undefined,
       trim: form.trim || undefined,
       engine: form.engine || undefined,
+      body: form.body || undefined,
       mileage: safeInt(form.mileage),
-      // Add other fields your backend expects as needed
+      // ...add others as you collect them!
     };
+    const payload = cleanPayload(rawPayload);
 
-    // Debugging output
+    // Debug
     console.log("POSTing to:", `${API_BASE}/api/appraisals/`);
     console.log("Payload:", payload);
 
@@ -130,7 +141,14 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error("Failed to create appraisal");
+      if (!res.ok) {
+        let message = "Failed to create appraisal";
+        try {
+          const errData = await res.json();
+          message = errData.detail || message;
+        } catch {}
+        throw new Error(message);
+      }
       onClose();
     } catch (err) {
       setError(err.message);
