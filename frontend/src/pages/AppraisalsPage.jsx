@@ -1,26 +1,41 @@
 import { useEffect, useState } from 'react';
-import NewAppraisalForm from '../components/NewAppraisalForm'; // Adjust import if needed
+import NewAppraisalForm from '../components/NewAppraisalForm';
+import { API_BASE } from '../apiBase'; // Adjust path if your structure differs
 
 export default function AppraisalsPage() {
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
   const [appraisals, setAppraisals] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [showForm, setShowForm] = useState(false);
 
+  // Helper to reload appraisals after a new one is added
   const reloadAppraisals = () => {
-    fetch(`${API_BASE}/appraisals/`)
+    fetch(`${API_BASE}/api/appraisals/`)
       .then(res => res.json())
-      .then(data => setAppraisals(Array.isArray(data) ? data : []));
+      .then(data => setAppraisals(Array.isArray(data) ? data : []))
+      .catch(() => setAppraisals([]));
   };
 
-  useEffect(() => { reloadAppraisals(); }, [API_BASE]);
+  // Fetch appraisals on mount
+  useEffect(() => { reloadAppraisals(); }, []);
 
+  // Fetch customers on mount
   useEffect(() => {
-    fetch(`${API_BASE}/customers`)
+    fetch(`${API_BASE}/api/customers/`)
       .then(res => res.json())
       .then(data => setCustomers(Array.isArray(data) ? data : []))
       .catch(() => setCustomers([]));
-  }, [API_BASE]);
+  }, []);
+
+  // Debug: See customers in your console
+  useEffect(() => {
+    console.log("Customers for dropdown:", customers);
+  }, [customers]);
+
+  // Helper: Get customer name by UUID, fallback to ID
+  const getCustomerName = (id) => {
+    const c = customers.find(cust => String(c.id) === String(id));
+    return c ? (c.name || `${c.first_name || ""} ${c.last_name || ""}`.trim()) : id;
+  };
 
   return (
     <div className="max-w-4xl mx-auto mt-8">
@@ -34,7 +49,6 @@ export default function AppraisalsPage() {
 
       <div className="overflow-x-auto">
         <table className="w-full border text-sm">
-          {/* your table headers and rows, mapping over appraisals */}
           <thead>
             <tr>
               <th className="p-2">Customer</th>
@@ -50,7 +64,7 @@ export default function AppraisalsPage() {
           <tbody>
             {appraisals.map(a => (
               <tr key={a.id} className="odd:bg-gray-50 hover:bg-gray-100">
-                <td className="p-2 whitespace-nowrap">{a.customer_id}</td>
+                <td className="p-2 whitespace-nowrap">{getCustomerName(a.customer_id)}</td>
                 <td className="p-2 whitespace-nowrap">{a.vehicle_vin}</td>
                 <td className="p-2 whitespace-nowrap">{a.year}</td>
                 <td className="p-2 whitespace-nowrap">{a.make}</td>
