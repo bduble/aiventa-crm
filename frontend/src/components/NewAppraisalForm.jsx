@@ -38,7 +38,7 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
     console.log("Customers for dropdown:", customers);
   const [form, setForm] = useState({
     vin: "",
-    customerId: "",
+    customer_id: "",
     year: "",
     make: "",
     model: "",
@@ -120,7 +120,7 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
     // Only include fields present in your Supabase schema
     const rawPayload = {
       vehicle_vin: form.vin,
-      customer_id: form.customerId, // UUID string, required
+      customer_id: form.customer_id, // UUID string, required
       year: safeInt(form.year),     // integer
       make: form.make || undefined,
       model: form.model || undefined,
@@ -165,8 +165,8 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
         Customer
         <select
           className="border rounded p-2 w-full"
-          name="customerId"
-          value={form.customerId}
+          name="customer_id"
+          value={form.customer_id}
           onChange={handleChange}
           required
         >
