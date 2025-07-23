@@ -7,8 +7,9 @@ client = TestClient(app)
 
 def test_list_deals():
     sample = [{
-        "id": 1,
-        "customer_id": 1,
+        "id": "1",
+        "customer_id": "11111111-1111-1111-1111-111111111111",
+        "customer_name": None,
         "vehicle": "Car",
         "trade": None,
         "amount": None,
@@ -34,8 +35,9 @@ def test_list_deals():
 
 def test_get_deal():
     sample = {
-        "id": 1,
-        "customer_id": 1,
+        "id": "1",
+        "customer_id": "11111111-1111-1111-1111-111111111111",
+        "customer_name": None,
         "vehicle": "Car",
         "trade": None,
         "amount": None,
@@ -63,10 +65,11 @@ def test_get_deal():
 
 
 def test_create_deal():
-    payload = {"customer_id": 1, "vehicle": "Car"}
+    payload = {"customer_id": "11111111-1111-1111-1111-111111111111", "vehicle": "Car"}
     sample = {
-        "id": 1,
-        "customer_id": 1,
+        "id": "1",
+        "customer_id": "11111111-1111-1111-1111-111111111111",
+        "customer_name": None,
         "vehicle": "Car",
         "trade": None,
         "amount": None,
@@ -92,8 +95,9 @@ def test_create_deal():
 
 def test_update_deal():
     sample = {
-        "id": 1,
-        "customer_id": 1,
+        "id": "1",
+        "customer_id": "11111111-1111-1111-1111-111111111111",
+        "customer_name": None,
         "vehicle": "New Car",
         "trade": None,
         "amount": None,

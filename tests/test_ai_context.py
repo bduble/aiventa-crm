@@ -8,7 +8,7 @@ client = TestClient(app)
 def test_get_full_ai_context():
     inventory_rows = [
         {
-            "id": 1,
+            "id": "1",
             "year": 2024,
             "make": "Ford",
             "model": "F-150",
@@ -33,8 +33,8 @@ def test_get_full_ai_context():
     ]
     tasks_rows = [
         {
-            "id": 1,
-            "customer_id": 5,
+            "id": "1",
+            "customer_id": "55555555-5555-5555-5555-555555555555",
             "description": "Call back",
             "due_date": "2024-01-02T00:00:00",
             "completed": False,
@@ -43,16 +43,16 @@ def test_get_full_ai_context():
     ]
     acts_rows = [
         {
-            "id": 2,
+            "id": "2",
             "subject": "Test Drive",
             "scheduled_at": "2024-01-01T00:00:00",
             "performed_at": None,
-            "customer_id": 5,
+            "customer_id": "55555555-5555-5555-5555-555555555555",
         }
     ]
     leads_rows = [
         {
-            "id": 3,
+            "id": "3",
             "name": "Alice",
             "email": "a@example.com",
             "phone": "123",

@@ -64,7 +64,7 @@ def test_create_floor_traffic():
 
     mock_contacts_table = MagicMock()
     mock_contacts_table.insert.return_value.execute.return_value = MagicMock(
-        data=[{"id": 99}], error=None
+        data=[{"id": "99"}], error=None
     )
 
     def table_side_effect(name):

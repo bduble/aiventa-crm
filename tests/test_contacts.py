@@ -38,7 +38,7 @@ def test_get_contact():
         "name": "Alice",
         "email": "a@example.com",
         "phone": "123",
-        "lead_id": 2,
+        "lead_id": "2",
         "account_id": None,
     }
     exec_result = MagicMock(data=sample, error=None)

@@ -42,7 +42,7 @@ def test_ai_ask_inventory_keyword():
 
 def test_inventory_ai_review():
     vehicle = {
-        "id": 1,
+        "id": "1",
         "year": 2024,
         "make": "Ford",
         "model": "F-150",

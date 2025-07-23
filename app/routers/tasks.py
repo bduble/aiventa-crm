@@ -8,7 +8,7 @@ from typing import Optional
 router = APIRouter()
 
 class TaskCreate(BaseModel):
-    customer_id: int
+    customer_id: str
     title: Optional[str] = None
     description: Optional[str] = None
     due_date: Optional[str]   # ISO format date string
@@ -30,7 +30,7 @@ class Task(TaskCreate):
     response_model_exclude_none=True,
     include_in_schema=False,
 )
-def list_tasks(customer_id: Optional[int] = None):
+def list_tasks(customer_id: Optional[str] = None):
     try:
         query = supabase.table("tasks").select("*")
         if customer_id:

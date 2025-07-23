@@ -45,7 +45,7 @@ class ContactUpdate(BaseModel):
 
 # ── Customers ─────────────────────────────────────────────────────────────────
 class Customer(BaseModel):
-    id: Union[int, str]
+    id: str
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
@@ -142,7 +142,7 @@ class ActivityUpdate(BaseModel):
 
 # ── Floor Traffic Log ─────────────────────────────────────────────────────────
 class FloorTrafficCustomer(BaseModel):
-    id: Union[int, str]
+    id: str
     salesperson: str
     name: str = Field(alias="customer_name")
     first_name: Optional[str] = None
@@ -214,7 +214,7 @@ class CamelModel(BaseModel):
     model_config = ConfigDict(validate_by_name=True, alias_generator=to_camel)
 
 class InventoryItem(CamelModel):
-    id: Union[int, str]
+    id: str
     stocknumber: Optional[str] = None
     vin: Optional[str] = None
     year: Optional[int] = None
@@ -415,11 +415,11 @@ class DealUpdate(BaseModel):
     close_date: Optional[str] = None
 
 class Deal(DealBase):
-    id: Union[int, str]
+    id: str
 
 # ── Users ───────────────────────────────────────────────────────────────
 class User(BaseModel):
-    id: Union[int, str]
+    id: str
     name: str
     email: EmailStr
     is_active: Optional[bool] = True

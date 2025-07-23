@@ -37,8 +37,8 @@ def test_create_activity_with_user():
         "activity_type": "call",
         "subject": "Call",
         "note": "Test",
-        "customer_id": 1,
-        "user_id": 5,
+        "customer_id": "11111111-1111-1111-1111-111111111111",
+        "user_id": "5",
     }
     exec_result = MagicMock(data=[sample], error=None)
     mock_table = MagicMock()
@@ -50,8 +50,8 @@ def test_create_activity_with_user():
         "activity_type": "call",
         "subject": "Call",
         "note": "Test",
-        "customer_id": 1,
-        "user_id": 5,
+        "customer_id": "11111111-1111-1111-1111-111111111111",
+        "user_id": "5",
     }
     with patch("app.routers.activities.supabase", mock_supabase):
         response = client.post(
@@ -63,5 +63,5 @@ def test_create_activity_with_user():
     assert response.status_code == 201
     data = response.json()
     assert data["activity_type"] == "call"
-    assert data["user_id"] == 5
+    assert data["user_id"] == "5"
     mock_table.insert.assert_called_with(payload)
