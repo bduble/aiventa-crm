@@ -1,23 +1,24 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
-import toast from 'react-hot-toast'
-import FilterPanel from '../components/FilterPanel'
-import Pagination from '../components/Pagination'
-import InventoryGrid from '../components/InventoryGrid'
-import InventoryTable from '../components/InventoryTable'
-import VehicleModal from '../components/VehicleModal'
+import toast from 'react-hot-toast';
+
+import { API_BASE } from '../apiBase'; // The ONLY base you should use for fetches!
+import FilterPanel from '../components/FilterPanel';
+import Pagination from '../components/Pagination';
+import InventoryGrid from '../components/InventoryGrid';
+import InventoryTable from '../components/InventoryTable';
+import VehicleModal from '../components/VehicleModal';
 
 export default function InventoryPage() {
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api'
-  const location = useLocation()
+  const location = useLocation();
 
-  const params = new URLSearchParams(location.search)
-  const initialSearch = params.get('q') || ''
+  const params = new URLSearchParams(location.search);
+  const initialSearch = params.get('q') || '';
 
-  const [vehicles, setVehicles] = useState([])
-  const [filtered, setFiltered] = useState([])
-  const [search, setSearch] = useState(initialSearch)
-  const [debounced, setDebounced] = useState('')
+  const [vehicles, setVehicles] = useState([]);
+  const [filtered, setFiltered] = useState([]);
+  const [search, setSearch] = useState(initialSearch);
+  const [debounced, setDebounced] = useState('');
   const [filters, setFilters] = useState({
     make: [],
     model: [],
@@ -30,168 +31,167 @@ export default function InventoryPage() {
     color: '',
     fuelType: '',
     drivetrain: ''
-  })
-  const [sort, setSort] = useState('')
-  const [view, setView] = useState('grid')
-  const [currentPage, setCurrentPage] = useState(1)
-  const pageSize = 9
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [modalOpen, setModalOpen] = useState(false)
-  const [editing, setEditing] = useState(null)
+  });
+  const [sort, setSort] = useState('');
+  const [view, setView] = useState('grid');
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 9;
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
 
   // Update search when URL query changes
   useEffect(() => {
-    const p = new URLSearchParams(location.search)
-    setSearch(p.get('q') || '')
-  }, [location.search])
+    const p = new URLSearchParams(location.search);
+    setSearch(p.get('q') || '');
+  }, [location.search]);
 
   const makeOptions = useMemo(
     () => Array.from(new Set(vehicles.map(v => v.make).filter(Boolean))).sort(),
     [vehicles]
-  )
+  );
 
   const modelsByMake = useMemo(() => {
-    const map = {}
+    const map = {};
     vehicles.forEach(v => {
-      if (!v.make || !v.model) return
-      if (!map[v.make]) map[v.make] = new Set()
-      map[v.make].add(v.model)
-    })
-    const result = {}
+      if (!v.make || !v.model) return;
+      if (!map[v.make]) map[v.make] = new Set();
+      map[v.make].add(v.model);
+    });
+    const result = {};
     Object.keys(map).forEach(k => {
-      result[k] = Array.from(map[k]).sort()
-    })
-    return result
-  }, [vehicles])
+      result[k] = Array.from(map[k]).sort();
+    });
+    return result;
+  }, [vehicles]);
 
   const allModels = useMemo(
     () => Array.from(new Set(vehicles.map(v => v.model).filter(Boolean))).sort(),
     [vehicles]
-  )
+  );
 
-  // debounce search
+  // Debounce search input
   useEffect(() => {
-    const t = setTimeout(() => setDebounced(search), 300)
-    return () => clearTimeout(t)
-  }, [search])
+    const t = setTimeout(() => setDebounced(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
 
   const fetchInventory = async () => {
-    setIsLoading(true)
-    setError('')
+    setIsLoading(true);
+    setError('');
     try {
-      const res = await fetch(`${API_BASE}/inventory/`)
-      if (!res.ok) throw new Error('Failed to load inventory')
-      const data = await res.json()
-      console.log(data)
-      setVehicles(data)
+      const res = await fetch(`${API_BASE}/inventory/`);
+      if (!res.ok) throw new Error('Failed to load inventory');
+      const data = await res.json();
+      setVehicles(data);
     } catch (err) {
-      console.error(err)
-      setError('Unable to fetch inventory')
+      console.error(err);
+      setError('Unable to fetch inventory');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
-  useEffect(() => { fetchInventory() }, [])
+  useEffect(() => { fetchInventory(); }, []);
 
   // Apply search, filter, and sort options to the vehicles list
   const applyFilters = () => {
-    let list = [...vehicles]
+    let list = [...vehicles];
     if (debounced) {
-      const t = debounced.toLowerCase()
+      const t = debounced.toLowerCase();
       list = list.filter(v =>
         v.stockNumber?.toLowerCase().includes(t) ||
         v.vin?.toLowerCase().includes(t) ||
         `${v.make} ${v.model}`.toLowerCase().includes(t)
-      )
+      );
     }
     if (filters.make?.length)
-      list = list.filter(v => filters.make.includes(v.make))
+      list = list.filter(v => filters.make.includes(v.make));
     if (filters.model?.length)
-      list = list.filter(v => filters.model.includes(v.model))
-    if (filters.yearMin) list = list.filter(v => Number(v.year) >= Number(filters.yearMin))
-    if (filters.yearMax) list = list.filter(v => Number(v.year) <= Number(filters.yearMax))
-    if (filters.priceMin) list = list.filter(v => Number(v.price) >= Number(filters.priceMin))
-    if (filters.priceMax) list = list.filter(v => Number(v.price) <= Number(filters.priceMax))
-    if (filters.mileageMax) list = list.filter(v => Number(v.mileage) <= Number(filters.mileageMax))
+      list = list.filter(v => filters.model.includes(v.model));
+    if (filters.yearMin) list = list.filter(v => Number(v.year) >= Number(filters.yearMin));
+    if (filters.yearMax) list = list.filter(v => Number(v.year) <= Number(filters.yearMax));
+    if (filters.priceMin) list = list.filter(v => Number(v.price) >= Number(filters.priceMin));
+    if (filters.priceMax) list = list.filter(v => Number(v.price) <= Number(filters.priceMax));
+    if (filters.mileageMax) list = list.filter(v => Number(v.mileage) <= Number(filters.mileageMax));
     if (filters.condition?.length)
       list = list.filter(v => {
-        const val = String(v.condition || v.type || '').toLowerCase()
-        const isCertified = Boolean(v.certified) || val.includes('certified')
+        const val = String(v.condition || v.type || '').toLowerCase();
+        const isCertified = Boolean(v.certified) || val.includes('certified');
         return (
           (filters.condition.includes('Certified') && isCertified) ||
           (filters.condition.includes('New') && val === 'new') ||
           (filters.condition.includes('Used') && val === 'used')
-        )
-      })
-    if (filters.color) list = list.filter(v => v.color?.toLowerCase().includes(filters.color.toLowerCase()))
-    if (filters.fuelType) list = list.filter(v => v.fuelType?.toLowerCase().includes(filters.fuelType.toLowerCase()))
-    if (filters.drivetrain) list = list.filter(v => v.drivetrain?.toLowerCase().includes(filters.drivetrain.toLowerCase()))
+        );
+      });
+    if (filters.color) list = list.filter(v => v.color?.toLowerCase().includes(filters.color.toLowerCase()));
+    if (filters.fuelType) list = list.filter(v => v.fuelType?.toLowerCase().includes(filters.fuelType.toLowerCase()));
+    if (filters.drivetrain) list = list.filter(v => v.drivetrain?.toLowerCase().includes(filters.drivetrain.toLowerCase()));
 
     if (sort) {
-      list.sort((a,b) => {
+      list.sort((a, b) => {
         if (sort === 'price' || sort === 'mileage' || sort === 'year') {
-          return Number(a[sort]) - Number(b[sort])
+          return Number(a[sort]) - Number(b[sort]);
         }
         if (sort === 'days') {
-          return Number(a.daysInInventory) - Number(b.daysInInventory)
+          return Number(a.daysInInventory) - Number(b.daysInInventory);
         }
-        return 0
-      })
+        return 0;
+      });
     }
-    setFiltered(list)
-    setCurrentPage(1)
-  }
+    setFiltered(list);
+    setCurrentPage(1);
+  };
 
-  useEffect(() => { applyFilters() }, [vehicles, debounced, filters, sort])
+  useEffect(() => { applyFilters(); }, [vehicles, debounced, filters, sort]);
 
   const handleToggle = async vehicle => {
-    const updated = { ...vehicle, active: !vehicle.active }
-    setVehicles(prev => prev.map(v => v.id === vehicle.id ? updated : v))
-    setFiltered(prev => prev.map(v => v.id === vehicle.id ? updated : v))
+    const updated = { ...vehicle, active: !vehicle.active };
+    setVehicles(prev => prev.map(v => v.id === vehicle.id ? updated : v));
+    setFiltered(prev => prev.map(v => v.id === vehicle.id ? updated : v));
     try {
       const res = await fetch(`${API_BASE}/inventory/${vehicle.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ active: updated.active })
-      })
-      if (!res.ok) throw new Error('Failed to update')
-      toast.success('Vehicle updated')
+      });
+      if (!res.ok) throw new Error('Failed to update');
+      toast.success('Vehicle updated');
     } catch (err) {
-      console.error(err)
-      toast.error('Failed to update vehicle')
-      setVehicles(prev => prev.map(v => v.id === vehicle.id ? vehicle : v))
-      setFiltered(prev => prev.map(v => v.id === vehicle.id ? vehicle : v))
+      console.error(err);
+      toast.error('Failed to update vehicle');
+      setVehicles(prev => prev.map(v => v.id === vehicle.id ? vehicle : v));
+      setFiltered(prev => prev.map(v => v.id === vehicle.id ? vehicle : v));
     }
-  }
+  };
 
-  const openAdd = () => { setEditing(null); setModalOpen(true) }
-  const openEdit = vehicle => { setEditing(vehicle); setModalOpen(true) }
+  const openAdd = () => { setEditing(null); setModalOpen(true); };
+  const openEdit = vehicle => { setEditing(vehicle); setModalOpen(true); };
 
   const handleSubmit = async data => {
-    const isEdit = !!editing
+    const isEdit = !!editing;
     try {
-      const url = `${API_BASE}/inventory${isEdit ? '/' + editing.id : '/'}`
-      const method = isEdit ? 'PUT' : 'POST'
+      const url = `${API_BASE}/inventory${isEdit ? '/' + editing.id : '/'}`;
+      const method = isEdit ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
-      })
-      if (!res.ok) throw new Error('Failed to save vehicle')
-      toast.success(isEdit ? 'Vehicle updated' : 'Vehicle added')
-      setModalOpen(false)
-      setEditing(null)
-      fetchInventory()
+      });
+      if (!res.ok) throw new Error('Failed to save vehicle');
+      toast.success(isEdit ? 'Vehicle updated' : 'Vehicle added');
+      setModalOpen(false);
+      setEditing(null);
+      fetchInventory();
     } catch (err) {
-      console.error(err)
-      toast.error(err.message || 'Error saving vehicle')
+      console.error(err);
+      toast.error(err.message || 'Error saving vehicle');
     }
-  }
+  };
 
-  const paginated = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
-  const totalPages = Math.ceil(filtered.length / pageSize)
+  const paginated = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const totalPages = Math.ceil(filtered.length / pageSize);
 
   return (
     <div className="p-4 space-y-4">
@@ -257,10 +257,10 @@ export default function InventoryPage() {
 
       <VehicleModal
         isOpen={modalOpen}
-        onClose={() => { setModalOpen(false); setEditing(null) }}
+        onClose={() => { setModalOpen(false); setEditing(null); }}
         onSubmit={handleSubmit}
         initialData={editing}
       />
     </div>
-  )
+  );
 }
