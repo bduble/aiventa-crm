@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Path
+from uuid import UUID
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 from postgrest.exceptions import APIError
@@ -22,7 +23,7 @@ class LeadCreate(BaseModel):
     email: EmailStr
 
 class Lead(BaseModel):
-    id: int
+    id: str
     name: str
     email: EmailStr
 
@@ -33,12 +34,6 @@ def list_leads():
     res = supabase.table("leads").select("*").execute()
     return res.data
 
-@router.get("/{lead_id:int}", response_model=Lead)
-def get_lead(lead_id: int = Path(..., gt=0)):
-    res = supabase.table("leads").select("*").eq("id", lead_id).single().execute()
-    if not res.data:
-        raise HTTPException(404, f"Lead with id={lead_id} not found")
-    return res.data
 
 @router.post("/", response_model=Lead, status_code=201)
 @router.post("", response_model=Lead, status_code=201, include_in_schema=False)
@@ -262,3 +257,11 @@ def month_metrics():
         "average_response_time": avg_response_time,
         "lead_engagement_rate": engagement_rate,
     }
+
+
+@router.get("/{lead_id}", response_model=Lead)
+def get_lead(lead_id: UUID = Path(..., description="Lead ID")):
+    res = supabase.table("leads").select("*").eq("id", lead_id).single().execute()
+    if not res.data:
+        raise HTTPException(404, f"Lead with id={lead_id} not found")
+    return res.data

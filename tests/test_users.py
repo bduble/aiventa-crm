@@ -7,7 +7,7 @@ client = TestClient(app)
 
 def test_create_user_accepts_name_alias():
     payload = {"name": "Alice", "email": "alice@example.com"}
-    inserted = {"id": 1, "name": "Alice", "email": "alice@example.com"}
+    inserted = {"id": "1", "name": "Alice", "email": "alice@example.com"}
     mock_table = MagicMock()
     mock_table.insert.return_value.execute.return_value = MagicMock(data=[inserted], error=None)
     mock_supabase = MagicMock()

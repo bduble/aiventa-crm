@@ -85,16 +85,21 @@ def list_inventory_noslash(
 
 @router.get("/snapshot")
 def inventory_snapshot():
-    """Simple count stats (legacy, but keep for reference)."""
+    """Return new/used inventory stats and bucket counts."""
     try:
-        res = supabase.table("inventory_with_days_in_stock").select("type").execute()
-        rows = res.data or []
-        new_count = sum(1 for r in rows if str(r.get("type", "")).lower() == "new")
-        used_count = sum(1 for r in rows if str(r.get("type", "")).lower() == "used")
-        return {"total": len(rows), "new": new_count, "used": used_count}
+        res = supabase.table("inventory_with_days_in_stock").select("*").execute()
+        data = res.data or []
     except APIError as e:
-        logging.error("Error fetching inventory snapshot: %s", e)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        logging.error("Error fetching inventory for snapshot: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to fetch inventory")
+
+    new_cars = [rec for rec in data if str(rec.get("type", "")).lower() == "new"]
+    used_cars = [rec for rec in data if str(rec.get("type", "")).lower() == "used"]
+
+    return {
+        "new": summarize_inventory(new_cars),
+        "used": summarize_inventory(used_cars)
+    }
 
 # --------- BUCKETED FULL SNAPSHOT (for dashboard) -----------
 def bucket_days(days):

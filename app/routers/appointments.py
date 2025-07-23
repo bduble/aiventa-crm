@@ -8,7 +8,7 @@ from typing import Optional
 router = APIRouter()
 
 class AppointmentCreate(BaseModel):
-    customer_id: int
+    customer_id: str
     appointment_type: Optional[str]
     start_time: str         # ISO datetime string
     end_time: Optional[str] # ISO datetime string
@@ -20,7 +20,7 @@ class Appointment(AppointmentCreate):
 
 @router.get("/", response_model=list[Appointment])
 @router.get("", response_model=list[Appointment], include_in_schema=False)
-def list_appointments(customer_id: Optional[int] = None):
+def list_appointments(customer_id: Optional[str] = None):
     try:
         query = supabase.table("appointments").select("*")
         if customer_id:

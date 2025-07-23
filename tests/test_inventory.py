@@ -7,7 +7,7 @@ client = TestClient(app)
 
 
 def test_list_inventory():
-    sample = [{"id": 1, "stocknumber": "A123", "type": "new"}]
+    sample = [{"id": "1", "stocknumber": "A123", "type": "new"}]
     exec_result = MagicMock(data=sample, error=None)
     mock_table = MagicMock()
     mock_table.select.return_value.execute.return_value = exec_result
@@ -25,7 +25,7 @@ def test_list_inventory():
 
 
 def test_create_inventory():
-    sample = {"id": 1, "stocknumber": "A123", "type": "used"}
+    sample = {"id": "1", "stocknumber": "A123", "type": "used"}
     exec_result = MagicMock(data=[sample], error=None)
     mock_table = MagicMock()
     mock_table.insert.return_value.execute.return_value = exec_result
@@ -47,7 +47,7 @@ def test_create_inventory():
 
 
 def test_filter_inventory_query_params():
-    sample = [{"id": 2, "make": "Ford"}]
+    sample = [{"id": "2", "make": "Ford"}]
     exec_result = MagicMock(data=sample, error=None)
 
     mock_query = MagicMock()

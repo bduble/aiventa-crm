@@ -40,7 +40,7 @@ def log_audit_action(deal_id: int, action: str, user_id: int, details: str = "")
 @router.get("/", response_model=List[Deal])
 @router.get("", response_model=List[Deal], include_in_schema=False)
 def list_deals(
-    customer_id: Optional[int] = None,
+    customer_id: Optional[str] = None,
     status: Optional[str] = None,
     month: Optional[str] = None  # e.g. "2025-07"
 ):

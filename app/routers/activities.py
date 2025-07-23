@@ -40,7 +40,7 @@ def today_metrics():
 
 @router.get("/", response_model=list[Activity])
 @router.get("", response_model=list[Activity], include_in_schema=False)
-def list_activities(customer_id: int = Query(None)):
+def list_activities(customer_id: str | None = Query(None)):
     """List all activities, or filter by customer_id if provided."""
     try:
         q = supabase.table("activities").select("*")

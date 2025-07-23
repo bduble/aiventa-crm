@@ -6,7 +6,7 @@ client = TestClient(app)
 
 
 def test_list_leads():
-    sample = [{"id": 1, "name": "Alice", "email": "alice@example.com"}]
+    sample = [{"id": "1", "name": "Alice", "email": "alice@example.com"}]
     exec_result = MagicMock(data=sample, error=None)
 
     mock_table = MagicMock()

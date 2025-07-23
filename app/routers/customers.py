@@ -77,7 +77,7 @@ def list_customers_noslash(
     response_model=Customer,
     response_model_exclude_none=True,
 )
-def get_customer(customer_id: int):
+def get_customer(customer_id: str):
     """Fetch a single customer by integer ID."""
     try:
         res = (
@@ -126,7 +126,7 @@ def create_customer(c: CustomerCreate):
     "/{customer_id}",
     response_model=Customer,
 )
-def update_customer(customer_id: int, c: CustomerUpdate):
+def update_customer(customer_id: str, c: CustomerUpdate):
     """Update existing customer fields."""
     payload = {k: v for k, v in c.dict().items() if v is not None}
     if not payload:
@@ -153,7 +153,7 @@ def update_customer(customer_id: int, c: CustomerUpdate):
     "/{customer_id}",
     status_code=status.HTTP_204_NO_CONTENT,
 )
-def delete_customer(customer_id: int):
+def delete_customer(customer_id: str):
     """Delete a customer by ID."""
     try:
         res = (
@@ -171,7 +171,7 @@ def delete_customer(customer_id: int):
 
 # ----------- AI Customer Summary -----------
 @router.get("/{customer_id}/ai-summary")
-async def customer_ai_summary(customer_id: int):
+async def customer_ai_summary(customer_id: str):
     """Return an AI generated summary and messaging templates for the customer."""
     try:
         res = (
@@ -219,7 +219,7 @@ async def customer_ai_summary(customer_id: int):
     response_model=FloorTrafficCustomer,
     status_code=status.HTTP_201_CREATED,
 )
-async def add_customer_to_floor_log(customer_id: int, entry: CustomerFloorTrafficCreate):
+async def add_customer_to_floor_log(customer_id: str, entry: CustomerFloorTrafficCreate):
     """Create a floor-traffic entry for an existing customer."""
     try:
         res = (
@@ -278,12 +278,12 @@ async def add_customer_to_floor_log(customer_id: int, entry: CustomerFloorTraffi
 # ----------- Customer Files (Upload/List) -----------
 class CustomerFile(BaseModel):
     id: int
-    customer_id: int
+    customer_id: str
     name: str
     url: str
 
 @router.get("/{customer_id}/files", response_model=list[CustomerFile])
-def list_customer_files(customer_id: int):
+def list_customer_files(customer_id: str):
     """Return files uploaded for a customer."""
     try:
         res = (
@@ -301,7 +301,7 @@ def list_customer_files(customer_id: int):
     response_model=CustomerFile,
     status_code=status.HTTP_201_CREATED,
 )
-def upload_customer_file(customer_id: int, file: UploadFile = File(...)):
+def upload_customer_file(customer_id: str, file: UploadFile = File(...)):
     """Upload a document for the customer."""
     try:
         content = file.file.read()

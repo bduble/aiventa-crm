@@ -7,7 +7,7 @@ client = TestClient(app)
 
 def test_search_customers():
     sample = [{
-        "id": 1,
+        "id": "1",
         "name": "Alice",
         "email": "a@example.com",
         "phone": "123",
@@ -33,7 +33,7 @@ def test_search_customers():
 
 def test_get_customer():
     sample = {
-        "id": 1,
+        "id": "1",
         "name": "Alice",
         "email": "a@example.com",
         "phone": "123",
@@ -53,12 +53,12 @@ def test_get_customer():
 
     assert response.status_code == 200
     assert response.json() == sample
-    mock_select.eq.assert_called_with("id", 1)
+    mock_select.eq.assert_called_with("id", "1")
 
 
 def test_add_customer_to_floor_log_be_back():
     customer = {
-        "id": 1,
+        "id": "1",
         "first_name": "Alice",
         "last_name": "Smith",
         "email": "a@example.com",

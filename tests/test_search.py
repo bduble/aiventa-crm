@@ -6,8 +6,8 @@ client = TestClient(app)
 
 
 def test_global_search():
-    cust_sample = [{"id": 1, "name": "Alice"}]
-    inv_sample = [{"id": 2, "make": "Ford"}]
+    cust_sample = [{"id": "1", "name": "Alice"}]
+    inv_sample = [{"id": "2", "make": "Ford"}]
 
     cust_query = MagicMock()
     cust_query.or_.return_value.limit.return_value.execute.return_value = MagicMock(data=cust_sample, error=None)
