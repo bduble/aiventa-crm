@@ -35,6 +35,7 @@ function parseNHTSA(data) {
 }
 
 export default function NewAppraisalForm({ onClose, customers = [] }) {
+    console.log("Customers for dropdown:", customers);
   const [form, setForm] = useState({
     vin: "",
     customerId: "",
