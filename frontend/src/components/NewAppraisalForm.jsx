@@ -146,7 +146,7 @@ export default function NewAppraisalForm({ onClose, customers = [] }) {
         >
           <option value="">Select Customer</option>
           {customers.map((c) => (
-            <option key={c.id ?? c.customer_id} value={c.id ?? c.customer_id}>
+            <option key={c.customer_id} value={c.customer_id}>
               {c.name} {c.email && `(${c.email})`}
             </option>
           ))}
