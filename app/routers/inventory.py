@@ -24,11 +24,7 @@ def list_inventory(
     fuel_type: str | None = Query(None, alias="fuelType", description="Filter by fuel type"),
     drivetrain: str | None = Query(None, description="Filter by drivetrain"),
 ):
-    """
-    List inventory items with optional filters.
-    """
     query = supabase.table("inventory_with_days_in_stock").select("*")
-
     if make:
         query = query.ilike("make", f"%{make}%")
     if model:
@@ -62,7 +58,6 @@ def list_inventory(
         )
     return res.data or []
 
-# Support '/api/inventory' without trailing slash
 @router.get("", include_in_schema=False, response_model=list[InventoryItem])
 def list_inventory_noslash(
     make: str | None = Query(None),
@@ -85,7 +80,6 @@ def list_inventory_noslash(
 
 @router.get("/snapshot")
 def inventory_snapshot():
-    """Return new/used inventory stats and bucket counts."""
     try:
         res = supabase.table("inventory_with_days_in_stock").select("*").execute()
         data = res.data or []
@@ -101,7 +95,6 @@ def inventory_snapshot():
         "used": summarize_inventory(used_cars)
     }
 
-# --------- BUCKETED FULL SNAPSHOT (for dashboard) -----------
 def bucket_days(days):
     if days is None:
         return None
@@ -120,7 +113,7 @@ def summarize_inventory(records):
     out = {
         "total": 0,
         "avgDays": 0,
-        "turnRate": 0,  # You can customize this calculation.
+        "turnRate": 0,
         "buckets": {"0-30": 0, "31-45": 0, "46-60": 0, "61-90": 0, "90+": 0}
     }
     if not records:
@@ -128,11 +121,8 @@ def summarize_inventory(records):
 
     days_list = []
     for rec in records:
-        # Accept several possible keys for 'Days In Stock'
         days = (
             rec.get("Days In Stock") or
-            rec.get("days_in_stock") or
-            rec.get("days_in_stock_dup") or
             rec.get("days_in_stock") or
             rec.get("days_in_stock_dup") or
             rec.get("DaysInStock")
@@ -150,12 +140,11 @@ def summarize_inventory(records):
 
     out["total"] = len(records)
     out["avgDays"] = round(sum(days_list) / len(days_list), 1) if days_list else 0
-    out["turnRate"] = round(out["total"] / (sum(days_list) or 1), 2) if days_list else 0  # crude logic!
+    out["turnRate"] = round(out["total"] / (sum(days_list) or 1), 2) if days_list else 0
     return out
 
 @router.get("/snapshot-full")
 def inventory_snapshot_full():
-    """Return new/used inventory stats and bucket counts."""
     try:
         res = supabase.table("inventory_with_days_in_stock").select("*").execute()
         data = res.data or []
@@ -171,8 +160,10 @@ def inventory_snapshot_full():
         "used": summarize_inventory(used_cars)
     }
 
+# ----------- THESE ROUTES NEED TO USE UUIDS --------------
+
 @router.get("/{item_id}", response_model=InventoryItem)
-def get_inventory_item(item_id: int):
+def get_inventory_item(item_id: str):   # UUID as string!
     try:
         res = (
             supabase
@@ -212,7 +203,7 @@ def create_inventory_item_noslash(item: InventoryItemCreate):
     return create_inventory_item(item)
 
 @router.put("/{item_id}", response_model=InventoryItem)
-def update_inventory_item(item_id: int, item: InventoryItemUpdate):
+def update_inventory_item(item_id: str, item: InventoryItemUpdate):  # UUID as string!
     payload = {k: v for k, v in item.dict(exclude_unset=True).items() if v is not None}
     if not payload:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update")
@@ -233,7 +224,7 @@ def update_inventory_item(item_id: int, item: InventoryItemUpdate):
     return res.data[0]
 
 @router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_inventory_item(item_id: int):
+def delete_inventory_item(item_id: str):   # UUID as string!
     try:
         res = supabase.table("inventory").delete().eq("id", item_id).execute()
     except APIError as e:
