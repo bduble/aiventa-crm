@@ -81,7 +81,7 @@ export default function InventoryPage() {
     setIsLoading(true);
     setError('');
     try {
-      const res = await fetch(`${API_BASE}/inventory/`);
+      const res = await fetch(`${API_BASE}/api/inventory/`);
       if (!res.ok) throw new Error('Failed to load inventory');
       const data = await res.json();
       setVehicles(data);
@@ -151,7 +151,7 @@ export default function InventoryPage() {
     setVehicles(prev => prev.map(v => v.id === vehicle.id ? updated : v));
     setFiltered(prev => prev.map(v => v.id === vehicle.id ? updated : v));
     try {
-      const res = await fetch(`${API_BASE}/inventory/${vehicle.id}`, {
+      const res = await fetch(`${API_BASE}/api/inventory/${vehicle.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ active: updated.active })
@@ -172,7 +172,7 @@ export default function InventoryPage() {
   const handleSubmit = async data => {
     const isEdit = !!editing;
     try {
-      const url = `${API_BASE}/inventory${isEdit ? '/' + editing.id : '/'}`;
+      const url = `${API_BASE}/api/inventory${isEdit ? '/' + editing.id : '/'}`;
       const method = isEdit ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,
