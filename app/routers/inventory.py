@@ -163,7 +163,7 @@ def inventory_snapshot_full():
 # ----------- THESE ROUTES NEED TO USE UUIDS --------------
 
 @router.get("/{item_id}", response_model=InventoryItem)
-def get_inventory_item(item_id: str):   # UUID as string!
+def get_inventory_item(item_id: int):   # UUID as string!
     try:
         res = (
             supabase
@@ -224,7 +224,7 @@ def update_inventory_item(item_id: str, item: InventoryItemUpdate):  # UUID as s
     return res.data[0]
 
 @router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_inventory_item(item_id: str):   # UUID as string!
+def delete_inventory_item(item_id: int):   # UUID as string!
     try:
         res = supabase.table("inventory").delete().eq("id", item_id).execute()
     except APIError as e:
