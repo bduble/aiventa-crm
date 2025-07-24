@@ -1,5 +1,6 @@
+// InventoryTable.jsx
 
-export default function InventoryTable({ vehicles, onEdit, onToggle }) {
+export default function InventoryTable({ vehicles = [], onEdit, onToggle }) {
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y">
@@ -19,26 +20,53 @@ export default function InventoryTable({ vehicles, onEdit, onToggle }) {
           </tr>
         </thead>
         <tbody>
+          {vehicles.length === 0 && (
+            <tr>
+              <td colSpan={11} className="p-4 text-center text-gray-500">
+                No vehicles found.
+              </td>
+            </tr>
+          )}
           {vehicles.map(v => (
-            <tr key={v.id} className="odd:bg-gray-50 hover:bg-gray-100">
-              <td className="p-2 whitespace-nowrap">{v.stockNumber}</td>
-              <td className="p-2 whitespace-nowrap">{v.vin}</td>
-              <td className="p-2 whitespace-nowrap">{v.year}</td>
-              <td className="p-2 whitespace-nowrap">{v.make}</td>
-              <td className="p-2 whitespace-nowrap">{v.model}</td>
-              <td className="p-2 whitespace-nowrap">{v.trim}</td>
-              <td className="p-2 whitespace-nowrap">${v.price?.toLocaleString?.() || v.price}</td>
-              <td className="p-2 whitespace-nowrap">{v.mileage?.toLocaleString?.()}</td>
-              <td className="p-2 whitespace-nowrap">{v.color}</td>
+            <tr key={v.id || v.vin} className="odd:bg-gray-50 hover:bg-gray-100">
+              <td className="p-2 whitespace-nowrap">{v.stockNumber || '-'}</td>
+              <td className="p-2 whitespace-nowrap">{v.vin || '-'}</td>
+              <td className="p-2 whitespace-nowrap">{v.year || '-'}</td>
+              <td className="p-2 whitespace-nowrap">{v.make || '-'}</td>
+              <td className="p-2 whitespace-nowrap">{v.model || '-'}</td>
+              <td className="p-2 whitespace-nowrap">{v.trim || '-'}</td>
+              <td className="p-2 whitespace-nowrap">
+                {typeof v.price === 'number'
+                  ? `$${v.price.toLocaleString()}`
+                  : v.price || '-'}
+              </td>
+              <td className="p-2 whitespace-nowrap">
+                {typeof v.mileage === 'number'
+                  ? v.mileage.toLocaleString()
+                  : v.mileage || '-'}
+              </td>
+              <td className="p-2 whitespace-nowrap">{v.color || '-'}</td>
               <td className="p-2 whitespace-nowrap">{v.active ? 'Active' : 'Inactive'}</td>
               <td className="p-2 whitespace-nowrap text-right space-x-2">
-                <button onClick={() => onEdit(v)} className="px-2 py-1 bg-electricblue text-white rounded">Edit</button>
-                <button onClick={() => onToggle(v)} className={`px-2 py-1 rounded ${v.active ? 'bg-green-600 text-white' : 'bg-gray-300'}`}>{v.active ? 'Disable' : 'Activate'}</button>
+                <button
+                  onClick={() => onEdit && onEdit(v)}
+                  className="px-2 py-1 bg-electricblue text-white rounded"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => onToggle && onToggle(v)}
+                  className={`px-2 py-1 rounded ${
+                    v.active ? 'bg-green-600 text-white' : 'bg-gray-300'
+                  }`}
+                >
+                  {v.active ? 'Disable' : 'Activate'}
+                </button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
     </div>
-  )
+  );
 }
