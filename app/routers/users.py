@@ -32,7 +32,7 @@ def list_users():
     return res.data
 
 @router.get("/{user_id}", response_model=User)
-def get_user(user_id: int = Path(..., description="The ID of the user to retrieve")):
+def get_user(user_id: str = Path(..., description="The ID of the user to retrieve")):
     try:
         res = (
             supabase
@@ -59,7 +59,7 @@ def create_user(user: UserCreate):
     return created
 
 @router.put("/{user_id}", response_model=User)
-def update_user(user_id: int, user: UserCreate):
+def update_user(user_id: str, user: UserCreate):
     payload = user.model_dump(by_alias=True)
     try:
         res = (
@@ -77,7 +77,7 @@ def update_user(user_id: int, user: UserCreate):
     return updated
 
 @router.delete("/{user_id}", status_code=204)
-def delete_user(user_id: int):
+def delete_user(user_id: str):
     try:
         supabase.table("users").delete().eq("id", user_id).execute()
     except APIError as e:
