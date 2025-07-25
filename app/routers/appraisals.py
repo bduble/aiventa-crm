@@ -56,7 +56,7 @@ def get_appraisal(appraisal_id: str):
 )
 def create_appraisal(appraisal: AppraisalCreate, user=Depends(get_current_user)):
     payload = appraisal.model_dump()
-    payload["created_by"] = user.id
+    payload["created_by"] = user.id  # Now always a valid UUID string!
     try:
         res = supabase.table("appraisals").insert(payload).execute()
     except APIError as e:
