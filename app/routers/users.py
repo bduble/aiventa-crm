@@ -15,13 +15,13 @@ class UserCreate(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
 class User(BaseModel):
-    id: int
+    id: str
     full_name: str = Field(..., alias="name")
     email: EmailStr
     role: Literal["Admin", "Sales", "Manager"]
     model_config = ConfigDict(populate_by_name=True)
 
-# ─── Endpoints ────────────────────────────────────────────────────────────────────
+# ─── Endpos ────────────────────────────────────────────────────────────────────
 
 @router.get("/", response_model=list[User])
 def list_users():
