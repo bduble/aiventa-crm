@@ -20,6 +20,7 @@ def test_get_today_floor_traffic():
         "demo": None,
         "worksheet": None,
         "customer_offer": None,
+        "sold": None,
         "status": None,
         "notes": None,
         "created_at": "2024-01-01T09:00:00"
@@ -52,6 +53,7 @@ def test_create_floor_traffic():
         "demo": None,
         "worksheet": None,
         "customer_offer": None,
+        "sold": None,
         "status": None,
         "notes": None,
         "created_at": "2024-01-01T10:00:00",
@@ -113,6 +115,7 @@ def test_update_floor_traffic():
         "demo": None,
         "worksheet": None,
         "customer_offer": None,
+        "sold": None,
         "status": None,
         "notes": "Updated",
         "created_at": "2024-01-01T10:00:00",
@@ -133,6 +136,54 @@ def test_update_floor_traffic():
 
     assert response.status_code == 200
     assert response.json() == sample
+
+
+def test_mark_sold_creates_deal():
+    sample = {
+        "id": "1",
+        "salesperson": "Bob",
+        "customer_name": "Alice",
+        "first_name": None,
+        "last_name": None,
+        "email": None,
+        "phone": None,
+        "visit_time": "2024-01-01T10:00:00",
+        "time_out": None,
+        "demo": None,
+        "worksheet": None,
+        "customer_offer": None,
+        "status": None,
+        "notes": None,
+        "sold": True,
+        "created_at": "2024-01-01T10:00:00",
+    }
+
+    exec_result = MagicMock(data=[sample], error=None)
+    mock_ft_table = MagicMock()
+    mock_ft_table.update.return_value.eq.return_value.execute.return_value = exec_result
+
+    mock_deals_table = MagicMock()
+
+    def table_side_effect(name):
+        if name == "floor_traffic_customers":
+            return mock_ft_table
+        elif name == "deals":
+            return mock_deals_table
+        return MagicMock()
+
+    mock_supabase = MagicMock()
+    mock_supabase.table.side_effect = table_side_effect
+
+    with patch("app.routers.floor_traffic.supabase", mock_supabase):
+        response = client.put(
+            "/api/floor-traffic/1",
+            content=json.dumps({"sold": True}),
+            headers={"Content-Type": "application/json"},
+        )
+
+    assert response.status_code == 200
+    assert response.json() == sample
+    assert mock_deals_table.insert.called
 
 
 def test_month_metrics():
@@ -177,6 +228,7 @@ def test_search_floor_traffic():
             "demo": None,
             "worksheet": None,
             "customer_offer": None,
+            "sold": None,
             "status": None,
             "notes": None,
             "created_at": "2024-01-05T09:00:00",

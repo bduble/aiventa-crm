@@ -154,6 +154,7 @@ class FloorTrafficCustomer(BaseModel):
     demo: Optional[bool] = None
     worksheet: Optional[bool] = None
     customer_offer: Optional[bool] = None
+    sold: Optional[bool] = None
     status: Optional[str] = None
     notes: Optional[str] = None
     created_at: datetime
@@ -170,6 +171,7 @@ class FloorTrafficCustomerCreate(BaseModel):
     demo: Optional[bool] = None
     worksheet: Optional[bool] = None
     customer_offer: Optional[bool] = None
+    sold: Optional[bool] = None
     status: Optional[str] = None
     notes: Optional[str] = None
     time_out: Optional[datetime] = None
@@ -191,6 +193,7 @@ class FloorTrafficCustomerUpdate(BaseModel):
     demo: Optional[bool] = None
     worksheet: Optional[bool] = None
     customer_offer: Optional[bool] = None
+    sold: Optional[bool] = None
     status: Optional[str] = None
     notes: Optional[str] = None
 
