@@ -9,14 +9,14 @@ router = APIRouter()
 # ─── Pydantic models ──────────────────────────────────────────────────────────────
 
 class UserCreate(BaseModel):
-    full_name: str = Field(..., alias="name")
+    name: str = Field(..., alias="name")
     email: EmailStr
     role: Literal["Admin", "Sales", "Manager"] = "Sales"
     model_config = ConfigDict(populate_by_name=True)
 
 class User(BaseModel):
     id: str
-    full_name: str = Field(..., alias="name")
+    name: str = Field(..., alias="name")
     email: EmailStr
     role: Literal["Admin", "Sales", "Manager"]
     model_config = ConfigDict(populate_by_name=True)
