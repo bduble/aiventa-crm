@@ -31,7 +31,7 @@ def days_to_book(sold_date: Optional[str], booked_date: Optional[str]) -> Option
             return None
     return None
 
-def log_audit_action(deal_id: int, action: str, user_id: int, details: str = ""):
+def log_audit_action(deal_id: str, action: str, user_id: int, details: str = ""):
     # TODO: Write to an 'audit' table or append to a JSONB field
     logging.info(f"Audit: deal {deal_id} - {action} by {user_id} - {details}")
 
@@ -59,7 +59,7 @@ def list_deals(
         raise HTTPException(400, detail=e.message)
 
 @router.get("/{deal_id}", response_model=Deal)
-def get_deal(deal_id: int):
+def get_deal(deal_id: str):
     try:
         res = (
             supabase
@@ -92,7 +92,7 @@ def create_deal(deal: DealCreate, user=Depends(get_current_user)):
         raise HTTPException(400, detail=e.message)
 
 @router.patch("/{deal_id}", response_model=Deal, dependencies=[Depends(manager_required)])
-def update_deal(deal_id: int, deal: DealUpdate, user=Depends(get_current_user)):
+def update_deal(deal_id: str, deal: DealUpdate, user=Depends(get_current_user)):
     payload = {k: v for k, v in deal.dict(exclude_unset=True).items() if v is not None}
     if not payload:
         raise HTTPException(status_code=400, detail="No fields to update")
@@ -120,7 +120,7 @@ def update_deal(deal_id: int, deal: DealUpdate, user=Depends(get_current_user)):
 
 @router.post("/{deal_id}/unwind", response_model=Deal, dependencies=[Depends(manager_required)])
 def unwind_deal(
-    deal_id: int,
+    deal_id: str,
     reason: str = Body(..., embed=True),
     user=Depends(get_current_user)
 ):
