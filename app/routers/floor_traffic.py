@@ -19,6 +19,20 @@ router = APIRouter()
 def _safe_select(cols: list[str]) -> str:
     return "*"
 
+
+def _create_deal_from_floor_record(record: dict):
+    """Create a deal entry based on a floor traffic record."""
+    try:
+        supabase.table("deals").insert({
+            "customer_name": record.get("customer_name"),
+            "salesperson": record.get("salesperson"),
+            "stage": "new",
+            "sold": True,
+            "close_date": record.get("visit_time"),
+        }).execute()
+    except APIError as e:
+        logging.error("failed to create deal from floor traffic: %s", e)
+
 async def _fetch_range(start: date, end: date):
     start_dt = datetime.combine(start, datetime.min.time())
     end_dt = datetime.combine(end, datetime.min.time()) + timedelta(days=1)
@@ -125,6 +139,9 @@ async def create_floor_traffic(entry: FloorTrafficCustomerCreate):
     except APIError:
         logging.warning("Failed to insert contact record; continuing without halting.")
 
+    if created.get("sold"):
+        _create_deal_from_floor_record(created)
+
     return created
 
 @router.put("/{entry_id}", response_model=FloorTrafficCustomer)
@@ -144,7 +161,10 @@ async def update_floor_traffic(entry_id: str, entry: FloorTrafficCustomerUpdate)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     if not res.data:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Entry not found")
-    return res.data[0]
+    updated = res.data[0]
+    if payload.get("sold"):
+        _create_deal_from_floor_record(updated)
+    return updated
 
 @router.get(
     "/month-metrics",

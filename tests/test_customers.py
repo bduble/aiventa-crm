@@ -79,6 +79,7 @@ def test_add_customer_to_floor_log_be_back():
         "demo": None,
         "worksheet": None,
         "customer_offer": None,
+        "sold": None,
         "status": "Be-Back",
         "notes": None,
         "created_at": "2024-01-10T10:00:00",

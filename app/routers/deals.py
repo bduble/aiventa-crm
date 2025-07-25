@@ -61,11 +61,12 @@ def list_deals(
 @router.get("/{deal_id}", response_model=Deal)
 def get_deal(deal_id: str):
     try:
+        query_id = int(deal_id) if str(deal_id).isdigit() else deal_id
         res = (
             supabase
             .table("deals")
             .select("*")
-            .eq("id", deal_id)
+            .eq("id", query_id)
             .maybe_single()
             .execute()
         )
