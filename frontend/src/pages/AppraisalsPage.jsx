@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import NewAppraisalForm from '../components/NewAppraisalForm';
-import { API_BASE } from '../apiBase'; // Adjust path if your structure differs
+import { API_BASE } from '../apiBase';
 
 export default function AppraisalsPage() {
   const [appraisals, setAppraisals] = useState([]);
@@ -31,10 +31,14 @@ export default function AppraisalsPage() {
     console.log("Customers for dropdown:", customers);
   }, [customers]);
 
-  // Helper: Get customer name by UUID, fallback to ID
+  // Helper: Get customer name by UUID, fallback to "No Customer"
   const getCustomerName = (id) => {
+    if (!id) return <span className="italic text-gray-400">No Customer</span>;
     const c = customers.find(cust => String(c.id) === String(id));
-    return c ? (c.name || `${c.first_name || ""} ${c.last_name || ""}`.trim()) : id;
+    if (c) {
+      return c.name || `${c.first_name || ""} ${c.last_name || ""}`.trim();
+    }
+    return <span className="italic text-gray-400">Unknown</span>;
   };
 
   return (
@@ -65,13 +69,13 @@ export default function AppraisalsPage() {
             {appraisals.map(a => (
               <tr key={a.id} className="odd:bg-gray-50 hover:bg-gray-100">
                 <td className="p-2 whitespace-nowrap">{getCustomerName(a.customer_id)}</td>
-                <td className="p-2 whitespace-nowrap">{a.vehicle_vin}</td>
-                <td className="p-2 whitespace-nowrap">{a.year}</td>
-                <td className="p-2 whitespace-nowrap">{a.make}</td>
-                <td className="p-2 whitespace-nowrap">{a.model}</td>
-                <td className="p-2 whitespace-nowrap">{a.mileage}</td>
-                <td className="p-2 whitespace-nowrap">{a.status}</td>
-                <td className="p-2 whitespace-nowrap">{a.appraisal_value}</td>
+                <td className="p-2 whitespace-nowrap">{a.vehicle_vin || <span className="text-gray-400">—</span>}</td>
+                <td className="p-2 whitespace-nowrap">{a.year || <span className="text-gray-400">—</span>}</td>
+                <td className="p-2 whitespace-nowrap">{a.make || <span className="text-gray-400">—</span>}</td>
+                <td className="p-2 whitespace-nowrap">{a.model || <span className="text-gray-400">—</span>}</td>
+                <td className="p-2 whitespace-nowrap">{a.mileage != null ? a.mileage : <span className="text-gray-400">—</span>}</td>
+                <td className="p-2 whitespace-nowrap">{a.status || <span className="text-gray-400">—</span>}</td>
+                <td className="p-2 whitespace-nowrap">{a.appraisal_value != null ? a.appraisal_value : <span className="text-gray-400">—</span>}</td>
               </tr>
             ))}
             {appraisals.length === 0 && (
