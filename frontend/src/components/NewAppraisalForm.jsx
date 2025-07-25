@@ -1,9 +1,5 @@
 import { useState, useEffect } from "react";
-import { API_BASE, FALLBACK_VIN_DECODER } from "../apiBase"; // adjust import as needed
-
-// Debug: Check env variables and customer list
-console.log("VITE_API_URL:", import.meta.env.VITE_API_URL);
-console.log("API_BASE:", API_BASE);
+import { API_BASE, FALLBACK_VIN_DECODER } from "../apiBase";
 
 function safeInt(val) {
   if (val === undefined || val === null) return undefined;
@@ -11,7 +7,6 @@ function safeInt(val) {
   return !isNaN(num) && Number.isFinite(num) ? num : undefined;
 }
 
-// Helper: parse NHTSA (fallback) data
 function parseNHTSA(data) {
   const r = Array.isArray(data.Results) ? data.Results[0] : {};
   return {
@@ -29,19 +24,17 @@ export default function NewAppraisalForm({
   customers = [],
   reloadAppraisals,
 }) {
-  // Only allow customers with UUID id (36 chars)
   const validCustomers = customers.filter(
     (c) => typeof c.id === "string" && c.id.length === 36
   );
 
-  // Helpful debugging:
   useEffect(() => {
     console.log("Customers for dropdown:", customers);
     console.log("Filtered (UUID only):", validCustomers);
   }, [customers]);
 
   const [form, setForm] = useState({
-    customer_id: "", // UUID string
+    customer_id: "",
     vin: "",
     year: "",
     make: "",
@@ -55,13 +48,11 @@ export default function NewAppraisalForm({
   const [error, setError] = useState("");
   const [decoding, setDecoding] = useState(false);
 
-  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((f) => ({ ...f, [name]: value }));
   };
 
-  // VIN Decoder (with fallback logic)
   const handleDecodeVin = async () => {
     setError("");
     setDecoding(true);
@@ -86,11 +77,7 @@ export default function NewAppraisalForm({
       } else if (res.status !== 404) {
         throw new Error("Could not decode VIN (server error).");
       }
-    } catch (err) {
-      // fallback
-    }
-
-    // Fallback: NHTSA
+    } catch (err) {}
     try {
       const fallbackUrl = `${FALLBACK_VIN_DECODER}/${vin}?format=json`;
       const res = await fetch(fallbackUrl);
@@ -114,14 +101,13 @@ export default function NewAppraisalForm({
     }
   };
 
-  // Handle submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
     setError("");
 
+    // Only send customer_id if valid
     const payload = {
-      customer_id: form.customer_id, // UUID string only!
       vehicle_vin: form.vin,
       year: safeInt(form.year),
       make: form.make || undefined,
@@ -130,7 +116,10 @@ export default function NewAppraisalForm({
       body: form.body || undefined,
       engine: form.engine || undefined,
       mileage: safeInt(form.mileage),
-      // Add more fields if needed
+      // Only add customer_id if it's a 36-char UUID
+      ...(form.customer_id && form.customer_id.length === 36
+        ? { customer_id: form.customer_id }
+        : {}),
     };
 
     console.log("POSTing to:", `${API_BASE}/api/appraisals/`);
@@ -165,9 +154,8 @@ export default function NewAppraisalForm({
           name="customer_id"
           value={form.customer_id}
           onChange={handleChange}
-          required
         >
-          <option value="">Select Customer</option>
+          <option value="">Select Customer (optional)</option>
           {validCustomers.length === 0 && (
             <option disabled>No customers with UUIDs found</option>
           )}
