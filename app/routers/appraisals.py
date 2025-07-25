@@ -56,6 +56,12 @@ def get_appraisal(appraisal_id: str):
 def create_appraisal(appraisal: AppraisalCreate, user=Depends(get_current_user)):
     payload = appraisal.model_dump()
     payload["created_by"] = user.id  # Now always a valid UUID string!
+
+    # Bulletproof: Remove customer_id if it's not a real UUID (36 chars)
+    cid = payload.get("customer_id")
+    if not cid or not isinstance(cid, str) or len(cid) != 36:
+        payload.pop("customer_id", None)
+
     try:
         res = supabase.table("appraisals").insert(payload).execute()
     except APIError as e:
@@ -73,6 +79,11 @@ def create_appraisal(appraisal: AppraisalCreate, user=Depends(get_current_user))
 )
 def update_appraisal(appraisal_id: str, appraisal: AppraisalCreate):
     payload = appraisal.model_dump()
+    # Bulletproof: Remove customer_id if it's not a real UUID (36 chars)
+    cid = payload.get("customer_id")
+    if not cid or not isinstance(cid, str) or len(cid) != 36:
+        payload.pop("customer_id", None)
+
     try:
         res = (
             supabase.table("appraisals")
