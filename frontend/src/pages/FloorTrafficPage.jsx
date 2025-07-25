@@ -2,51 +2,47 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import FloorTrafficTable from '../components/FloorTrafficTable';
 import FloorTrafficModal from '../components/FloorTrafficModal';
-import { Users, MailCheck, Activity, Plus, AlertTriangle } from 'lucide-react';
+import { Users, MailCheck, Activity, Plus, ArrowUp, ArrowDown } from 'lucide-react';
 
-// Supabase config
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
 const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
-// Helper to get minutes waited
-function minutesAgo(dt) {
-  return (Date.now() - new Date(dt).getTime()) / 60000;
-}
+// Fake urgent data demo
+const getUrgentAlerts = (rows) => {
+  const now = Date.now();
+  const waiting = rows.filter(r => !r.time_out && (now - new Date(r.visit_time)) / 60000 > 20);
+  const apptsNotFollowed = rows.filter(r => r.appointment && !r.followed_up);
+  const alerts = [];
+  if (waiting.length > 0) alerts.push(`⚡ ${waiting.length} customers have been waiting >20 min!`);
+  if (apptsNotFollowed.length > 0) alerts.push(`🕒 ${apptsNotFollowed.length} appointments not yet followed up.`);
+  return alerts;
+};
 
 export default function FloorTrafficPage() {
   const API_BASE = import.meta.env.PROD
     ? import.meta.env.VITE_API_BASE_URL
     : '/api';
 
-  // States
+  // --- UI State ---
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-
-  const [view, setView] = useState("today");
-  const [activity, setActivity] = useState({ salesCalls: 0, textMessages: 0, appointmentsSet: 0 });
-  const [kpiFilter, setKpiFilter] = useState(null);
-
-  // Responsive dates
+  const [view, setView] = useState('today'); // today|week
+  const [filterBy, setFilterBy] = useState('');
+  // For range picker
   const todayStr = new Date().toISOString().slice(0, 10);
-  const weekAgoStr = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
   const [startDate, setStartDate] = useState(todayStr);
   const [endDate, setEndDate] = useState(todayStr);
+  const [activity, setActivity] = useState({
+    salesCalls: 0,
+    textMessages: 0,
+    appointmentsSet: 0,
+  });
 
-  useEffect(() => {
-    if (view === "today") {
-      setStartDate(todayStr);
-      setEndDate(todayStr);
-    } else {
-      setStartDate(weekAgoStr);
-      setEndDate(todayStr);
-    }
-  }, [view, todayStr, weekAgoStr]);
-
-  // Load data
+  // --- Fetch traffic for date range ---
   useEffect(() => {
     const fetchRange = async () => {
       setLoading(true);
@@ -82,16 +78,26 @@ export default function FloorTrafficPage() {
     fetchRange();
   }, [API_BASE, startDate, endDate]);
 
-  // Load activity metrics
+  // --- Fetch activity metrics (today/week) ---
   useEffect(() => {
     const fetchActivityMetrics = async () => {
       try {
         if (supabase) {
-          const today = new Date();
-          const start = view === "today"
-            ? new Date(today.getFullYear(), today.getMonth(), today.getDate())
-            : new Date(Date.now() - 6 * 24 * 60 * 60 * 1000);
-          const end = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+          let start, end;
+          if (view === "today") {
+            const today = new Date();
+            start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            end = new Date(start);
+            end.setDate(end.getDate() + 1);
+          } else {
+            // This week (Mon-Sun)
+            const today = new Date();
+            const day = today.getDay() || 7; // Sun=0
+            start = new Date(today);
+            start.setDate(today.getDate() - day + 1);
+            end = new Date(today);
+            end.setDate(start.getDate() + 7);
+          }
           const { data, error: err } = await supabase
             .from('activities')
             .select('activity_type')
@@ -107,10 +113,8 @@ export default function FloorTrafficPage() {
           }
           setActivity(counts);
         } else {
-          const url = view === "today"
-            ? `${API_BASE}/activities/today-metrics`
-            : `${API_BASE}/activities/week-metrics`;
-          const res = await fetch(url);
+          // Fallback: API
+          const res = await fetch(`${API_BASE}/activities/${view}-metrics`);
           if (!res.ok) throw new Error('Failed to load activity metrics');
           const data = await res.json();
           setActivity({
@@ -119,14 +123,14 @@ export default function FloorTrafficPage() {
             appointmentsSet: data.appointments_set ?? data.appointmentsSet ?? 0,
           });
         }
-      } catch (err) {
-        // ignore
-      }
+      } catch (err) {}
     };
     fetchActivityMetrics();
   }, [API_BASE, view]);
 
-  // KPI/Alerts logic
+  // --- Derived stats ---
+  const responded = rows.filter(r => r.last_response_time).length;
+  const unresponded = rows.length - responded;
   const totalCustomers = rows.length;
   const inStoreCount = rows.filter(r => !r.time_out).length;
   const demoCount = rows.filter(r => r.demo).length;
@@ -134,146 +138,191 @@ export default function FloorTrafficPage() {
     r => r.writeUp || r.worksheet || r.worksheet_complete || r.worksheetComplete || r.write_up
   ).length;
   const offerCount = rows.filter(r => r.customer_offer || r.customerOffer).length;
+  const urgentAlerts = getUrgentAlerts(rows);
 
-  const waitingTooLong = rows.filter(r => !r.time_out && minutesAgo(r.visit_time) > 20);
-  const apptsNoFollow = rows.filter(r =>
-    r.appointment && (!r.last_response_time || !r.follow_up_note)
-  );
+  // --- Quick add handler ---
+  const handleQuickAdd = () => setModalOpen(true);
 
-  let filteredRows = rows;
-  if (kpiFilter === "appointments") filteredRows = rows.filter(r => r.appointment);
-  if (kpiFilter === "demos") filteredRows = rows.filter(r => r.demo);
-  if (kpiFilter === "offers") filteredRows = rows.filter(r => r.customer_offer || r.customerOffer);
+  // --- Filtering logic for table ---
+  const filteredRows = filterBy
+    ? rows.filter(r =>
+        filterBy === 'appointments'
+          ? r.activity_type?.toLowerCase().includes('appointment') || r.appointment
+          : filterBy === 'calls'
+          ? r.activity_type?.toLowerCase().includes('call')
+          : filterBy === 'texts'
+          ? r.activity_type?.toLowerCase().includes('text')
+          : true
+      )
+    : rows;
 
-  // KPI color/badge logic
-  const kpiClass = (active, color = "from-electricblue via-darkblue to-slategray") =>
-    `flex-1 min-w-[160px] rounded-2xl p-5 md:p-6 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer
-    bg-gradient-to-br ${color} text-white relative
-    ${active ? "ring-4 ring-electricblue scale-105 z-10" : ""}`;
+  // --- KPI card ---
+  const kpiClass = 'flex-1 min-w-[140px] rounded-2xl p-4 sm:p-6 bg-gradient-to-br from-electricblue via-darkblue to-slategray text-white shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-transform relative cursor-pointer outline-none focus:ring-2 focus:ring-blue-400';
 
-  // Toggle buttons
-  const toggleClass = (on) =>
-    `px-4 py-2 rounded-full font-bold transition-colors
-    ${on ? "bg-electricblue text-white shadow-md" : "bg-white text-electricblue border border-electricblue"}`;
-
-  // Percent helper
-  const pct = count => (totalCustomers ? Math.round((count / totalCustomers) * 100) : 0);
-
+  // --- Responsive spacing & wrapper
   return (
-    <div className="p-2 sm:p-4 space-y-4 max-w-6xl mx-auto">
-      {/* Quick Add Floating */}
-      <button
-        className="fixed right-4 top-20 z-50 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full font-bold shadow-lg text-base flex items-center gap-2 transition-all"
-        style={{ minWidth: 0, minHeight: 0 }}
-        onClick={() => { setModalOpen(true); setEditing(null); }}
-      >
-        <Plus className="w-5 h-5" />
-        <span className="hidden sm:inline">Quick Add</span>
-      </button>
-
-      {/* Header and Toggle */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
-        <h1 className="text-2xl sm:text-3xl font-bold">Floor Traffic</h1>
-        <div className="flex gap-2">
-          <button className={toggleClass(view === "today")} onClick={() => setView("today")}>
+    <div className="pt-20 p-2 sm:p-4 space-y-4 max-w-6xl mx-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+        <h1 className="text-3xl font-bold tracking-tight">Floor Traffic</h1>
+        <div className="flex gap-2 items-center">
+          {/* Toggle Today/Week */}
+          <button
+            onClick={() => setView('today')}
+            className={`px-3 py-1 rounded-full font-semibold text-xs transition ${
+              view === 'today'
+                ? 'bg-blue-600 text-white shadow'
+                : 'bg-white text-blue-700 border border-blue-400'
+            }`}
+          >
             Today
           </button>
-          <button className={toggleClass(view === "week")} onClick={() => setView("week")}>
+          <button
+            onClick={() => setView('week')}
+            className={`px-3 py-1 rounded-full font-semibold text-xs transition ${
+              view === 'week'
+                ? 'bg-blue-600 text-white shadow'
+                : 'bg-white text-blue-700 border border-blue-400'
+            }`}
+          >
             This Week
           </button>
         </div>
       </div>
 
-      {/* Mini Alerts */}
-      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-2">
-        {waitingTooLong.length > 0 && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-yellow-100 text-yellow-800 animate-pulse font-semibold border-l-4 border-yellow-500 text-xs sm:text-base">
-            <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500" />
-            ⚡ {waitingTooLong.length} customer{waitingTooLong.length > 1 ? 's' : ''} waiting &gt;20 min!
-          </div>
-        )}
-        {apptsNoFollow.length > 0 && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-100 text-red-700 border-l-4 border-red-500 animate-bounce font-semibold text-xs sm:text-base">
-            <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
-            {apptsNoFollow.length} appointment{apptsNoFollow.length > 1 ? 's' : ''} not followed up!
-          </div>
-        )}
-      </div>
+      {/* Quick Add floating badge */}
+      <button
+        onClick={handleQuickAdd}
+        className="fixed z-50 right-5 top-[82px] sm:top-[92px] bg-green-500 hover:bg-green-600 text-white shadow-xl px-4 py-2 rounded-full font-bold flex items-center gap-2 transition-all border-4 border-white"
+        style={{ boxShadow: "0 8px 24px 0 rgba(20,120,70,0.17)" }}
+      >
+        <Plus className="w-5 h-5" /> Quick Add
+      </button>
+
+      {/* Alerts */}
+      {urgentAlerts.length > 0 && (
+        <div className="flex flex-col gap-2">
+          {urgentAlerts.map((msg, i) => (
+            <div
+              key={i}
+              className="flex items-center bg-red-50 border-l-4 border-red-500 text-red-700 px-3 py-2 rounded animate-pulse"
+            >
+              <span className="font-semibold">{msg}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* KPI Cards */}
-      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-4">
-        <div className={kpiClass(kpiFilter === null)}>
-          <div className="flex items-center gap-2 opacity-90">
-            <Users className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="uppercase tracking-wider text-xs sm:text-sm font-medium">Visitors</span>
-            <span className="ml-auto">{pct(totalCustomers)}%</span>
+      <div className="flex flex-col sm:flex-row gap-3 mt-4">
+        <div
+          className={kpiClass}
+          tabIndex={0}
+          onClick={() => setFilterBy('')}
+          aria-label="Show all"
+        >
+          <div className="flex items-center gap-2">
+            <Users className="w-5 h-5" />
+            <span className="uppercase tracking-wider text-sm font-medium">
+              Visitors
+            </span>
+            {totalCustomers > 10 && (
+              <span className="ml-2 bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-bold">HOT</span>
+            )}
           </div>
-          <p className="text-2xl sm:text-3xl font-bold mt-2">{totalCustomers} <span className="bg-blue-100 text-blue-800 px-2 py-0.5 ml-2 rounded-full text-xs font-bold">ALL</span></p>
-          <p className="text-xs sm:text-sm text-white/80">{inStoreCount} currently in store</p>
-          <ul className="mt-1 sm:mt-2 space-y-1 text-xs sm:text-sm text-white/90">
-            <li
-              className="cursor-pointer hover:underline flex items-center gap-1"
-              onClick={e => { e.stopPropagation(); setKpiFilter("demos"); }}
-            >
-              {demoCount} demos {kpiFilter === "demos" && <span className="bg-green-100 text-green-700 px-2 rounded ml-2 font-bold">HOT</span>}
+          <div className="flex items-end gap-2 mt-2">
+            <span className="text-4xl font-extrabold">{totalCustomers}</span>
+            {totalCustomers > 10 ? (
+              <ArrowUp className="text-green-400 w-5 h-5" />
+            ) : (
+              <ArrowDown className="text-yellow-400 w-5 h-5" />
+            )}
+          </div>
+          <div className="text-sm text-white/80">{inStoreCount} currently in store</div>
+          <ul className="mt-2 space-y-1 text-sm text-white/90">
+            <li>
+              <b>{demoCount}</b> demos
+              <span className="ml-1 bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-bold">Details</span>
             </li>
-            <li
-              className="cursor-pointer hover:underline flex items-center gap-1"
-              onClick={e => { e.stopPropagation(); setKpiFilter("offers"); }}
-            >
-              {offerCount} offers {kpiFilter === "offers" && <span className="bg-orange-100 text-orange-700 px-2 rounded ml-2 font-bold">▲</span>}
+            <li>
+              <b>{worksheetCount}</b> worksheets
             </li>
-            <li
-              className="cursor-pointer hover:underline flex items-center gap-1"
-              onClick={e => { e.stopPropagation(); setKpiFilter(null); }}
-            >
-              {worksheetCount} worksheets <span className="bg-gray-100 text-gray-700 px-2 rounded ml-2 font-bold">i</span>
+            <li>
+              <b>{offerCount}</b> offers
             </li>
           </ul>
         </div>
-        <div className={kpiClass(kpiFilter === "appointments", "from-green-400 via-green-600 to-green-700")}>
-          <div className="flex items-center gap-2 opacity-90">
-            <Activity className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="uppercase tracking-wider text-xs sm:text-sm font-medium">Appointments</span>
-            <span className="ml-auto">{activity.appointmentsSet > 0 ? <span className="text-green-300 font-bold">▲</span> : <span className="text-yellow-200 font-bold">▼</span>}</span>
+
+        <div
+          className={kpiClass + ' sm:max-w-[220px]'}
+          tabIndex={0}
+          onClick={() => setFilterBy('')}
+          aria-label="Show all leads"
+        >
+          <div className="flex items-center gap-2">
+            <MailCheck className="w-5 h-5" />
+            <span className="uppercase tracking-wider text-sm font-medium">Leads</span>
           </div>
-          <p className="text-2xl sm:text-3xl font-bold mt-2">{activity.appointmentsSet} <span className="bg-green-100 text-green-800 px-2 py-0.5 ml-2 rounded-full text-xs font-bold">SET</span></p>
-          <span className="inline-block mt-2 px-2 py-1 bg-green-100 text-green-700 rounded-full font-bold text-xs">
-            Click to filter
-          </span>
+          <div className="flex gap-2 mt-2">
+            <span className="text-2xl font-bold">{responded}</span>
+            <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-semibold">Responded</span>
+          </div>
+          <div className="flex gap-2 mt-1">
+            <span className="text-2xl font-bold">{unresponded}</span>
+            <span className="bg-yellow-100 text-yellow-700 text-xs px-2 py-0.5 rounded-full font-semibold">Unresponded</span>
+          </div>
         </div>
-        <div className={kpiClass(false, "from-pink-500 via-fuchsia-600 to-purple-800")}>
-          <div className="flex items-center gap-2 opacity-90">
-            <MailCheck className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="uppercase tracking-wider text-xs sm:text-sm font-medium">Leads</span>
+
+        <div className={kpiClass + " focus:ring-green-400"} tabIndex={0}>
+          <div className="flex items-center gap-2">
+            <Activity className="w-5 h-5" />
+            <span className="uppercase tracking-wider text-sm font-medium">
+              {view === "today" ? "Today's" : "This Week's"} Activity
+            </span>
           </div>
-          <ul className="mt-1 sm:mt-4 space-y-1 text-xs sm:text-sm text-white/90">
-            <li>{activity.salesCalls} Sales Calls</li>
-            <li>{activity.textMessages} Text Messages</li>
+          <ul className="mt-2 space-y-1 text-base text-white/90">
+            <li className="flex items-center gap-2">
+              <span className="font-bold">{activity.salesCalls}</span> Sales Calls
+              <button
+                className="ml-2 text-xs underline text-blue-200"
+                onClick={() => setFilterBy('calls')}
+              >Details</button>
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="font-bold">{activity.textMessages}</span> Text Messages
+              <button
+                className="ml-2 text-xs underline text-blue-200"
+                onClick={() => setFilterBy('texts')}
+              >Details</button>
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="font-bold">{activity.appointmentsSet}</span> Appointments Set
+              <button
+                className="ml-2 text-xs underline text-blue-200"
+                onClick={() => setFilterBy('appointments')}
+              >Details</button>
+            </li>
           </ul>
         </div>
       </div>
 
+      {/* Table and modals */}
       {error && (
         <div className="p-4 bg-red-100 text-red-700 rounded">{error}</div>
       )}
-
       {loading ? (
         <div className="p-4">Loading…</div>
       ) : (
-        <div className="overflow-x-auto rounded-md border bg-white shadow">
-          <FloorTrafficTable
-            rows={filteredRows}
-            onEdit={row => {
-              setEditing(row);
-              setModalOpen(true);
-            }}
-            onToggle={(id, field, value) => {
-              setRows(prev => prev.map(r => (r.id === id ? { ...r, [field]: value } : r)));
-              // ...the rest of your update logic here...
-            }}
-          />
-        </div>
+        <FloorTrafficTable
+          rows={filteredRows}
+          onEdit={row => {
+            setEditing(row);
+            setModalOpen(true);
+          }}
+          onToggle={(id, field, value) => {
+            setRows(prev => prev.map(r => (r.id === id ? { ...r, [field]: value } : r)));
+            // TODO: Add your update logic here if needed
+          }}
+        />
       )}
 
       <FloorTrafficModal
@@ -284,7 +333,7 @@ export default function FloorTrafficPage() {
         }}
         onSubmit={async data => {
           if (!editing) return;
-          // ...your update logic...
+          // TODO: Add your update logic here if needed
           setRows(prev => prev.map(r => (r.id === editing.id ? { ...r, ...data } : r)));
           setModalOpen(false);
           setEditing(null);
