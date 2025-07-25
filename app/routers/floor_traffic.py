@@ -128,7 +128,7 @@ async def create_floor_traffic(entry: FloorTrafficCustomerCreate):
     return created
 
 @router.put("/{entry_id}", response_model=FloorTrafficCustomer)
-async def update_floor_traffic(entry_id: int, entry: FloorTrafficCustomerUpdate):
+async def update_floor_traffic(entry_id: str, entry: FloorTrafficCustomerUpdate):
     payload = {k: v for k, v in jsonable_encoder(entry).items() if v is not None}
     if not payload:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update")
