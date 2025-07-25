@@ -87,7 +87,7 @@ export default function App() {
     { to: "/",         label: "Home"             },
     { to: "/users",    label: "Users"            },
     { to: "/inventory",label: "Inventory"        },
-    { to: "/deals",    label: <span className="font-bold text-blue-700">Deals</span> }, // <--- DEALS tab!
+    { to: "/deals",    label: "Deals"            },
     { to: "/appraisals", label: "Appraisals"     },
     { to: "/recon",    label: "Recon"            },
     {
