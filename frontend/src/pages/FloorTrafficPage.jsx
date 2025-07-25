@@ -4,10 +4,12 @@ import FloorTrafficTable from '../components/FloorTrafficTable';
 import FloorTrafficModal from '../components/FloorTrafficModal';
 import { Users, MailCheck, Activity, Plus, AlertTriangle } from 'lucide-react';
 
+// Supabase config
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
 const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
+// Helper to get minutes waited
 function minutesAgo(dt) {
   return (Date.now() - new Date(dt).getTime()) / 60000;
 }
@@ -17,6 +19,7 @@ export default function FloorTrafficPage() {
     ? import.meta.env.VITE_API_BASE_URL
     : '/api';
 
+  // States
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -24,11 +27,7 @@ export default function FloorTrafficPage() {
   const [editing, setEditing] = useState(null);
 
   const [view, setView] = useState("today");
-  const [activity, setActivity] = useState({
-    salesCalls: 0,
-    textMessages: 0,
-    appointmentsSet: 0,
-  });
+  const [activity, setActivity] = useState({ salesCalls: 0, textMessages: 0, appointmentsSet: 0 });
   const [kpiFilter, setKpiFilter] = useState(null);
 
   // Responsive dates
@@ -47,6 +46,7 @@ export default function FloorTrafficPage() {
     }
   }, [view, todayStr, weekAgoStr]);
 
+  // Load data
   useEffect(() => {
     const fetchRange = async () => {
       setLoading(true);
@@ -73,7 +73,6 @@ export default function FloorTrafficPage() {
           setRows(data || []);
         }
       } catch (err) {
-        console.error(err);
         setError('Failed to load traffic');
         setRows([]);
       } finally {
@@ -83,6 +82,7 @@ export default function FloorTrafficPage() {
     fetchRange();
   }, [API_BASE, startDate, endDate]);
 
+  // Load activity metrics
   useEffect(() => {
     const fetchActivityMetrics = async () => {
       try {
@@ -120,13 +120,13 @@ export default function FloorTrafficPage() {
           });
         }
       } catch (err) {
-        console.error(err);
+        // ignore
       }
     };
     fetchActivityMetrics();
   }, [API_BASE, view]);
 
-  // Calculations
+  // KPI/Alerts logic
   const totalCustomers = rows.length;
   const inStoreCount = rows.filter(r => !r.time_out).length;
   const demoCount = rows.filter(r => r.demo).length;
@@ -145,90 +145,107 @@ export default function FloorTrafficPage() {
   if (kpiFilter === "demos") filteredRows = rows.filter(r => r.demo);
   if (kpiFilter === "offers") filteredRows = rows.filter(r => r.customer_offer || r.customerOffer);
 
-  const kpiClass = (active) =>
-    `flex-1 min-w-[160px] rounded-3xl p-5 md:p-6 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-transform cursor-pointer
-    bg-gradient-to-br from-electricblue via-darkblue to-slategray text-white
-    ${active ? "ring-4 ring-electricblue scale-105" : ""}`;
+  // KPI color/badge logic
+  const kpiClass = (active, color = "from-electricblue via-darkblue to-slategray") =>
+    `flex-1 min-w-[160px] rounded-2xl p-5 md:p-6 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer
+    bg-gradient-to-br ${color} text-white relative
+    ${active ? "ring-4 ring-electricblue scale-105 z-10" : ""}`;
 
+  // Toggle buttons
   const toggleClass = (on) =>
     `px-4 py-2 rounded-full font-bold transition-colors
     ${on ? "bg-electricblue text-white shadow-md" : "bg-white text-electricblue border border-electricblue"}`;
 
-  return (
-    <div className="p-2 sm:p-4 space-y-4">
-      {/* Header + Quick Add (mobile flex) */}
-      <div className="flex items-center justify-between flex-wrap gap-3 mb-2">
-        <h1 className="text-2xl sm:text-3xl font-bold">Floor Traffic</h1>
-        <button
-          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full font-bold shadow-lg text-base sm:text-lg flex items-center gap-2 transition-all"
-          onClick={() => { setModalOpen(true); setEditing(null); }}
-        >
-          <Plus className="w-5 h-5" />
-          Quick Add
-        </button>
-      </div>
+  // Percent helper
+  const pct = count => (totalCustomers ? Math.round((count / totalCustomers) * 100) : 0);
 
-      {/* Day/Week Toggle */}
-      <div className="flex gap-2 mb-4 justify-center">
-        <button className={toggleClass(view === "today")} onClick={() => setView("today")}>
-          Today
-        </button>
-        <button className={toggleClass(view === "week")} onClick={() => setView("week")}>
-          This Week
-        </button>
+  return (
+    <div className="p-2 sm:p-4 space-y-4 max-w-6xl mx-auto">
+      {/* Quick Add Floating */}
+      <button
+        className="fixed right-4 top-20 z-50 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full font-bold shadow-lg text-base flex items-center gap-2 transition-all"
+        style={{ minWidth: 0, minHeight: 0 }}
+        onClick={() => { setModalOpen(true); setEditing(null); }}
+      >
+        <Plus className="w-5 h-5" />
+        <span className="hidden sm:inline">Quick Add</span>
+      </button>
+
+      {/* Header and Toggle */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
+        <h1 className="text-2xl sm:text-3xl font-bold">Floor Traffic</h1>
+        <div className="flex gap-2">
+          <button className={toggleClass(view === "today")} onClick={() => setView("today")}>
+            Today
+          </button>
+          <button className={toggleClass(view === "week")} onClick={() => setView("week")}>
+            This Week
+          </button>
+        </div>
       </div>
 
       {/* Mini Alerts */}
-      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-4">
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-2">
         {waitingTooLong.length > 0 && (
           <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-yellow-100 text-yellow-800 animate-pulse font-semibold border-l-4 border-yellow-500 text-xs sm:text-base">
             <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500" />
-            ⚡ {waitingTooLong.length} customer{waitingTooLong.length > 1 ? 's' : ''} waiting &gt;20 min
+            ⚡ {waitingTooLong.length} customer{waitingTooLong.length > 1 ? 's' : ''} waiting &gt;20 min!
           </div>
         )}
         {apptsNoFollow.length > 0 && (
           <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-100 text-red-700 border-l-4 border-red-500 animate-bounce font-semibold text-xs sm:text-base">
             <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
-            {apptsNoFollow.length} appointment{apptsNoFollow.length > 1 ? 's' : ''} not followed up
+            {apptsNoFollow.length} appointment{apptsNoFollow.length > 1 ? 's' : ''} not followed up!
           </div>
         )}
       </div>
 
-      {/* KPI Row - wraps on mobile */}
+      {/* KPI Cards */}
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-4">
-        <div className={kpiClass(kpiFilter === null)} onClick={() => setKpiFilter(null)}>
+        <div className={kpiClass(kpiFilter === null)}>
           <div className="flex items-center gap-2 opacity-90">
             <Users className="w-4 h-4 sm:w-5 sm:h-5" />
-            <p className="uppercase tracking-wider text-xs sm:text-sm font-medium">Visitors</p>
+            <span className="uppercase tracking-wider text-xs sm:text-sm font-medium">Visitors</span>
+            <span className="ml-auto">{pct(totalCustomers)}%</span>
           </div>
-          <p className="text-2xl sm:text-3xl font-bold mt-2">{totalCustomers}</p>
+          <p className="text-2xl sm:text-3xl font-bold mt-2">{totalCustomers} <span className="bg-blue-100 text-blue-800 px-2 py-0.5 ml-2 rounded-full text-xs font-bold">ALL</span></p>
           <p className="text-xs sm:text-sm text-white/80">{inStoreCount} currently in store</p>
           <ul className="mt-1 sm:mt-2 space-y-1 text-xs sm:text-sm text-white/90">
-            <li onClick={e => { e.stopPropagation(); setKpiFilter("demos"); }}
-                className="cursor-pointer hover:underline flex items-center gap-1">
-              {demoCount} demos {kpiFilter === "demos" && <span className="bg-green-100 text-green-700 px-2 rounded ml-2">HOT</span>}
+            <li
+              className="cursor-pointer hover:underline flex items-center gap-1"
+              onClick={e => { e.stopPropagation(); setKpiFilter("demos"); }}
+            >
+              {demoCount} demos {kpiFilter === "demos" && <span className="bg-green-100 text-green-700 px-2 rounded ml-2 font-bold">HOT</span>}
             </li>
-            <li onClick={e => { e.stopPropagation(); setKpiFilter("offers"); }}
-                className="cursor-pointer hover:underline flex items-center gap-1">
-              {offerCount} offers {kpiFilter === "offers" && <span className="bg-orange-100 text-orange-700 px-2 rounded ml-2">↑</span>}
+            <li
+              className="cursor-pointer hover:underline flex items-center gap-1"
+              onClick={e => { e.stopPropagation(); setKpiFilter("offers"); }}
+            >
+              {offerCount} offers {kpiFilter === "offers" && <span className="bg-orange-100 text-orange-700 px-2 rounded ml-2 font-bold">▲</span>}
+            </li>
+            <li
+              className="cursor-pointer hover:underline flex items-center gap-1"
+              onClick={e => { e.stopPropagation(); setKpiFilter(null); }}
+            >
+              {worksheetCount} worksheets <span className="bg-gray-100 text-gray-700 px-2 rounded ml-2 font-bold">i</span>
             </li>
           </ul>
         </div>
-        <div className={kpiClass(kpiFilter === "appointments")} onClick={() => setKpiFilter("appointments")}>
+        <div className={kpiClass(kpiFilter === "appointments", "from-green-400 via-green-600 to-green-700")}>
           <div className="flex items-center gap-2 opacity-90">
             <Activity className="w-4 h-4 sm:w-5 sm:h-5" />
-            <p className="uppercase tracking-wider text-xs sm:text-sm font-medium">Appointments Set</p>
+            <span className="uppercase tracking-wider text-xs sm:text-sm font-medium">Appointments</span>
+            <span className="ml-auto">{activity.appointmentsSet > 0 ? <span className="text-green-300 font-bold">▲</span> : <span className="text-yellow-200 font-bold">▼</span>}</span>
           </div>
-          <p className="text-2xl sm:text-3xl font-bold mt-2">{activity.appointmentsSet}</p>
-          <p className="text-xs sm:text-sm text-white/80">{view === "today" ? "Today" : "This Week"}</p>
+          <p className="text-2xl sm:text-3xl font-bold mt-2">{activity.appointmentsSet} <span className="bg-green-100 text-green-800 px-2 py-0.5 ml-2 rounded-full text-xs font-bold">SET</span></p>
           <span className="inline-block mt-2 px-2 py-1 bg-green-100 text-green-700 rounded-full font-bold text-xs">
             Click to filter
           </span>
         </div>
-        <div className={kpiClass()} style={{ background: 'linear-gradient(135deg, #34d399 0%, #60a5fa 100%)' }}>
+        <div className={kpiClass(false, "from-pink-500 via-fuchsia-600 to-purple-800")}>
           <div className="flex items-center gap-2 opacity-90">
             <MailCheck className="w-4 h-4 sm:w-5 sm:h-5" />
-            <p className="uppercase tracking-wider text-xs sm:text-sm font-medium">Leads</p>
+            <span className="uppercase tracking-wider text-xs sm:text-sm font-medium">Leads</span>
           </div>
           <ul className="mt-1 sm:mt-4 space-y-1 text-xs sm:text-sm text-white/90">
             <li>{activity.salesCalls} Sales Calls</li>
