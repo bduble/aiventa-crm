@@ -277,7 +277,7 @@ async def add_customer_to_floor_log(customer_id: str, entry: CustomerFloorTraffi
 
 # ----------- Customer Files (Upload/List) -----------
 class CustomerFile(BaseModel):
-    id: int
+    id: str
     customer_id: str
     name: str
     url: str
