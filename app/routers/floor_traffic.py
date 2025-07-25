@@ -96,7 +96,7 @@ async def create_floor_traffic(entry: FloorTrafficCustomerCreate):
             detail="first_name and last_name are required",
         )
     payload["customer_name"] = f"{first.strip()} {last.strip()}"
-
+    print("POST PAYLOAD:", payload)
     try:
         res = (
             supabase
