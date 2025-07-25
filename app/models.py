@@ -375,14 +375,26 @@ class AppraisalBase(BaseModel):
     payoff_amount: Optional[float] = None
     status: Optional[Literal["Draft", "Final", "Rejected"]] = "Draft"
 
-class AppraisalCreate(AppraisalBase):
-    pass
-
-class Appraisal(AppraisalBase):
-    id: str
-    created_by: Optional[str] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+class AppraisalCreate(BaseModel):
+    customer_id: Optional[str] = None   # <-- Allow customer to be missing
+    vehicle_vin: str
+    year: Optional[int] = None
+    make: Optional[str] = None
+    model: Optional[str] = None
+    trim: Optional[str] = None
+    mileage: Optional[int] = None
+    exterior_color: Optional[str] = None
+    interior_color: Optional[str] = None
+    engine: Optional[str] = None
+    transmission: Optional[str] = None
+    drivetrain: Optional[str] = None
+    condition_score: Optional[float] = None
+    damage_report: Optional[dict] = None
+    notes: Optional[str] = None
+    appraisal_value: Optional[float] = None
+    actual_acv: Optional[float] = None
+    payoff_amount: Optional[float] = None
+    status: Optional[Literal["Draft", "Final", "Rejected"]] = "Draft"
 
 # ── Deals ─────────────────────────────────────────────────────────────────
 class DealBase(BaseModel):
