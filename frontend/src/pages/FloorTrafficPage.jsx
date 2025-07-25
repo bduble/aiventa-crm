@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import { motion, AnimatePresence } from "framer-motion";
 import FloorTrafficTable from '../components/FloorTrafficTable';
 import FloorTrafficModal from '../components/FloorTrafficModal';
-import { Users, MailCheck, Activity, Plus, ArrowUp, ArrowDown } from 'lucide-react';
+import { Users, MailCheck, Activity, Plus, ArrowUp, ArrowDown, X, Sun, Moon } from 'lucide-react';
+
+// --- THEME SWITCH ---
+const getInitialTheme = () =>
+  localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
 const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
-// Fake urgent data demo
 const getUrgentAlerts = (rows) => {
   const now = Date.now();
   const waiting = rows.filter(r => !r.time_out && (now - new Date(r.visit_time)) / 60000 > 20);
@@ -19,12 +23,32 @@ const getUrgentAlerts = (rows) => {
   return alerts;
 };
 
+function AnimatedNumber({ value, className = "" }) {
+  // Smooth counter using framer-motion
+  return (
+    <motion.span
+      className={className}
+      initial={{ opacity: 0.5, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.2 }}
+      key={value}
+    >
+      <motion.span
+        animate={{ count: value }}
+        transition={{ duration: 0.8, type: "tween" }}
+        >
+        {value}
+      </motion.span>
+    </motion.span>
+  );
+}
+
 export default function FloorTrafficPage() {
   const API_BASE = import.meta.env.PROD
     ? import.meta.env.VITE_API_BASE_URL
     : '/api';
 
-  // --- UI State ---
+  const [theme, setTheme] = useState(getInitialTheme());
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -32,7 +56,6 @@ export default function FloorTrafficPage() {
   const [editing, setEditing] = useState(null);
   const [view, setView] = useState('today'); // today|week
   const [filterBy, setFilterBy] = useState('');
-  // For range picker
   const todayStr = new Date().toISOString().slice(0, 10);
   const [startDate, setStartDate] = useState(todayStr);
   const [endDate, setEndDate] = useState(todayStr);
@@ -42,11 +65,16 @@ export default function FloorTrafficPage() {
     appointmentsSet: 0,
   });
 
-  // --- Fetch traffic for date range ---
+  // Theme effect
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  // Fetch traffic
   useEffect(() => {
     const fetchRange = async () => {
-      setLoading(true);
-      setError('');
+      setLoading(true); setError('');
       try {
         if (supabase) {
           const start = new Date(startDate);
@@ -71,14 +99,12 @@ export default function FloorTrafficPage() {
       } catch (err) {
         setError('Failed to load traffic');
         setRows([]);
-      } finally {
-        setLoading(false);
-      }
+      } finally { setLoading(false); }
     };
     fetchRange();
   }, [API_BASE, startDate, endDate]);
 
-  // --- Fetch activity metrics (today/week) ---
+  // Fetch activity metrics (today/week)
   useEffect(() => {
     const fetchActivityMetrics = async () => {
       try {
@@ -90,9 +116,8 @@ export default function FloorTrafficPage() {
             end = new Date(start);
             end.setDate(end.getDate() + 1);
           } else {
-            // This week (Mon-Sun)
             const today = new Date();
-            const day = today.getDay() || 7; // Sun=0
+            const day = today.getDay() || 7;
             start = new Date(today);
             start.setDate(today.getDate() - day + 1);
             end = new Date(today);
@@ -113,7 +138,6 @@ export default function FloorTrafficPage() {
           }
           setActivity(counts);
         } else {
-          // Fallback: API
           const res = await fetch(`${API_BASE}/activities/${view}-metrics`);
           if (!res.ok) throw new Error('Failed to load activity metrics');
           const data = await res.json();
@@ -128,7 +152,7 @@ export default function FloorTrafficPage() {
     fetchActivityMetrics();
   }, [API_BASE, view]);
 
-  // --- Derived stats ---
+  // Derived stats
   const responded = rows.filter(r => r.last_response_time).length;
   const unresponded = rows.length - responded;
   const totalCustomers = rows.length;
@@ -140,10 +164,10 @@ export default function FloorTrafficPage() {
   const offerCount = rows.filter(r => r.customer_offer || r.customerOffer).length;
   const urgentAlerts = getUrgentAlerts(rows);
 
-  // --- Quick add handler ---
+  // Quick add handler
   const handleQuickAdd = () => setModalOpen(true);
 
-  // --- Filtering logic for table ---
+  // Table filter
   const filteredRows = filterBy
     ? rows.filter(r =>
         filterBy === 'appointments'
@@ -156,12 +180,47 @@ export default function FloorTrafficPage() {
       )
     : rows;
 
-  // --- KPI card ---
-  const kpiClass = 'flex-1 min-w-[140px] rounded-2xl p-4 sm:p-6 bg-gradient-to-br from-electricblue via-darkblue to-slategray text-white shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-transform relative cursor-pointer outline-none focus:ring-2 focus:ring-blue-400';
+  // KPI card
+  const kpiClass =
+    'flex-1 min-w-[140px] rounded-2xl p-4 sm:p-6 bg-gradient-to-br from-electricblue via-darkblue to-slategray text-white shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-transform relative cursor-pointer outline-none focus:ring-2 focus:ring-blue-400';
 
-  // --- Responsive spacing & wrapper
   return (
-    <div className="pt-20 p-2 sm:p-4 space-y-4 max-w-6xl mx-auto">
+    <div className={`pt-20 p-2 sm:p-6 space-y-4 max-w-6xl mx-auto ${theme === "dark" ? "bg-[#181f2a] text-gray-100" : "bg-[#f9f9f9] text-gray-900"}`}>
+
+      {/* THEME SWITCH */}
+      <button
+        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+        className="fixed z-50 top-6 right-6 bg-white/80 dark:bg-black/50 rounded-full p-2 border shadow hover:scale-110 transition"
+        aria-label="Toggle theme"
+      >
+        {theme === "dark" ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-gray-800" />}
+      </button>
+
+      {/* Quick Add floating */}
+      <button
+        onClick={handleQuickAdd}
+        className="fixed z-50 right-5 top-[82px] sm:top-[92px] bg-green-500 hover:bg-green-600 text-white shadow-xl px-4 py-2 rounded-full font-bold flex items-center gap-2 transition-all border-4 border-white"
+        style={{ boxShadow: "0 8px 24px 0 rgba(20,120,70,0.17)" }}
+      >
+        <Plus className="w-5 h-5" /> Quick Add
+      </button>
+
+      {/* Alerts */}
+      {urgentAlerts.length > 0 && (
+        <div className="flex flex-col gap-2">
+          {urgentAlerts.map((msg, i) => (
+            <motion.div
+              key={i}
+              initial={{ scale: 0.95, opacity: 0.5 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="flex items-center bg-red-50 border-l-4 border-red-500 text-red-700 px-3 py-2 rounded animate-pulse"
+            >
+              <span className="font-semibold">{msg}</span>
+            </motion.div>
+          ))}
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
         <h1 className="text-3xl font-bold tracking-tight">Floor Traffic</h1>
         <div className="flex gap-2 items-center">
@@ -189,31 +248,25 @@ export default function FloorTrafficPage() {
         </div>
       </div>
 
-      {/* Quick Add floating badge */}
-      <button
-        onClick={handleQuickAdd}
-        className="fixed z-50 right-5 top-[82px] sm:top-[92px] bg-green-500 hover:bg-green-600 text-white shadow-xl px-4 py-2 rounded-full font-bold flex items-center gap-2 transition-all border-4 border-white"
-        style={{ boxShadow: "0 8px 24px 0 rgba(20,120,70,0.17)" }}
-      >
-        <Plus className="w-5 h-5" /> Quick Add
-      </button>
-
-      {/* Alerts */}
-      {urgentAlerts.length > 0 && (
-        <div className="flex flex-col gap-2">
-          {urgentAlerts.map((msg, i) => (
-            <div
-              key={i}
-              className="flex items-center bg-red-50 border-l-4 border-red-500 text-red-700 px-3 py-2 rounded animate-pulse"
-            >
-              <span className="font-semibold">{msg}</span>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* Filter badge */}
+      <AnimatePresence>
+        {filterBy && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8, x: 20 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            exit={{ opacity: 0, scale: 0.8, x: 20 }}
+            className="flex items-center gap-2 bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium mb-1 w-fit shadow"
+          >
+            <span>Filter: {filterBy.charAt(0).toUpperCase() + filterBy.slice(1)}</span>
+            <button onClick={() => setFilterBy("")} className="ml-1 text-blue-700">
+              <X className="w-4 h-4" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* KPI Cards */}
-      <div className="flex flex-col sm:flex-row gap-3 mt-4">
+      <div className="flex flex-col sm:flex-row gap-3 mt-2">
         <div
           className={kpiClass}
           tabIndex={0}
@@ -230,7 +283,7 @@ export default function FloorTrafficPage() {
             )}
           </div>
           <div className="flex items-end gap-2 mt-2">
-            <span className="text-4xl font-extrabold">{totalCustomers}</span>
+            <AnimatedNumber value={totalCustomers} className="text-4xl font-extrabold" />
             {totalCustomers > 10 ? (
               <ArrowUp className="text-green-400 w-5 h-5" />
             ) : (
@@ -263,11 +316,11 @@ export default function FloorTrafficPage() {
             <span className="uppercase tracking-wider text-sm font-medium">Leads</span>
           </div>
           <div className="flex gap-2 mt-2">
-            <span className="text-2xl font-bold">{responded}</span>
+            <AnimatedNumber value={responded} className="text-2xl font-bold" />
             <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-semibold">Responded</span>
           </div>
           <div className="flex gap-2 mt-1">
-            <span className="text-2xl font-bold">{unresponded}</span>
+            <AnimatedNumber value={unresponded} className="text-2xl font-bold" />
             <span className="bg-yellow-100 text-yellow-700 text-xs px-2 py-0.5 rounded-full font-semibold">Unresponded</span>
           </div>
         </div>
@@ -281,21 +334,21 @@ export default function FloorTrafficPage() {
           </div>
           <ul className="mt-2 space-y-1 text-base text-white/90">
             <li className="flex items-center gap-2">
-              <span className="font-bold">{activity.salesCalls}</span> Sales Calls
+              <AnimatedNumber value={activity.salesCalls} className="font-bold text-xl" /> Sales Calls
               <button
                 className="ml-2 text-xs underline text-blue-200"
                 onClick={() => setFilterBy('calls')}
               >Details</button>
             </li>
             <li className="flex items-center gap-2">
-              <span className="font-bold">{activity.textMessages}</span> Text Messages
+              <AnimatedNumber value={activity.textMessages} className="font-bold text-xl" /> Text Messages
               <button
                 className="ml-2 text-xs underline text-blue-200"
                 onClick={() => setFilterBy('texts')}
               >Details</button>
             </li>
             <li className="flex items-center gap-2">
-              <span className="font-bold">{activity.appointmentsSet}</span> Appointments Set
+              <AnimatedNumber value={activity.appointmentsSet} className="font-bold text-xl" /> Appointments Set
               <button
                 className="ml-2 text-xs underline text-blue-200"
                 onClick={() => setFilterBy('appointments')}
