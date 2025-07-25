@@ -10,9 +10,8 @@ router = APIRouter()
 
 # ── Dummy Auth (Replace in production) ──
 def get_current_user():
-    """Placeholder for authentication."""
     class _User:
-        id = 1
+        id = "00000000-0000-0000-0000-000000000000"   # Dummy UUID string
         role = "Admin"
     return _User()
 
