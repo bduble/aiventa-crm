@@ -24,6 +24,7 @@ export default function CompCheckResults({
       const data = await res.json();
       setResult(data);
     } catch (err) {
+      console.error(err);
       setError("Error loading comps. Please try again.");
     }
     setLoading(false);

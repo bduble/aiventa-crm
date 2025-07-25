@@ -60,7 +60,7 @@ export default function VehicleBucketOverlay({ type, bucketKey, min, max, onClos
         if (!res.ok) throw new Error("Save failed");
         return res.json();
       })
-      .then(data => {
+      .then(() => {
         setVehicles(vehicles => vehicles.map(v => v.id === id ? { ...v, ...patch } : v));
         setEditMap(m => { const cp = {...m}; delete cp[id]; return cp; });
         setEditingRow(null);
