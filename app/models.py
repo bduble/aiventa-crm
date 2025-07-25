@@ -253,7 +253,7 @@ class InventoryItem(CamelModel):
     video_player_url: Optional[str] = Field(None, alias="VideoPlayerURL")
     status_code: Optional[str] = Field(None, alias="StatusCode")
     days_in_stock: Optional[int] = Field(None, alias="Days In Stock")
-    image_url: Optional[str] = Field(None, alias="Image URL")  # change to List[str] if you have array!
+    image_url: Optional[str] = Field(None, alias="Image URL")
     vehicle_option: Optional[str] = None
     version_mod_date: Optional[datetime] = Field(None, alias="Version_Mod.Date")
     vehicle_type: Optional[str] = None
@@ -355,7 +355,7 @@ class DamageReport(BaseModel):
     tire: Optional[str] = None
 
 class AppraisalBase(BaseModel):
-    customer_id: str
+    customer_id: Optional[str] = None    # <-- Optional!
     vehicle_vin: str
     year: Optional[int] = None
     make: Optional[str] = None
@@ -375,26 +375,14 @@ class AppraisalBase(BaseModel):
     payoff_amount: Optional[float] = None
     status: Optional[Literal["Draft", "Final", "Rejected"]] = "Draft"
 
-class AppraisalCreate(BaseModel):
-    customer_id: Optional[str] = None   # <-- Allow customer to be missing
-    vehicle_vin: str
-    year: Optional[int] = None
-    make: Optional[str] = None
-    model: Optional[str] = None
-    trim: Optional[str] = None
-    mileage: Optional[int] = None
-    exterior_color: Optional[str] = None
-    interior_color: Optional[str] = None
-    engine: Optional[str] = None
-    transmission: Optional[str] = None
-    drivetrain: Optional[str] = None
-    condition_score: Optional[float] = None
-    damage_report: Optional[dict] = None
-    notes: Optional[str] = None
-    appraisal_value: Optional[float] = None
-    actual_acv: Optional[float] = None
-    payoff_amount: Optional[float] = None
-    status: Optional[Literal["Draft", "Final", "Rejected"]] = "Draft"
+class AppraisalCreate(AppraisalBase):
+    pass  # inherits customer_id: Optional[str] = None
+
+class Appraisal(AppraisalBase):
+    id: str
+    created_by: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 # ── Deals ─────────────────────────────────────────────────────────────────
 class DealBase(BaseModel):
