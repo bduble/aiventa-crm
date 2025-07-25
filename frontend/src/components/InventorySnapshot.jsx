@@ -9,13 +9,13 @@ const BUCKETS = [
   { label: "90+ Days", key: "90+", color: "bg-red-300" }
 ];
 
-const bucketRanges = {
-  "0-30": [0, 30],
-  "31-45": [31, 45],
-  "46-60": [46, 60],
-  "61-90": [61, 90],
-  "90+": [91, 9999],
-};
+// const bucketRanges = {
+//   "0-30": [0, 30],
+//   "31-45": [31, 45],
+//   "46-60": [46, 60],
+//   "61-90": [61, 90],
+//   "90+": [91, 9999],
+// };
 
 function getHealthColor(avgDays) {
   if (avgDays < 30) return "bg-green-400";
@@ -78,8 +78,8 @@ export default function InventorySnapshot() {
     new: { total: 0, avgDays: 0, turnRate: 0, buckets: { "0-30": 0, "31-45": 0, "46-60": 0, "61-90": 0, "90+": 0 } },
     used: { total: 0, avgDays: 0, turnRate: 0, buckets: { "0-30": 0, "31-45": 0, "46-60": 0, "61-90": 0, "90+": 0 } },
   });
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalParams, setModalParams] = useState(null);
+  // const [modalOpen, setModalOpen] = useState(false);
+  // const [modalParams, setModalParams] = useState(null);
 
   useEffect(() => {
     const API_BASE = import.meta.env.PROD ? import.meta.env.VITE_API_BASE_URL : '/api';
@@ -108,11 +108,11 @@ export default function InventorySnapshot() {
     // eslint-disable-next-line
   }, []);
 
-  function handleBucketClick(type, bucketKey) {
-    const [min, max] = bucketRanges[bucketKey];
-    setModalParams({ type, bucketKey, min, max });
-    setModalOpen(true);
-  }
+  // function handleBucketClick(type, bucketKey) {
+  //   const [min, max] = bucketRanges[bucketKey];
+  //   setModalParams({ type, bucketKey, min, max });
+  //   setModalOpen(true);
+  // }
 
   return (
     <>
@@ -121,7 +121,7 @@ export default function InventorySnapshot() {
           title="New"
           stats={data.new}
           type="new"
-          onBucketClick={handleBucketClick}
+          // onBucketClick={handleBucketClick}
         />
       </div>
       <div className="max-w-md mx-auto">
@@ -129,7 +129,7 @@ export default function InventorySnapshot() {
           title="Used"
           stats={data.used}
           type="used"
-          onBucketClick={handleBucketClick}
+          // onBucketClick={handleBucketClick}
         />
       </div>
       {/* 

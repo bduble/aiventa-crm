@@ -9,7 +9,7 @@ export default function ChatGPTPrompt() {
 
   // Adjust the base URL + route to match your new FastAPI handler
   const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
-  const STREAM_ENDPOINT = `${API_BASE}/ai/ask-stream`;   // GET /ai/ask-stream?q=
+  const STREAM_ENDPOINT = `${API_BASE}/ai/ask-stream`; // GET /ai/ask-stream?q=
 
   /** Open modal + fire SSE request */
   const askQuestion = () => {

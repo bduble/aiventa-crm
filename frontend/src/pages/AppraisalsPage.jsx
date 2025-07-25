@@ -34,7 +34,7 @@ export default function AppraisalsPage() {
   // Helper: Get customer name by UUID, fallback to "No Customer"
   const getCustomerName = (id) => {
     if (!id) return <span className="italic text-gray-400">No Customer</span>;
-    const c = customers.find(cust => String(c.id) === String(id));
+    const c = customers.find(cust => String(cust.id) === String(id));
     if (c) {
       return c.name || `${c.first_name || ""} ${c.last_name || ""}`.trim();
     }

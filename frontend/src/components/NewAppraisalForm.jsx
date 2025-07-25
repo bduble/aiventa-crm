@@ -77,7 +77,9 @@ export default function NewAppraisalForm({
       } else if (res.status !== 404) {
         throw new Error("Could not decode VIN (server error).");
       }
-    } catch (err) {}
+    } catch (err) {
+      console.error(err);
+    }
     try {
       const fallbackUrl = `${FALLBACK_VIN_DECODER}/${vin}?format=json`;
       const res = await fetch(fallbackUrl);
@@ -93,6 +95,7 @@ export default function NewAppraisalForm({
         throw new Error("VIN not found in fallback decoder.");
       }
     } catch (err) {
+      console.error(err);
       setError(
         "We couldn't decode this VIN automatically. Please enter details manually."
       );
