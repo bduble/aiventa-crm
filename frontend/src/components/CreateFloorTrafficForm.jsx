@@ -53,7 +53,7 @@ export default function CreateFloorTrafficForm() {
       visit_time = new Date(visit_time).toISOString();
     }
 
-    // 2. Check for existing customer (by phone or email)
+    // 2. Check for existing customer (by phone or email if provided)
     let customer_id = null;
     try {
       let orFilters = [];
@@ -82,8 +82,8 @@ export default function CreateFloorTrafficForm() {
               name: displayName,
               first_name: form.first_name,
               last_name: form.last_name,
-              phone: form.phone,
-              email: form.email,
+              phone: form.phone || null,
+              email: form.email || null,
             },
           ])
           .select();
@@ -132,7 +132,7 @@ export default function CreateFloorTrafficForm() {
         {/* Visit Time */}
         <div>
           <label className="block font-medium text-gray-700 dark:text-gray-200">
-            Visit Time
+            Visit Time <span className="text-red-500">*</span>
           </label>
           <input
             type="datetime-local"
@@ -147,7 +147,7 @@ export default function CreateFloorTrafficForm() {
         {/* Salesperson */}
         <div>
           <label className="block font-medium text-gray-700 dark:text-gray-200">
-            Salesperson
+            Salesperson <span className="text-red-500">*</span>
           </label>
           <input
             name="salesperson"
@@ -158,11 +158,11 @@ export default function CreateFloorTrafficForm() {
           />
         </div>
 
-        {/* First Name & Last Name */}
+        {/* First Name & Last Name (both required) */}
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block font-medium text-gray-700 dark:text-gray-200">
-              First Name
+              First Name <span className="text-red-500">*</span>
             </label>
             <input
               name="first_name"
@@ -174,7 +174,7 @@ export default function CreateFloorTrafficForm() {
           </div>
           <div>
             <label className="block font-medium text-gray-700 dark:text-gray-200">
-              Last Name
+              Last Name <span className="text-red-500">*</span>
             </label>
             <input
               name="last_name"
@@ -186,7 +186,7 @@ export default function CreateFloorTrafficForm() {
           </div>
         </div>
 
-        {/* Email & Phone */}
+        {/* Email & Phone (optional, but used for deduplication if entered) */}
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block font-medium text-gray-700 dark:text-gray-200">
@@ -197,7 +197,6 @@ export default function CreateFloorTrafficForm() {
               name="email"
               value={form.email}
               onChange={handleChange}
-              required
               className="mt-1 block w-full bg-white border border-gray-300 rounded-md dark:bg-gray-900 dark:border-gray-600"
             />
           </div>
@@ -209,7 +208,6 @@ export default function CreateFloorTrafficForm() {
               name="phone"
               value={form.phone}
               onChange={handleChange}
-              required
               className="mt-1 block w-full bg-white border border-gray-300 rounded-md dark:bg-gray-900 dark:border-gray-600"
             />
           </div>
