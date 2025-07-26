@@ -230,7 +230,7 @@ export default function FloorTrafficPage() {
     r => r.time_out === null && r.visit_time && (Date.now() - new Date(r.visit_time).getTime()) > 20 * 60 * 1000
   ).length;
   const alertMsgs = [];
-  if (waitingLong > 0) alertMsgs.push(`⚡ ${waitingLong} customers have been waiting >20 min!`);
+  if (waitingLong > 0) alertMsgs.push(`⚡ ${waitingLong} customers have been waiting &gt;20 min!`);
   if (activity.appointmentsSet > 0 && activity.appointmentsSet > responded)
     alertMsgs.push(`${activity.appointmentsSet - responded} appointments not yet followed up.`);
 
