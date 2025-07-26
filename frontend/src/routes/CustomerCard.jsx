@@ -4,12 +4,11 @@ import { useParams, Link } from 'react-router-dom'
 import { formatDateTime } from '../utils/formatDateTime'
 import {
   Phone, MessageCircle, Mail, Edit, Save, X, Flame, User, Calendar, Star, MapPin,
-  Sun, Moon, BadgeCheck, Upload, Cloud, Users, Globe, File, Map, CheckCircle, Plus
+  Sun, Moon, BadgeCheck, Upload, Cloud, Users, Globe, File, Map, CheckCircle, Plus, Shield, CreditCard, TrendingUp
 } from 'lucide-react'
 import { motion as Motion, AnimatePresence } from 'framer-motion'
 import clsx from 'clsx'
 
-// --- Helper for initials
 function getInitials(name = '') {
   return name.split(' ').map(part => part[0]?.toUpperCase()).join('').slice(0, 2)
 }
@@ -23,6 +22,8 @@ const TABS = [
   { label: "Appointments", key: "appointments" },
   { label: "Docs", key: "docs" },
   { label: "Map", key: "map" },
+  { label: "Deal Desk", key: "dealdesk" },
+  { label: "Finance", key: "finance" },
 ]
 
 const PROFILE_FIELDS = [
@@ -59,25 +60,34 @@ export default function CustomerCard({ userRole = "sales" }) {
   const [appointments, setAppointments] = useState([])
   const [showTaskModal, setShowTaskModal] = useState(false)
   const [showApptModal, setShowApptModal] = useState(false)
+  const [dealOffers, setDealOffers] = useState([]);
+  const [showCreditModal, setShowCreditModal] = useState(false);
+  const [creditStatus, setCreditStatus] = useState(null);
 
-  // --- Auto-log activity
-  const logActivity = async (type, note = '', subject = '') => {
-    const payload = { activity_type: type, note, subject, customer_id: id, user_id: CURRENT_USER_ID }
-    try {
-      await fetch(`${API_BASE}/activities`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-      fetch(`${API_BASE}/activities?customer_id=${id}`)
-        .then(r => r.json()).then(setLedger)
-    } catch (err) {
-      console.error('Failed to log activity', err)
-    }
-  }
+  // ---- AI Live Hotness Auto-Update ----
+  useEffect(() => {
+    if (!customer) return;
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`${API_BASE}/customers/${id}/ai-hotness`);
+        if (res.ok) {
+          const { score } = await res.json();
+          setCustomer(prev => ({ ...prev, hotness: score }));
+        }
+      } catch {}
+    }, 8000);
+    return () => clearInterval(interval);
+  }, [id, customer]);
+
+  // ---- Next Best Action ----
+  const [nextAction, setNextAction] = useState('');
+  useEffect(() => {
+    fetch(`${API_BASE}/customers/${id}/ai-next-action`)
+      .then(res => res.json()).then(data => setNextAction(data.action));
+  }, [id, ledger, tasks]);
 
   useEffect(() => {
-    const timer = setInterval(() => setIsOnline(Math.random() > 0.5), 5000)
+    const timer = setInterval(() => setIsOnline(Math.random() > 0.5), 6000)
     return () => clearInterval(timer)
   }, [])
 
@@ -92,20 +102,23 @@ export default function CustomerCard({ userRole = "sales" }) {
       .then(r => r.json()).then(setLedger)
     fetch(`${API_BASE}/customers/${id}/files`)
       .then(r => r.json()).then(docs => setFiles(docs || []))
+    // Social Lookup (Mocked)
     setTimeout(() => setSocial({
       linkedin: "https://linkedin.com/in/fake-profile",
       facebook: "https://facebook.com/fake-profile",
       twitter: "https://twitter.com/fake-profile",
       found: true
-    }), 700)
+    }), 900)
     fetchTasks()
     fetchAppointments()
+    fetchDealOffers();
     logActivity('view', '', 'Viewed customer card')
   }, [id])
 
   useEffect(() => {
     if (tab === "tasks") fetchTasks()
     if (tab === "appointments") fetchAppointments()
+    if (tab === "dealdesk") fetchDealOffers()
   }, [tab, id])
 
   const fetchTasks = async () => {
@@ -121,6 +134,26 @@ export default function CustomerCard({ userRole = "sales" }) {
       if (res.ok) setAppointments(await res.json())
       else setAppointments([])
     } catch { setAppointments([]) }
+  }
+  const fetchDealOffers = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/deals?customer_id=${id}`);
+      if (res.ok) setDealOffers(await res.json());
+      else setDealOffers([]);
+    } catch { setDealOffers([]) }
+  }
+
+  const logActivity = async (type, note = '', subject = '') => {
+    const payload = { activity_type: type, note, subject, customer_id: id, user_id: CURRENT_USER_ID }
+    try {
+      await fetch(`${API_BASE}/activities`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      fetch(`${API_BASE}/activities?customer_id=${id}`)
+        .then(r => r.json()).then(setLedger)
+    } catch (err) { }
   }
 
   const handleSave = async () => {
@@ -138,9 +171,7 @@ export default function CustomerCard({ userRole = "sales" }) {
       setCustomer(data)
       setEdited(data)
       setEditMode(false)
-    } catch (err) {
-      console.error('Failed to save', err)
-    }
+    } catch (err) { }
   }
   const handleCancel = () => { setEdited(customer); setEditMode(false) }
 
@@ -150,38 +181,54 @@ export default function CustomerCard({ userRole = "sales" }) {
     setNote('')
   }
 
-  const handleFileChange = async (e) => {
+  // ---- Smart Upload ----
+  const handleSmartUpload = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
     setUploading(true)
     const form = new FormData()
     form.append("file", file)
-    await fetch(`${API_BASE}/customers/${id}/files`, { method: 'POST', body: form })
+    const res = await fetch(`${API_BASE}/customers/${id}/files/smart`, { method: 'POST', body: form })
+    if (res.ok) {
+      const { fields } = await res.json();
+      setEdited(prev => ({ ...prev, ...fields }));
+    }
     setUploading(false)
     fetch(`${API_BASE}/customers/${id}/files`).then(r => r.json()).then(docs => setFiles(docs || []))
   }
 
-  if (loading) return <div className="flex justify-center items-center h-48">Loading...</div>
-  if (!customer) return <div>Customer not found</div>
-
-  const hotness = aiInfo?.hotness_score ?? customer?.hotness ?? 5
-  const inMarket = aiInfo?.in_market ?? hotness >= 7
-
-  const nextTask = tasks.filter(t => !t.completed).sort((a, b) => new Date(a.due_date) - new Date(b.due_date))[0]
-  const nextAppt = appointments.sort((a, b) => new Date(a.start_time) - new Date(b.start_time))[0]
-
-  // Add manager field if role
-  const profileFields = [...PROFILE_FIELDS]
-  if (userRole === "manager") {
-    profileFields.push({ key: 'hashed_password', label: 'Password Hash', icon: BadgeCheck })
+  // ---- Credit Modal ----
+  function CreditAppModal({ onClose }) {
+    const [submitting, setSubmitting] = useState(false);
+    const [status, setStatus] = useState(creditStatus);
+    const [form, setForm] = useState({ ssn: '', dob: '', income: '' });
+    const submitApp = async () => {
+      setSubmitting(true);
+      // Replace with your credit API
+      setTimeout(() => {
+        setStatus('Approved');
+        setCreditStatus('Approved');
+        setSubmitting(false);
+      }, 1800);
+    }
+    return (
+      <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow w-96 max-w-full">
+          <h3 className="font-bold mb-2 flex items-center gap-2"><CreditCard /> Credit Application</h3>
+          <input className="border rounded w-full p-2 mb-2" placeholder="SSN" value={form.ssn} onChange={e => setForm(f => ({ ...f, ssn: e.target.value }))} />
+          <input className="border rounded w-full p-2 mb-2" type="date" value={form.dob} onChange={e => setForm(f => ({ ...f, dob: e.target.value }))} />
+          <input className="border rounded w-full p-2 mb-2" placeholder="Monthly Income" value={form.income} onChange={e => setForm(f => ({ ...f, income: e.target.value }))} />
+          {status && <div className="my-2 px-3 py-2 bg-green-100 text-green-800 rounded font-bold">{status}</div>}
+          <div className="flex gap-2">
+            <button className="bg-blue-700 text-white px-3 py-1 rounded" onClick={submitApp} disabled={submitting}>{submitting ? "Submitting..." : "Submit"}</button>
+            <button className="bg-gray-400 text-white px-3 py-1 rounded" onClick={onClose}>Cancel</button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
-  const socialIcons = [
-    { label: "LinkedIn", icon: <Globe />, url: social.linkedin },
-    { label: "Facebook", icon: <Users />, url: social.facebook },
-    { label: "Twitter", icon: <Globe />, url: social.twitter }
-  ].filter(s => s.url)
-
+  // ---- Task & Appointment Modals ----
   function TaskModal({ onClose }) {
     const [title, setTitle] = useState('')
     const [due, setDue] = useState('')
@@ -237,22 +284,48 @@ export default function CustomerCard({ userRole = "sales" }) {
     )
   }
 
+  if (loading) return <div className="flex justify-center items-center h-48">Loading...</div>
+  if (!customer) return <div>Customer not found</div>
+
+  const hotness = aiInfo?.hotness_score ?? customer?.hotness ?? 5
+  const inMarket = aiInfo?.in_market ?? hotness >= 7
+
+  const nextTask = tasks.filter(t => !t.completed).sort((a, b) => new Date(a.due_date) - new Date(b.due_date))[0]
+  const nextAppt = appointments.sort((a, b) => new Date(a.start_time) - new Date(b.start_time))[0]
+  const profileFields = [...PROFILE_FIELDS]
+  if (userRole === "manager") profileFields.push({ key: 'hashed_password', label: 'Password Hash', icon: BadgeCheck })
+
+  const socialIcons = [
+    { label: "LinkedIn", icon: <Globe />, url: social.linkedin },
+    { label: "Facebook", icon: <Users />, url: social.facebook },
+    { label: "Twitter", icon: <Globe />, url: social.twitter }
+  ].filter(s => s.url)
+
+  // ---- UI ----
   return (
     <div className={clsx(
-      "max-w-3xl mx-auto mt-8 mb-12 rounded-2xl shadow-2xl p-6 transition-all duration-300",
+      "max-w-3xl mx-auto mt-8 mb-12 rounded-2xl shadow-2xl p-4 sm:p-6 transition-all duration-300",
       "bg-white dark:bg-slate-900 text-slate-900 dark:text-white",
       "border border-slate-100 dark:border-slate-800"
     )}>
       {/* ---- Context Highlights ---- */}
       <div className="flex flex-wrap gap-4 mb-2">
         {nextTask && (
-          <div className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 px-3 py-1 rounded font-semibold">
-            Next Task: {nextTask.title} (Due {formatDateTime(nextTask.due_date)})
+          <div className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 px-3 py-1 rounded font-semibold animate-pulse">
+            ⚡ Next Task: {nextTask.title} (Due {formatDateTime(nextTask.due_date)})
           </div>
         )}
         {nextAppt && (
-          <div className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-3 py-1 rounded font-semibold">
-            Next Appt: {nextAppt.appointment_type || "Appointment"} ({formatDateTime(nextAppt.start_time)})
+          <div className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-3 py-1 rounded font-semibold animate-bounce">
+            <Calendar className="inline w-4 h-4 mr-1" /> Next Appt: {nextAppt.appointment_type || "Appointment"} ({formatDateTime(nextAppt.start_time)})
+          </div>
+        )}
+        {/* Next Best Action */}
+        {nextAction && (
+          <div className="bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200 px-3 py-1 rounded font-bold animate-bounce">
+            <TrendingUp className="inline w-4 h-4 mr-1" />
+            Next Best Action: {nextAction}
+            <button className="ml-2 px-2 py-0.5 rounded bg-blue-700 text-white text-xs" onClick={() => { /* Trigger Action Here */ }}>Do It</button>
           </div>
         )}
       </div>
@@ -270,8 +343,8 @@ export default function CustomerCard({ userRole = "sales" }) {
           {isOnline &&
             <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 border-2 border-white rounded-full shadow"></span>}
         </div>
-        <div>
-          <h2 className="text-2xl font-extrabold flex items-center gap-2">
+        <div className="flex-1">
+          <h2 className="text-2xl font-extrabold flex flex-wrap items-center gap-2">
             {customer.full_name || customer.name || (customer.first_name + ' ' + customer.last_name)}
             <span className={clsx(
               "ml-2 px-2 py-0.5 text-xs rounded-xl font-semibold tracking-wide",
@@ -281,7 +354,7 @@ export default function CustomerCard({ userRole = "sales" }) {
             </span>
             {customer.verified && <BadgeCheck className="w-5 h-5 text-green-400 ml-2" title="Verified" />}
           </h2>
-          <div className="flex gap-2 items-center mt-1">
+          <div className="flex gap-2 items-center mt-1 flex-wrap">
             <div className="flex items-center gap-1">
               <Flame className="w-4 h-4 text-red-500" />
               <span className="font-mono font-bold">{hotness}/10</span>
@@ -338,13 +411,15 @@ export default function CustomerCard({ userRole = "sales" }) {
         ) : (
           <button className="px-3 py-1 bg-blue-500 text-white rounded flex items-center gap-1" onClick={() => setEditMode(true)}><Edit className="w-4 h-4" />Edit</button>
         )}
+        <button className="ml-2 px-3 py-1 bg-green-700 text-white rounded font-bold shadow" onClick={() => setShowCreditModal(true)}>Credit App</button>
       </div>
+
       <div className="flex gap-4 mb-4 border-b border-slate-300 dark:border-slate-700 overflow-x-auto">
         {TABS.map(t =>
           <button
             key={t.key}
             className={clsx(
-              "px-3 py-2 -mb-px border-b-2 font-semibold",
+              "px-3 py-2 -mb-px border-b-2 font-semibold whitespace-nowrap",
               tab === t.key
                 ? "border-blue-700 text-blue-700 dark:border-blue-300 dark:text-blue-300"
                 : "border-transparent text-slate-600 dark:text-slate-300 hover:text-blue-600"
@@ -496,8 +571,8 @@ export default function CustomerCard({ userRole = "sales" }) {
                 <h3 className="font-bold">Documents & Uploads</h3>
                 <label className="ml-auto cursor-pointer flex items-center gap-2">
                   <Upload className="w-4 h-4" />
-                  <input type="file" className="hidden" disabled={uploading} onChange={handleFileChange} />
-                  <span className="text-sm">{uploading ? "Uploading..." : "Upload"}</span>
+                  <input type="file" className="hidden" disabled={uploading} onChange={handleSmartUpload} />
+                  <span className="text-sm">{uploading ? "Uploading..." : "Smart Upload"}</span>
                 </label>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -532,6 +607,50 @@ export default function CustomerCard({ userRole = "sales" }) {
               ) : <div className="text-slate-400">No address provided.</div>}
             </Motion.div>
           )}
+
+          {/* Deal Desk */}
+          {tab === 'dealdesk' && (
+            <Motion.div key="dealdesk" {...ANIM_PROPS}>
+              <div className="flex items-center mb-3 gap-2">
+                <Star className="w-5 h-5" />
+                <h3 className="font-bold flex-1">Deal Desk</h3>
+                <button className="bg-green-700 text-white px-2 py-1 rounded flex items-center gap-1" onClick={() => alert("Add Deal Offer flow here!")}>+ New Offer</button>
+              </div>
+              <div className="divide-y divide-slate-200 dark:divide-slate-700">
+                {dealOffers.length ? dealOffers.map(offer => (
+                  <div key={offer.id} className="py-2 flex items-center gap-2">
+                    <span className={clsx(
+                      "px-2 py-0.5 rounded-full font-bold",
+                      offer.status === 'accepted' ? 'bg-green-100 text-green-700' :
+                        offer.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-700'
+                    )}>{offer.status}</span>
+                    <span className="flex-1">{offer.vehicle} — ${offer.amount}</span>
+                    {offer.status === "pending" && (
+                      <>
+                        <button className="bg-blue-700 text-white rounded px-2 py-1 text-xs" onClick={() => alert("Accept Offer")}>Accept</button>
+                        <button className="bg-red-700 text-white rounded px-2 py-1 text-xs" onClick={() => alert("Reject Offer")}>Reject</button>
+                      </>
+                    )}
+                  </div>
+                )) : <div className="text-slate-400 py-8 text-center">No offers yet.</div>}
+              </div>
+            </Motion.div>
+          )}
+
+          {/* Finance/Credit App */}
+          {tab === 'finance' && (
+            <Motion.div key="finance" {...ANIM_PROPS}>
+              <div className="flex items-center gap-2 mb-3">
+                <Shield className="w-5 h-5" />
+                <h3 className="font-bold">Credit & F&I Docs</h3>
+                <button className="bg-blue-700 text-white px-2 py-1 rounded flex items-center gap-1" onClick={() => setShowCreditModal(true)}><CreditCard className="w-4 h-4" /> Start Credit App</button>
+              </div>
+              <div className="p-3 bg-blue-50 dark:bg-slate-800 rounded text-blue-900 dark:text-blue-200">
+                Credit Application status: <span className="font-semibold">{creditStatus || "Not started"}</span>
+              </div>
+            </Motion.div>
+          )}
         </AnimatePresence>
       </div>
       <div className="mt-8">
@@ -539,6 +658,7 @@ export default function CustomerCard({ userRole = "sales" }) {
       </div>
       {showTaskModal && <TaskModal onClose={() => setShowTaskModal(false)} />}
       {showApptModal && <AppointmentModal onClose={() => setShowApptModal(false)} />}
+      {showCreditModal && <CreditAppModal onClose={() => setShowCreditModal(false)} />}
     </div>
   )
 }
