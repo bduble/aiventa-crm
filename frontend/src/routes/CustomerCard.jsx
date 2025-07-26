@@ -9,6 +9,7 @@ import {
 import { motion as Motion, AnimatePresence } from 'framer-motion'
 import clsx from 'clsx'
 
+// --- Helper for initials
 function getInitials(name = '') {
   return name.split(' ').map(part => part[0]?.toUpperCase()).join('').slice(0, 2)
 }
@@ -32,7 +33,6 @@ const PROFILE_FIELDS = [
   { key: 'vehicle_interest', label: 'Interested In', icon: Flame },
   { key: 'trade', label: 'Trade-in', icon: Star },
   { key: 'address', label: 'Address', icon: MapPin }
-  // Add more fields here as needed!
 ]
 
 const ANIM_PROPS = { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -20 }, transition: { duration: 0.2 } }
@@ -60,6 +60,7 @@ export default function CustomerCard({ userRole = "sales" }) {
   const [showTaskModal, setShowTaskModal] = useState(false)
   const [showApptModal, setShowApptModal] = useState(false)
 
+  // --- Auto-log activity
   const logActivity = async (type, note = '', subject = '') => {
     const payload = { activity_type: type, note, subject, customer_id: id, user_id: CURRENT_USER_ID }
     try {
@@ -125,7 +126,6 @@ export default function CustomerCard({ userRole = "sales" }) {
   const handleSave = async () => {
     try {
       const payload = {}
-      // Always update every editable field
       PROFILE_FIELDS.forEach(({ key }) => payload[key] = edited[key] ?? "")
       if (userRole === "manager") payload['hashed_password'] = edited['hashed_password'] ?? ""
       const res = await fetch(`${API_BASE}/customers/${id}`, {
@@ -161,20 +161,16 @@ export default function CustomerCard({ userRole = "sales" }) {
     fetch(`${API_BASE}/customers/${id}/files`).then(r => r.json()).then(docs => setFiles(docs || []))
   }
 
-
   if (loading) return <div className="flex justify-center items-center h-48">Loading...</div>
   if (!customer) return <div>Customer not found</div>
 
   const hotness = aiInfo?.hotness_score ?? customer?.hotness ?? 5
   const inMarket = aiInfo?.in_market ?? hotness >= 7
 
-  const nextTask = tasks
-    .filter(t => !t.completed)
-    .sort((a, b) => new Date(a.due_date) - new Date(b.due_date))[0]
-  const nextAppt = appointments
-    .sort((a, b) => new Date(a.start_time) - new Date(b.start_time))[0]
+  const nextTask = tasks.filter(t => !t.completed).sort((a, b) => new Date(a.due_date) - new Date(b.due_date))[0]
+  const nextAppt = appointments.sort((a, b) => new Date(a.start_time) - new Date(b.start_time))[0]
 
-  // Append manager field if role
+  // Add manager field if role
   const profileFields = [...PROFILE_FIELDS]
   if (userRole === "manager") {
     profileFields.push({ key: 'hashed_password', label: 'Password Hash', icon: BadgeCheck })
