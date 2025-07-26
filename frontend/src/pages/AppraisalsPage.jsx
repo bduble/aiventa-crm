@@ -142,7 +142,10 @@ export default function AppraisalsPage() {
       <div className="flex flex-wrap gap-3 mb-4 mt-1">
         {waitingLong && (
           <div className="flex items-center bg-yellow-100 border-l-4 border-yellow-400 px-3 py-1.5 rounded animate-pulse">
-            ⚡ <span className="ml-2 font-semibold text-yellow-700">2 appraisals “In Progress” >20 min!</span>
+            <span className="ml-2 font-semibold text-yellow-700">
+  2 appraisals “In Progress” &gt;20 min!
+</span>
+
           </div>
         )}
         {noFollowUp && (
