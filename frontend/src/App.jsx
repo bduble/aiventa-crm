@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTheme } from './context/ThemeContext.jsx';
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import PrivateRoute from "./components/PrivateRoute.jsx";
+import LoginPage from "./pages/LoginPage.jsx";
 
 import LeadLog                from "./routes/LeadLog";
 import UsersPage              from "./routes/UsersPage";
@@ -227,22 +229,25 @@ export default function App() {
       {/* CONTENT WRAPPER */}
       <div style={contentWrapperStyle}>
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/leads" element={<LeadLog />} />
-          <Route path="/leads/new" element={<CreateLeadForm />} />
-          <Route path="/new" element={<NewEntryPage />} />
-          <Route path="/customers" element={<CustomersPage />} />
-          <Route path="/customers/:id" element={<CustomerCard />} />
-          <Route path="/users" element={<UsersPage />} />
-          <Route path="/inventory" element={<InventoryPage />} />
-          <Route path="/deals" element={<DealsPage />} /> {/* <-- Add this! */}
-          <Route path="/appraisals" element={<AppraisalsPage />} />
-          <Route path="/recon" element={<ReconPage />} />
-          <Route path="/activities" element={<ActivityTimeline />} />
-          <Route path="/floor-traffic" element={<FloorTrafficPage />} />
-          <Route path="/floor-traffic/new" element={<CreateFloorTrafficForm />} />
-          <Route path="/appraisals/:id" element={<EditAppraisalPage />} />
-          <Route path="/kpi/:id" element={<KPIDetailPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route element={<PrivateRoute />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/leads" element={<LeadLog />} />
+            <Route path="/leads/new" element={<CreateLeadForm />} />
+            <Route path="/new" element={<NewEntryPage />} />
+            <Route path="/customers" element={<CustomersPage />} />
+            <Route path="/customers/:id" element={<CustomerCard />} />
+            <Route path="/users" element={<UsersPage />} />
+            <Route path="/inventory" element={<InventoryPage />} />
+            <Route path="/deals" element={<DealsPage />} /> {/* <-- Add this! */}
+            <Route path="/appraisals" element={<AppraisalsPage />} />
+            <Route path="/recon" element={<ReconPage />} />
+            <Route path="/activities" element={<ActivityTimeline />} />
+            <Route path="/floor-traffic" element={<FloorTrafficPage />} />
+            <Route path="/floor-traffic/new" element={<CreateFloorTrafficForm />} />
+            <Route path="/appraisals/:id" element={<EditAppraisalPage />} />
+            <Route path="/kpi/:id" element={<KPIDetailPage />} />
+          </Route>
         </Routes>
       </div>
     </Router>
