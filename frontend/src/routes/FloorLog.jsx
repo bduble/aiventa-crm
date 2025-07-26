@@ -1,47 +1,118 @@
 import { useEffect, useState } from 'react';
 import { Users } from 'lucide-react';
 import { formatTime } from '../utils/formatDateTime';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
+const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
 export default function FloorLog() {
   const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const API_BASE = import.meta.env.DEV
-    ? '/api'
-    : 'https://aiventa-crm.onrender.com/api';
-
-  useEffect(() => {
-    fetch(`${API_BASE}/floor-traffic/today`)
-      .then(res => {
-        if (!res.ok) throw new Error(`Fetch failed (${res.status})`);
-        return res.json();
-      })
-      .then(setLogs)
-      .catch(() => setLogs([]));
-  }, [API_BASE]);
-
+  // Match your API or Supabase field names!
   const headers = [
-    { key: 'timeIn', label: 'In' },
-    { key: 'timeOut', label: 'Out' },
+    { key: 'visit_time', label: 'In' },
+    { key: 'time_out', label: 'Out' },
     { key: 'salesperson', label: 'Sales' },
-    { key: 'customerName', label: 'Cust' },
+    { key: 'customer_name', label: 'Cust' },
     { key: 'vehicle', label: 'Veh' },
     { key: 'trade', label: 'Trade' },
     { key: 'demo', label: 'Demo' },
-    { key: 'writeUp', label: 'WriteUp' },
-    { key: 'customerOffer', label: 'Offer' },
+    { key: 'worksheet', label: 'Worksheet' },
+    { key: 'customer_offer', label: 'Offer' },
     { key: 'mgrTO', label: 'MgrTO' },
     { key: 'origin', label: 'Orig' },
+    { key: 'sold', label: 'Sold' }
   ];
 
+  // Fetch today’s floor traffic
+  useEffect(() => {
+    const fetchLogs = async () => {
+      setLoading(true);
+      try {
+        let data;
+        if (supabase) {
+          const today = new Date();
+          const start = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+          const end = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
+          const { data: res, error } = await supabase
+            .from('floor_traffic_customers')
+            .select('*')
+            .gte('visit_time', start)
+            .lt('visit_time', end)
+            .order('visit_time', { ascending: true });
+          if (error) throw error;
+          data = res || [];
+        } else {
+          const API_BASE = import.meta.env.DEV
+            ? '/api'
+            : 'https://aiventa-crm.onrender.com/api';
+          const res = await fetch(`${API_BASE}/floor-traffic/today`);
+          data = await res.json();
+        }
+        setLogs(data || []);
+      } catch (err) {
+        setLogs([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLogs();
+  }, []);
+
+  // KPI calculations
   const totalCustomers = logs.length;
-  const inStoreCount = logs.filter(l => !l.timeOut).length;
+  const inStoreCount = logs.filter(l => !l.time_out).length;
   const demoCount = logs.filter(l => l.demo).length;
   const worksheetCount = logs.filter(
     l => l.writeUp || l.worksheet || l.worksheet_complete || l.worksheetComplete || l.write_up
   ).length;
-  const offerCount = logs.filter(l => l.customerOffer || l.customer_offer).length;
+  const offerCount = logs.filter(l => l.customer_offer || l.customerOffer).length;
   const soldCount = logs.filter(l => l.sold).length;
   const pct = c => (totalCustomers ? Math.round((c / totalCustomers) * 100) : 0);
+
+  // Handle checkbox change and persist it
+  const handleToggle = async (id, field, value) => {
+    setLogs(logs =>
+      logs.map(row =>
+        row.id === id ? { ...row, [field]: value } : row
+      )
+    );
+    try {
+      if (supabase) {
+        const { error } = await supabase
+          .from('floor_traffic_customers')
+          .update({ [field]: value })
+          .eq('id', id);
+
+        if (error) throw error;
+
+        if (field === 'sold' && value === true) {
+          const soldRow = logs.find(row => row.id === id);
+          await supabase.from('deals').insert([{
+            customer_id: soldRow.customer_id || null,
+            vehicle: soldRow.vehicle || null,
+            salesperson: soldRow.salesperson || null,
+            floor_traffic_id: soldRow.id,
+            date: new Date().toISOString(),
+          }]);
+        }
+      } else {
+        // Call your API here if not Supabase
+      }
+    } catch (err) {
+      // revert UI if backend fails
+      setLogs(logs =>
+        logs.map(row =>
+          row.id === id ? { ...row, [field]: !value } : row
+        )
+      );
+      alert('Failed to update record.');
+      console.error(err);
+    }
+  };
 
   const kpiClass =
     'flex-1 rounded-3xl p-6 bg-gradient-to-br from-electricblue via-darkblue to-slategray text-white shadow-lg hover:shadow-xl hover:-translate-y-1 transition-transform';
@@ -83,17 +154,26 @@ export default function FloorLog() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-            {logs.length > 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan={headers.length} className="px-2 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                  Loading...
+                </td>
+              </tr>
+            ) : logs.length > 0 ? (
               logs.map((log, idx) => {
-                const isOpen = log.timeIn && !log.timeOut;
-                const rowBg = isOpen
+                const isOpen = log.visit_time && !log.time_out;
+                const isSold = !!log.sold;
+                const rowBg = isSold
+                  ? 'bg-green-100 dark:bg-green-900'
+                  : isOpen
                   ? 'bg-yellow-100 dark:bg-yellow-900'
-                  : (log.timeOut
+                  : (log.time_out
                       ? 'bg-gray-50 dark:bg-gray-800'
                       : 'bg-white dark:bg-gray-900');
                 return (
                   <tr
-                    key={idx}
+                    key={log.id || idx}
                     className={`${rowBg} hover:bg-electricblue/10 dark:hover:bg-electricblue/20`}
                   >
                     {headers.map(({ key }) => (
@@ -101,11 +181,21 @@ export default function FloorLog() {
                         key={key}
                         className="px-2 py-2 whitespace-nowrap text-xs sm:text-sm md:text-base text-gray-700 dark:text-gray-200"
                       >
-                        {['timeIn', 'timeOut'].includes(key)
-                          ? log[key]
-                            ? formatTime(log[key])
-                            : ''
-                          : String(log[key] ?? '')}
+                        {key === 'visit_time' || key === 'time_out' ? (
+                          log[key] ? formatTime(log[key]) : ''
+                        ) : typeof log[key] === 'boolean' ? (
+                          <input
+                            type="checkbox"
+                            checked={!!log[key]}
+                            disabled={key === 'sold' && !!log[key]} // can't uncheck sold
+                            onChange={e => {
+                              if (key === 'sold' && log[key]) return; // no unchecking sold
+                              handleToggle(log.id, key, e.target.checked);
+                            }}
+                          />
+                        ) : (
+                          String(log[key] ?? '')
+                        )}
                       </td>
                     ))}
                   </tr>
