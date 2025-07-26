@@ -6,9 +6,10 @@ from supabase import create_client, Client
 from bs4 import BeautifulSoup
 
 # --- SUPABASE SETUP ---
-SUPABASE_URL = "https://ckdwsvviiuhyqzroswfe.supabase.co"
-SUPABASE_KEY = "YOUR_SUPABASE_SERVICE_ROLE_KEY"  # Replace with your secure key!
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")  # Name your env variable this!
+
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # --- USER AGENTS & HEADERS ---
 USER_AGENTS = [
