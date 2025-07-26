@@ -1,20 +1,18 @@
 import { useState } from "react";
 
 export default function LoginPage() {
-  const [form, setForm] = useState({ email: "", password: "", remember: false });
+  const [form, setForm] = useState({ identity: "", password: "", remember: false });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotSuccess, setForgotSuccess] = useState("");
 
-  // Handle input change
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
     setForm(f => ({ ...f, [name]: type === "checkbox" ? checked : value }));
   }
 
-  // Login submit
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
@@ -25,15 +23,16 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form)
       });
-      if (!res.ok) throw new Error("Invalid credentials");
-      // Store token, handle session (cookie/localStorage based on remember)
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.detail || "Login failed");
+      }
       const { token } = await res.json();
       if (form.remember) {
         localStorage.setItem("token", token);
       } else {
         sessionStorage.setItem("token", token);
       }
-      // Redirect to dashboard/home
       window.location.href = "/";
     } catch (err) {
       setError(err.message || "Login failed");
@@ -42,7 +41,6 @@ export default function LoginPage() {
     }
   }
 
-  // Forgot password handler
   async function handleForgot(e) {
     e.preventDefault();
     setForgotSuccess("");
@@ -53,8 +51,8 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: forgotEmail })
       });
-      if (!res.ok) throw new Error("Email not found");
-      setForgotSuccess("Password reset email sent! Check your inbox.");
+      if (!res.ok) throw new Error("Email not found or could not send.");
+      setForgotSuccess("Password reset code sent! Check your email.");
     } catch (err) {
       setError(err.message || "Could not send reset email.");
     }
@@ -66,15 +64,17 @@ export default function LoginPage() {
         <h2 className="text-2xl font-bold text-center text-gray-800">aiVenta Login</h2>
         <form className="space-y-5" onSubmit={handleSubmit}>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
+            <label className="block text-sm font-medium text-gray-700">Email or Username</label>
             <input
               className="w-full mt-1 border border-gray-300 rounded-xl p-2"
-              type="email"
-              name="email"
-              value={form.email}
+              type="text"
+              name="identity"
+              value={form.identity}
               onChange={handleChange}
               required
               autoFocus
+              autoComplete="username"
+              placeholder="Email or Username"
             />
           </div>
           <div>
@@ -87,6 +87,7 @@ export default function LoginPage() {
               onChange={handleChange}
               required
               autoComplete="current-password"
+              placeholder="Password"
             />
           </div>
           <div className="flex items-center justify-between">
@@ -140,7 +141,7 @@ export default function LoginPage() {
                   type="submit"
                   className="flex-1 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700"
                 >
-                  Send Reset Link
+                  Send Reset Code
                 </button>
                 <button
                   type="button"
