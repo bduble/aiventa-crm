@@ -4,7 +4,6 @@ import FloorTrafficTable from '../components/FloorTrafficTable';
 import FloorTrafficModal from '../components/FloorTrafficModal';
 import { Users, MailCheck, Activity, XCircle } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
-import { Progress } from '../components/ui/progress';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
@@ -239,17 +238,46 @@ export default function FloorTrafficPage() {
   const [kpiRange, setKpiRange] = useState("today");
 
   // Handlers
-  const handleToggle = (id, field, value) => {
+  const handleToggle = async (id, field, value) => {
     setRows(rows =>
       rows.map(row =>
         row.id === id ? { ...row, [field]: value } : row
       )
     );
-    // TODO: update record in Supabase or via API if you want to persist changes!
+    try {
+      if (supabase) {
+        const { error } = await supabase
+          .from('floor_traffic_customers')
+          .update({ [field]: value })
+          .eq('id', id);
+
+        if (error) throw error;
+
+        if (field === 'sold' && value === true) {
+          const soldRow = rows.find(row => row.id === id);
+          // Adjust fields as needed for your "deals" table
+          await supabase.from('deals').insert([{
+            customer_id: soldRow.customer_id || null,
+            vehicle: soldRow.vehicle || null,
+            salesperson: soldRow.salesperson || null,
+            floor_traffic_id: soldRow.id,
+            date: new Date().toISOString(),
+          }]);
+        }
+      }
+    } catch (err) {
+      // Revert UI if error
+      setRows(rows =>
+        rows.map(row =>
+          row.id === id ? { ...row, [field]: !value } : row
+        )
+      );
+      alert('Failed to update record.');
+      console.error(err);
+    }
   };
 
   const handleSubmit = formData => {
-    console.log('Form submit:', formData);
     // TODO: insert or update record
     setModalOpen(false);
     setEditing(null);
