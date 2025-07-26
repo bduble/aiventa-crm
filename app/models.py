@@ -161,6 +161,8 @@ class FloorTrafficCustomer(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True)
 
+from pydantic import root_validator
+
 class FloorTrafficCustomerCreate(BaseModel):
     visit_time: datetime
     salesperson: str
@@ -175,12 +177,24 @@ class FloorTrafficCustomerCreate(BaseModel):
     status: Optional[str] = None
     notes: Optional[str] = None
     time_out: Optional[datetime] = None
+    name: Optional[str] = None  # Add this field for the combined name
 
     @validator('email', pre=True, always=True)
     def empty_string_to_none(cls, v):
         if v in (None, ''):
             return None
         return v
+
+    @root_validator(pre=True)
+    def set_customer_name(cls, values):
+        first = values.get('first_name', '')
+        last = values.get('last_name', '')
+        name = values.get('name')
+        # Only set if not provided
+        if not name:
+            values['name'] = f"{first} {last}".strip()
+        return values
+
 
 class FloorTrafficCustomerUpdate(BaseModel):
     salesperson: Optional[str] = None
