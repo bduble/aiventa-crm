@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
-//import FloorTrafficTable from '../components/FloorTrafficTable';
-//import FloorTrafficModal from '../components/FloorTrafficModal';
+import FloorTrafficTable from '../components/FloorTrafficTable';
+import FloorTrafficModal from '../components/FloorTrafficModal';
 import { Users, MailCheck, Activity, XCircle } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Progress } from '../components/ui/progress';
