@@ -6,7 +6,6 @@ import { Users, MailCheck, Activity, XCircle } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Progress } from '../components/ui/progress';
 
-
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
 const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
@@ -241,8 +240,12 @@ export default function FloorTrafficPage() {
 
   // Handlers
   const handleToggle = (id, field, value) => {
-    console.log('Toggle:', id, field, value);
-    // TODO: update record in Supabase or via API
+    setRows(rows =>
+      rows.map(row =>
+        row.id === id ? { ...row, [field]: value } : row
+      )
+    );
+    // TODO: update record in Supabase or via API if you want to persist changes!
   };
 
   const handleSubmit = formData => {
