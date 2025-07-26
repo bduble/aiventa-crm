@@ -1,61 +1,25 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { motion, AnimatePresence } from "framer-motion";
 import FloorTrafficTable from '../components/FloorTrafficTable';
 import FloorTrafficModal from '../components/FloorTrafficModal';
-import { Users, MailCheck, Activity, Plus, ArrowUp, ArrowDown, X, Sun, Moon } from 'lucide-react';
-
-// --- THEME SWITCH ---
-const getInitialTheme = () =>
-  localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+import { Users, MailCheck, Activity, Filter, XCircle } from 'lucide-react';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
-const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
-
-const getUrgentAlerts = (rows) => {
-  const now = Date.now();
-  const waiting = rows.filter(r => !r.time_out && (now - new Date(r.visit_time)) / 60000 > 20);
-  const apptsNotFollowed = rows.filter(r => r.appointment && !r.followed_up);
-  const alerts = [];
-  if (waiting.length > 0) alerts.push(`⚡ ${waiting.length} customers have been waiting >20 min!`);
-  if (apptsNotFollowed.length > 0) alerts.push(`🕒 ${apptsNotFollowed.length} appointments not yet followed up.`);
-  return alerts;
-};
-
-function AnimatedNumber({ value, className = "" }) {
-  // Smooth counter using framer-motion
-  return (
-    <motion.span
-      className={className}
-      initial={{ opacity: 0.5, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.2 }}
-      key={value}
-    >
-      <motion.span
-        animate={{ count: value }}
-        transition={{ duration: 0.8, type: "tween" }}
-        >
-        {value}
-      </motion.span>
-    </motion.span>
-  );
-}
+const supabase =
+  supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
 export default function FloorTrafficPage() {
   const API_BASE = import.meta.env.PROD
     ? import.meta.env.VITE_API_BASE_URL
     : '/api';
 
-  const [theme, setTheme] = useState(getInitialTheme());
   const [rows, setRows] = useState([]);
+  const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [view, setView] = useState('today'); // today|week
-  const [filterBy, setFilterBy] = useState('');
   const todayStr = new Date().toISOString().slice(0, 10);
   const [startDate, setStartDate] = useState(todayStr);
   const [endDate, setEndDate] = useState(todayStr);
@@ -65,16 +29,22 @@ export default function FloorTrafficPage() {
     appointmentsSet: 0,
   });
 
-  // Theme effect
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-    localStorage.setItem('theme', theme);
-  }, [theme]);
+  // Filtering logic
+  const [filterBy, setFilterBy] = useState(null);
+  // Only filter if filterBy is set
+  const filteredRows = filterBy
+    ? rows.filter(r => {
+        if (filterBy === 'appointmentsSet') return r.appointment_set || r.appointments_set;
+        if (filterBy === 'demo') return r.demo;
+        if (filterBy === 'worksheet') return r.worksheet;
+        return true;
+      })
+    : rows;
 
-  // Fetch traffic
   useEffect(() => {
     const fetchRange = async () => {
-      setLoading(true); setError('');
+      setLoading(true);
+      setError('');
       try {
         if (supabase) {
           const start = new Date(startDate);
@@ -99,30 +69,22 @@ export default function FloorTrafficPage() {
       } catch (err) {
         setError('Failed to load traffic');
         setRows([]);
-      } finally { setLoading(false); }
+      } finally {
+        setLoading(false);
+      }
     };
+
     fetchRange();
   }, [API_BASE, startDate, endDate]);
 
-  // Fetch activity metrics (today/week)
   useEffect(() => {
     const fetchActivityMetrics = async () => {
       try {
         if (supabase) {
-          let start, end;
-          if (view === "today") {
-            const today = new Date();
-            start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-            end = new Date(start);
-            end.setDate(end.getDate() + 1);
-          } else {
-            const today = new Date();
-            const day = today.getDay() || 7;
-            start = new Date(today);
-            start.setDate(today.getDate() - day + 1);
-            end = new Date(today);
-            end.setDate(start.getDate() + 7);
-          }
+          const today = new Date();
+          const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+          const end = new Date(start);
+          end.setDate(end.getDate() + 1);
           const { data, error: err } = await supabase
             .from('activities')
             .select('activity_type')
@@ -138,7 +100,7 @@ export default function FloorTrafficPage() {
           }
           setActivity(counts);
         } else {
-          const res = await fetch(`${API_BASE}/activities/${view}-metrics`);
+          const res = await fetch(`${API_BASE}/activities/today-metrics`);
           if (!res.ok) throw new Error('Failed to load activity metrics');
           const data = await res.json();
           setActivity({
@@ -149,10 +111,11 @@ export default function FloorTrafficPage() {
         }
       } catch (err) {}
     };
-    fetchActivityMetrics();
-  }, [API_BASE, view]);
 
-  // Derived stats
+    fetchActivityMetrics();
+  }, [API_BASE]);
+
+  // KPI logic
   const responded = rows.filter(r => r.last_response_time).length;
   const unresponded = rows.length - responded;
   const totalCustomers = rows.length;
@@ -162,206 +125,241 @@ export default function FloorTrafficPage() {
     r => r.writeUp || r.worksheet || r.worksheet_complete || r.worksheetComplete || r.write_up
   ).length;
   const offerCount = rows.filter(r => r.customer_offer || r.customerOffer).length;
-  const urgentAlerts = getUrgentAlerts(rows);
 
-  // Quick add handler
-  const handleQuickAdd = () => setModalOpen(true);
+  // Animated counters
+  function Counter({ value }) {
+    const [display, setDisplay] = useState(0);
+    useEffect(() => {
+      let start = display;
+      if (start === value) return;
+      const duration = 500;
+      const increment = (value - start) / (duration / 20);
+      let raf;
+      function animate() {
+        start += increment;
+        if ((increment > 0 && start >= value) || (increment < 0 && start <= value)) {
+          setDisplay(value);
+        } else {
+          setDisplay(Math.round(start));
+          raf = setTimeout(animate, 20);
+        }
+      }
+      animate();
+      return () => clearTimeout(raf);
+    }, [value]);
+    return <span className="font-extrabold text-3xl">{display}</span>;
+  }
 
-  // Table filter
-  const filteredRows = filterBy
-    ? rows.filter(r =>
-        filterBy === 'appointments'
-          ? r.activity_type?.toLowerCase().includes('appointment') || r.appointment
-          : filterBy === 'calls'
-          ? r.activity_type?.toLowerCase().includes('call')
-          : filterBy === 'texts'
-          ? r.activity_type?.toLowerCase().includes('text')
-          : true
-      )
-    : rows;
+  // Quick Add (Floating button)
+  function QuickAddButton() {
+    return (
+      <button
+        className="fixed top-[86px] right-6 z-50 bg-gradient-to-br from-electricblue to-blue-700 text-white px-5 py-2 rounded-full shadow-lg border-2 border-white font-bold hover:scale-105 transition-transform"
+        onClick={() => setModalOpen(true)}
+        title="Quick Add Floor Log"
+      >
+        + Quick Add
+      </button>
+    );
+  }
 
-  // KPI card
-  const kpiClass =
-    'flex-1 min-w-[140px] rounded-2xl p-4 sm:p-6 bg-gradient-to-br from-electricblue via-darkblue to-slategray text-white shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-transform relative cursor-pointer outline-none focus:ring-2 focus:ring-blue-400';
+  // Spacing for nav bar (make sure to match your nav's height)
+  const navSpacer = <div className="h-20 md:h-20 w-full" />;
+
+  // Color-coded badges for KPIs
+  const kpiBadge = (text, colorClass, arrow = null) => (
+    <span className={`ml-2 px-2 py-1 rounded-full text-xs font-bold ${colorClass} flex items-center gap-1`}>
+      {arrow}{text}
+    </span>
+  );
+
+  // KPI Cards (clickable)
+  const kpiCards = [
+    {
+      label: (
+        <>
+          Visitors
+          {kpiBadge(inStoreCount + " in store", "bg-blue-100 text-blue-800")}
+        </>
+      ),
+      value: totalCustomers,
+      onClick: null,
+      icon: <Users className="w-6 h-6" />,
+    },
+    {
+      label: (
+        <>
+          Appointments Set
+          {kpiBadge(
+            activity.appointmentsSet > 0 ? "HOT" : "Low",
+            activity.appointmentsSet > 0
+              ? "bg-green-100 text-green-700 animate-pulse"
+              : "bg-yellow-100 text-yellow-700",
+            activity.appointmentsSet > 0 ? "▲" : "▼"
+          )}
+        </>
+      ),
+      value: activity.appointmentsSet,
+      onClick: () => setFilterBy('appointmentsSet'),
+      icon: <Activity className="w-6 h-6" />,
+    },
+    {
+      label: (
+        <>
+          Demo
+          {kpiBadge(
+            demoCount > 0 ? "▲" : "▼",
+            demoCount > 0
+              ? "bg-green-100 text-green-700"
+              : "bg-yellow-100 text-yellow-700",
+            demoCount > 0 ? "▲" : "▼"
+          )}
+        </>
+      ),
+      value: demoCount,
+      onClick: () => setFilterBy('demo'),
+      icon: <Activity className="w-6 h-6" />,
+    },
+    {
+      label: (
+        <>
+          Worksheets
+          {kpiBadge(
+            worksheetCount > 0 ? "▲" : "▼",
+            worksheetCount > 0
+              ? "bg-green-100 text-green-700"
+              : "bg-yellow-100 text-yellow-700",
+            worksheetCount > 0 ? "▲" : "▼"
+          )}
+        </>
+      ),
+      value: worksheetCount,
+      onClick: () => setFilterBy('worksheet'),
+      icon: <Activity className="w-6 h-6" />,
+    },
+    {
+      label: (
+        <>
+          Sales Calls
+          {kpiBadge(
+            activity.salesCalls > 0 ? "▲" : "▼",
+            activity.salesCalls > 0
+              ? "bg-green-100 text-green-700"
+              : "bg-yellow-100 text-yellow-700",
+            activity.salesCalls > 0 ? "▲" : "▼"
+          )}
+        </>
+      ),
+      value: activity.salesCalls,
+      onClick: null,
+      icon: <MailCheck className="w-6 h-6" />,
+    },
+  ];
+
+  // Mini-alerts
+  const waitingLong = rows.filter(
+    r => r.time_out === null && r.visit_time && (Date.now() - new Date(r.visit_time).getTime()) > 20 * 60 * 1000
+  ).length;
+  const alertMsgs = [];
+  if (waitingLong > 0) alertMsgs.push(`⚡ ${waitingLong} customers have been waiting >20 min!`);
+  if (activity.appointmentsSet > 0 && activity.appointmentsSet > responded)
+    alertMsgs.push(`${activity.appointmentsSet - responded} appointments not yet followed up.`);
+
+  // Day/Week toggle (simplified for demo)
+  const [kpiRange, setKpiRange] = useState("today");
 
   return (
-    <div className={`pt-20 p-2 sm:p-6 space-y-4 max-w-6xl mx-auto ${theme === "dark" ? "bg-[#181f2a] text-gray-100" : "bg-[#f9f9f9] text-gray-900"}`}>
-
-      {/* THEME SWITCH */}
-      <button
-        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-        className="fixed z-50 top-6 right-6 bg-white/80 dark:bg-black/50 rounded-full p-2 border shadow hover:scale-110 transition"
-        aria-label="Toggle theme"
-      >
-        {theme === "dark" ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-gray-800" />}
-      </button>
-
-      {/* Quick Add floating */}
-      <button
-        onClick={handleQuickAdd}
-        className="fixed z-50 right-5 top-[82px] sm:top-[92px] bg-green-500 hover:bg-green-600 text-white shadow-xl px-4 py-2 rounded-full font-bold flex items-center gap-2 transition-all border-4 border-white"
-        style={{ boxShadow: "0 8px 24px 0 rgba(20,120,70,0.17)" }}
-      >
-        <Plus className="w-5 h-5" /> Quick Add
-      </button>
+    <div className="p-2 pt-8 md:p-8 relative min-h-screen bg-gray-50">
+      {navSpacer}
+      <QuickAddButton />
 
       {/* Alerts */}
-      {urgentAlerts.length > 0 && (
-        <div className="flex flex-col gap-2">
-          {urgentAlerts.map((msg, i) => (
-            <motion.div
+      {alertMsgs.length > 0 && (
+        <div className="mb-3">
+          {alertMsgs.map((msg, i) => (
+            <div
               key={i}
-              initial={{ scale: 0.95, opacity: 0.5 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="flex items-center bg-red-50 border-l-4 border-red-500 text-red-700 px-3 py-2 rounded animate-pulse"
+              className="mb-1 px-3 py-2 border-l-4 border-yellow-400 bg-yellow-100 text-yellow-900 font-bold rounded-r shadow animate-pulse"
             >
-              <span className="font-semibold">{msg}</span>
-            </motion.div>
+              {msg}
+            </div>
           ))}
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-        <h1 className="text-3xl font-bold tracking-tight">Floor Traffic</h1>
-        <div className="flex gap-2 items-center">
-          {/* Toggle Today/Week */}
+      {/* KPI/Filter Row */}
+      <div className="flex flex-wrap gap-4 items-center mb-6">
+        <div className="flex flex-row flex-wrap gap-3 w-full">
+          {kpiCards.map((k, i) => (
+            <div
+              key={i}
+              onClick={k.onClick}
+              className={`flex-1 min-w-[130px] p-4 rounded-2xl shadow-lg bg-white border hover:border-blue-400 transition cursor-pointer select-none ${
+                k.onClick ? 'hover:bg-blue-50' : ''
+              }`}
+              style={{ maxWidth: 210 }}
+            >
+              <div className="flex items-center gap-2">{k.icon}<span className="font-semibold text-base">{k.label}</span></div>
+              <div className="mt-1 text-4xl font-extrabold text-darkblue">
+                <Counter value={k.value} />
+              </div>
+              {k.onClick && filterBy === Object.keys(kpiCards)[i] && (
+                <span className="inline-block mt-2 bg-blue-200 text-blue-800 px-2 py-1 rounded-full text-xs">
+                  Filtering
+                </span>
+              )}
+            </div>
+          ))}
+          {/* Filter badge */}
+          {filterBy && (
+            <span
+              className="ml-3 mt-2 px-3 py-2 bg-slate-200 text-blue-700 font-bold rounded-full cursor-pointer flex items-center animate-pulse"
+              onClick={() => setFilterBy(null)}
+              title="Clear Filter"
+            >
+              <XCircle className="w-4 h-4 mr-1" /> Clear Filter
+            </span>
+          )}
+        </div>
+        {/* Day/Week toggle */}
+        <div className="flex gap-2 items-center ml-auto">
           <button
-            onClick={() => setView('today')}
-            className={`px-3 py-1 rounded-full font-semibold text-xs transition ${
-              view === 'today'
-                ? 'bg-blue-600 text-white shadow'
-                : 'bg-white text-blue-700 border border-blue-400'
-            }`}
+            className={`px-4 py-1 rounded-l-full font-bold ${kpiRange === 'today' ? 'bg-blue-600 text-white' : 'bg-white border'}`}
+            onClick={() => setKpiRange('today')}
           >
             Today
           </button>
           <button
-            onClick={() => setView('week')}
-            className={`px-3 py-1 rounded-full font-semibold text-xs transition ${
-              view === 'week'
-                ? 'bg-blue-600 text-white shadow'
-                : 'bg-white text-blue-700 border border-blue-400'
-            }`}
+            className={`px-4 py-1 rounded-r-full font-bold ${kpiRange === 'week' ? 'bg-blue-600 text-white' : 'bg-white border'}`}
+            onClick={() => setKpiRange('week')}
           >
-            This Week
+            Week
           </button>
         </div>
       </div>
 
-      {/* Filter badge */}
-      <AnimatePresence>
-        {filterBy && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8, x: 20 }}
-            animate={{ opacity: 1, scale: 1, x: 0 }}
-            exit={{ opacity: 0, scale: 0.8, x: 20 }}
-            className="flex items-center gap-2 bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium mb-1 w-fit shadow"
-          >
-            <span>Filter: {filterBy.charAt(0).toUpperCase() + filterBy.slice(1)}</span>
-            <button onClick={() => setFilterBy("")} className="ml-1 text-blue-700">
-              <X className="w-4 h-4" />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* KPI Cards */}
-      <div className="flex flex-col sm:flex-row gap-3 mt-2">
-        <div
-          className={kpiClass}
-          tabIndex={0}
-          onClick={() => setFilterBy('')}
-          aria-label="Show all"
-        >
-          <div className="flex items-center gap-2">
-            <Users className="w-5 h-5" />
-            <span className="uppercase tracking-wider text-sm font-medium">
-              Visitors
-            </span>
-            {totalCustomers > 10 && (
-              <span className="ml-2 bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-bold">HOT</span>
-            )}
-          </div>
-          <div className="flex items-end gap-2 mt-2">
-            <AnimatedNumber value={totalCustomers} className="text-4xl font-extrabold" />
-            {totalCustomers > 10 ? (
-              <ArrowUp className="text-green-400 w-5 h-5" />
-            ) : (
-              <ArrowDown className="text-yellow-400 w-5 h-5" />
-            )}
-          </div>
-          <div className="text-sm text-white/80">{inStoreCount} currently in store</div>
-          <ul className="mt-2 space-y-1 text-sm text-white/90">
-            <li>
-              <b>{demoCount}</b> demos
-              <span className="ml-1 bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-bold">Details</span>
-            </li>
-            <li>
-              <b>{worksheetCount}</b> worksheets
-            </li>
-            <li>
-              <b>{offerCount}</b> offers
-            </li>
-          </ul>
-        </div>
-
-        <div
-          className={kpiClass + ' sm:max-w-[220px]'}
-          tabIndex={0}
-          onClick={() => setFilterBy('')}
-          aria-label="Show all leads"
-        >
-          <div className="flex items-center gap-2">
-            <MailCheck className="w-5 h-5" />
-            <span className="uppercase tracking-wider text-sm font-medium">Leads</span>
-          </div>
-          <div className="flex gap-2 mt-2">
-            <AnimatedNumber value={responded} className="text-2xl font-bold" />
-            <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-semibold">Responded</span>
-          </div>
-          <div className="flex gap-2 mt-1">
-            <AnimatedNumber value={unresponded} className="text-2xl font-bold" />
-            <span className="bg-yellow-100 text-yellow-700 text-xs px-2 py-0.5 rounded-full font-semibold">Unresponded</span>
-          </div>
-        </div>
-
-        <div className={kpiClass + " focus:ring-green-400"} tabIndex={0}>
-          <div className="flex items-center gap-2">
-            <Activity className="w-5 h-5" />
-            <span className="uppercase tracking-wider text-sm font-medium">
-              {view === "today" ? "Today's" : "This Week's"} Activity
-            </span>
-          </div>
-          <ul className="mt-2 space-y-1 text-base text-white/90">
-            <li className="flex items-center gap-2">
-              <AnimatedNumber value={activity.salesCalls} className="font-bold text-xl" /> Sales Calls
-              <button
-                className="ml-2 text-xs underline text-blue-200"
-                onClick={() => setFilterBy('calls')}
-              >Details</button>
-            </li>
-            <li className="flex items-center gap-2">
-              <AnimatedNumber value={activity.textMessages} className="font-bold text-xl" /> Text Messages
-              <button
-                className="ml-2 text-xs underline text-blue-200"
-                onClick={() => setFilterBy('texts')}
-              >Details</button>
-            </li>
-            <li className="flex items-center gap-2">
-              <AnimatedNumber value={activity.appointmentsSet} className="font-bold text-xl" /> Appointments Set
-              <button
-                className="ml-2 text-xs underline text-blue-200"
-                onClick={() => setFilterBy('appointments')}
-              >Details</button>
-            </li>
-          </ul>
-        </div>
+      {/* Date pickers */}
+      <div className="flex flex-col sm:flex-row gap-3 items-center mb-3">
+        <label className="text-sm">Start:</label>
+        <input
+          type="date"
+          value={startDate}
+          onChange={e => setStartDate(e.target.value)}
+          className="border rounded px-2 py-1"
+        />
+        <label className="text-sm">End:</label>
+        <input
+          type="date"
+          value={endDate}
+          onChange={e => setEndDate(e.target.value)}
+          className="border rounded px-2 py-1"
+        />
       </div>
 
-      {/* Table and modals */}
       {error && (
         <div className="p-4 bg-red-100 text-red-700 rounded">{error}</div>
       )}
+
       {loading ? (
         <div className="p-4">Loading…</div>
       ) : (
@@ -371,10 +369,7 @@ export default function FloorTrafficPage() {
             setEditing(row);
             setModalOpen(true);
           }}
-          onToggle={(id, field, value) => {
-            setRows(prev => prev.map(r => (r.id === id ? { ...r, [field]: value } : r)));
-            // TODO: Add your update logic here if needed
-          }}
+          onToggle={handleToggle}
         />
       )}
 
@@ -384,13 +379,7 @@ export default function FloorTrafficPage() {
           setModalOpen(false);
           setEditing(null);
         }}
-        onSubmit={async data => {
-          if (!editing) return;
-          // TODO: Add your update logic here if needed
-          setRows(prev => prev.map(r => (r.id === editing.id ? { ...r, ...data } : r)));
-          setModalOpen(false);
-          setEditing(null);
-        }}
+        onSubmit={handleSubmit}
         initialData={editing}
       />
     </div>
