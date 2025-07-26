@@ -3,7 +3,9 @@ import { createClient } from '@supabase/supabase-js';
 import FloorTrafficTable from '../components/FloorTrafficTable';
 import FloorTrafficModal from '../components/FloorTrafficModal';
 import { Users, MailCheck, Activity, XCircle } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '../components/ui/card';
+import { Progress } from '../components/ui/progress';
+
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
