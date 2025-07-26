@@ -4,9 +4,9 @@ import jwt
 import secrets
 from datetime import datetime, timedelta, timezone
 
-from fastapi import FastAPI, HTTPException, status, Body
+from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from supabase import create_client, Client
 
 # Load env vars (SUPABASE_URL, SUPABASE_KEY, JWT_SECRET)
@@ -33,7 +33,7 @@ app.add_middleware(
 
 ### Models ###
 class LoginRequest(BaseModel):
-    email: EmailStr
+    identity: str  # email or username
     password: str
     remember: bool = False
 
@@ -41,10 +41,10 @@ class LoginResponse(BaseModel):
     token: str
 
 class ForgotPasswordRequest(BaseModel):
-    email: EmailStr
+    email: str  # still just by email for resets
 
 class ResetPasswordRequest(BaseModel):
-    email: EmailStr
+    email: str
     reset_code: str
     new_password: str
 
@@ -69,17 +69,21 @@ def now_utc():
 
 @app.post("/api/login", response_model=LoginResponse)
 def login(data: LoginRequest):
-    # 1. Get user by email
-    user_resp = supabase.from_("users").select("*").eq("email", data.email).single().execute()
+    # 1. Try to find user by email or username
+    identity = data.identity
+    if "@" in identity:
+        user_resp = supabase.from_("users").select("*").eq("email", identity).single().execute()
+    else:
+        user_resp = supabase.from_("users").select("*").eq("username", identity).single().execute()
     user = user_resp.data
     if not user or not check_password(data.password, user["hashed_password"]):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
-    # 2. Check status, etc if needed
-    # 3. Create JWT (longer if remember)
+    # 2. Create JWT (longer if remember)
     token = create_jwt(
         {
             "id": user["id"],
             "email": user["email"],
+            "username": user.get("username"),
             "role": user["role"],
             "permissions": user["permissions"],
         },
@@ -89,7 +93,7 @@ def login(data: LoginRequest):
 
 @app.post("/api/forgot-password")
 def forgot_password(data: ForgotPasswordRequest):
-    # 1. Check user exists
+    # 1. Check user exists (by email)
     user_resp = supabase.from_("users").select("id, email").eq("email", data.email).single().execute()
     user = user_resp.data
     if not user:
@@ -134,4 +138,3 @@ def reset_password(data: ResetPasswordRequest):
     return {"message": "Password updated."}
 
 # Optional: Add /api/me or /api/validate-token if you want to check JWT from frontend
-
