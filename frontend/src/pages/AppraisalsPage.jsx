@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import NewAppraisalForm from "../components/NewAppraisalForm";
 import { API_BASE } from "../apiBase";
-import { ArrowUpRight, Search, MessageCircle, Image, Mic, Zap, TrendingUp, TrendingDown } from "lucide-react";
+import {
+  ArrowUpRight, Search, MessageCircle, Image, Mic, Zap,
+  TrendingUp, TrendingDown, Printer, Share2, Edit3, Save, X, CheckCircle
+} from "lucide-react";
 
 // ----------- MOCK MARKET COMPS (for demo) --------------
 const mockComps = [
@@ -10,11 +13,17 @@ const mockComps = [
   { dealer: "SuperCarz", year: 2023, miles: 48000, price: 22600, hot: true },
 ];
 
-// ------------- Main Page Component ----------------------
+// ---------- Utility: Copy to clipboard ----------
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text);
+}
+
+// ------------------- Main Page Component ----------------------
 export default function AppraisalsPage() {
   const [appraisals, setAppraisals] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [selectedAppraisal, setSelectedAppraisal] = useState(null);
 
   // --- Market scan/AI values ---
   const [vin, setVin] = useState("");
@@ -143,9 +152,8 @@ export default function AppraisalsPage() {
         {waitingLong && (
           <div className="flex items-center bg-yellow-100 border-l-4 border-yellow-400 px-3 py-1.5 rounded animate-pulse">
             <span className="ml-2 font-semibold text-yellow-700">
-  2 appraisals “In Progress” &gt;20 min!
-</span>
-
+              2 appraisals “In Progress” &gt;20 min!
+            </span>
           </div>
         )}
         {noFollowUp && (
@@ -296,7 +304,11 @@ export default function AppraisalsPage() {
           </thead>
           <tbody>
             {filteredAppraisals.map((a) => (
-              <tr key={a.id} className="odd:bg-gray-50 hover:bg-blue-50 transition-all">
+              <tr
+                key={a.id}
+                className="odd:bg-gray-50 hover:bg-blue-100 transition-all cursor-pointer"
+                onClick={() => setSelectedAppraisal(a)}
+              >
                 <td className="p-2 whitespace-nowrap">{getCustomerName(a.customer_id)}</td>
                 <td className="p-2 whitespace-nowrap">{a.vehicle_vin || <span className="text-gray-400">—</span>}</td>
                 <td className="p-2 whitespace-nowrap">{a.year || <span className="text-gray-400">—</span>}</td>
@@ -306,8 +318,8 @@ export default function AppraisalsPage() {
                 <td className="p-2 whitespace-nowrap">
                   <span className={
                     a.status === "Final" ? "bg-green-100 text-green-800 px-2 rounded-full" :
-                    a.status === "Rejected" ? "bg-red-100 text-red-700 px-2 rounded-full" :
-                    "bg-yellow-100 text-yellow-800 px-2 rounded-full"
+                      a.status === "Rejected" ? "bg-red-100 text-red-700 px-2 rounded-full" :
+                        "bg-yellow-100 text-yellow-800 px-2 rounded-full"
                   }>
                     {a.status || "—"}
                   </span>
@@ -325,6 +337,16 @@ export default function AppraisalsPage() {
           </tbody>
         </table>
       </div>
+
+      {/* ---- Appraisal Detail Drawer/Modal ---- */}
+      {selectedAppraisal && (
+        <AppraisalDetailDrawer
+          appraisal={selectedAppraisal}
+          onClose={() => setSelectedAppraisal(null)}
+          customers={customers}
+          reloadAppraisals={reloadAppraisals}
+        />
+      )}
 
       {/* ---- New Appraisal Modal ---- */}
       {showForm && (
@@ -346,5 +368,299 @@ export default function AppraisalsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+// ============ AppraisalDetailDrawer ============
+
+function AppraisalDetailDrawer({ appraisal, onClose, customers, reloadAppraisals }) {
+  const [tab, setTab] = useState("info");
+  const [editMode, setEditMode] = useState(true); // enable edit by default
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({ ...appraisal });
+
+  // Find customer
+  const customer = customers.find(c => String(c.id) === String(appraisal.customer_id));
+  const customerName = customer ? (customer.name || `${customer.first_name} ${customer.last_name}`) : "—";
+
+  // Handle field edits
+  function handleChange(e) {
+    const { name, value } = e.target;
+    setForm(f => ({ ...f, [name]: value }));
+  }
+
+  // Save edits
+  async function handleSave() {
+    setSaving(true);
+    await fetch(`/api/appraisals/${appraisal.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form)
+    });
+    setSaving(false);
+    reloadAppraisals?.();
+    setEditMode(false);
+    onClose();
+  }
+
+  // Print handler
+  function handlePrint() {
+    window.print();
+  }
+
+  // Share handler
+  function handleShare() {
+    copyToClipboard(window.location.href + `#appraisal-${appraisal.id}`);
+    alert("Link copied to clipboard!");
+  }
+
+  // Tab content
+  const tabContent = {
+    info: (
+      <div className="flex flex-col gap-3">
+        <div>
+          <label className="text-xs text-gray-500">VIN</label>
+          <input
+            name="vehicle_vin"
+            value={form.vehicle_vin || ""}
+            onChange={handleChange}
+            readOnly={!editMode}
+            className="w-full border rounded p-2"
+          />
+        </div>
+        <div className="flex gap-2">
+          <div className="flex-1">
+            <label className="text-xs text-gray-500">Year</label>
+            <input
+              name="year"
+              value={form.year || ""}
+              onChange={handleChange}
+              readOnly={!editMode}
+              className="w-full border rounded p-2"
+            />
+          </div>
+          <div className="flex-1">
+            <label className="text-xs text-gray-500">Make</label>
+            <input
+              name="make"
+              value={form.make || ""}
+              onChange={handleChange}
+              readOnly={!editMode}
+              className="w-full border rounded p-2"
+            />
+          </div>
+          <div className="flex-1">
+            <label className="text-xs text-gray-500">Model</label>
+            <input
+              name="model"
+              value={form.model || ""}
+              onChange={handleChange}
+              readOnly={!editMode}
+              className="w-full border rounded p-2"
+            />
+          </div>
+        </div>
+        <div>
+          <label className="text-xs text-gray-500">Mileage</label>
+          <input
+            name="mileage"
+            value={form.mileage || ""}
+            onChange={handleChange}
+            readOnly={!editMode}
+            className="w-full border rounded p-2"
+          />
+        </div>
+        <div>
+          <label className="text-xs text-gray-500">Customer</label>
+          <input
+            value={customerName}
+            readOnly
+            className="w-full border rounded p-2 bg-gray-50"
+          />
+        </div>
+      </div>
+    ),
+    photos: (
+      <div>
+        <div className="mb-2 text-xs text-gray-600">Vehicle Photos</div>
+        <div className="flex gap-2 flex-wrap">
+          {(form.photos || []).map((url, i) => (
+            <img key={i} src={url} alt={`Vehicle Photo ${i + 1}`} className="h-24 rounded shadow" />
+          ))}
+        </div>
+        <button className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-bold print-hide">
+          + Upload Photos
+        </button>
+      </div>
+    ),
+    comps: (
+      <div>
+        <div className="mb-2 text-xs text-gray-600">Market Comps (50mi Radius)</div>
+        <table className="w-full text-xs bg-slate-50 rounded">
+          <thead>
+            <tr>
+              <th className="font-semibold">Dealer</th>
+              <th className="font-semibold">Year</th>
+              <th className="font-semibold">Mileage</th>
+              <th className="font-semibold">Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            {mockComps.map((comp, i) => (
+              <tr key={i} className="hover:bg-blue-50">
+                <td>{comp.dealer}</td>
+                <td>{comp.year}</td>
+                <td>{comp.miles.toLocaleString()}</td>
+                <td className="font-bold">${comp.price.toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <button className="mt-2 bg-slate-800 text-white px-3 py-1 rounded text-xs font-bold hover:bg-slate-900 print-hide">
+          Side-by-Side Compare
+        </button>
+      </div>
+    ),
+    notes: (
+      <div>
+        <textarea
+          name="notes"
+          value={form.notes || ""}
+          onChange={handleChange}
+          rows={6}
+          readOnly={!editMode}
+          className="w-full border rounded p-2"
+          placeholder="Add any important notes here…"
+        />
+      </div>
+    ),
+  };
+
+  // Print date helper
+  const printDate = new Date().toLocaleString();
+
+  return (
+    <>
+      {/* PRINT STYLES */}
+      <style>
+        {`
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  .appraisal-print-area, .appraisal-print-area * {
+    visibility: visible !important;
+  }
+  .appraisal-print-area {
+    position: absolute !important;
+    left: 0; top: 0;
+    width: 100vw;
+    background: #fff !important;
+    box-shadow: none !important;
+    z-index: 9999;
+    padding: 32px 24px !important;
+    min-height: 100vh;
+  }
+  .appraisal-print-header {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 18px;
+    border-bottom: 2px solid #003366;
+    padding-bottom: 8px;
+  }
+  .appraisal-print-logo {
+    height: 40px;
+  }
+  .appraisal-print-title {
+    font-size: 2rem;
+    color: #003366;
+    font-weight: bold;
+    letter-spacing: 1px;
+  }
+  .print-hide { display: none !important; }
+  .appraisal-print-footer {
+    margin-top: 32px;
+    padding-top: 12px;
+    border-top: 1px solid #ccc;
+    font-size: 13px;
+    color: #333;
+    text-align: right;
+  }
+}
+        `}
+      </style>
+      <div className="fixed inset-0 flex items-end md:items-center justify-center bg-black/40 z-50">
+        <div className="appraisal-print-area w-full max-w-2xl bg-white rounded-t-2xl md:rounded-2xl p-6 shadow-2xl relative animate-slide-in-up">
+          {/* Header (Branded, for print and digital) */}
+          <div className="appraisal-print-header">
+            <img
+              className="appraisal-print-logo"
+              src="https://www.garlynshelton.com/images/logo.png"
+              alt="Garlyn Shelton Logo"
+            />
+            <div className="appraisal-print-title">
+              Vehicle Appraisal Report
+            </div>
+          </div>
+          {/* CLOSE BUTTON */}
+          <button
+            onClick={onClose}
+            className="absolute top-3 right-4 text-2xl text-gray-400 hover:text-red-500 font-bold print-hide"
+          >×</button>
+
+          {/* ACTION BAR */}
+          <div className="flex gap-3 items-center mb-4 justify-end print-hide">
+            <button className="p-2" onClick={handlePrint} title="Print">
+              <Printer className="w-5 h-5" />
+            </button>
+            <button className="p-2" onClick={handleShare} title="Share">
+              <Share2 className="w-5 h-5" />
+            </button>
+            {!editMode && (
+              <button className="p-2" onClick={() => setEditMode(true)} title="Edit">
+                <Edit3 className="w-5 h-5" />
+              </button>
+            )}
+            {editMode && (
+              <button className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded" onClick={handleSave} disabled={saving}>
+                <Save className="w-5 h-5" />
+                {saving && <span className="ml-2 text-xs">Saving…</span>}
+              </button>
+            )}
+            <button className="p-2 bg-green-600 hover:bg-green-700 text-white rounded" title="Approve">
+              <CheckCircle className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* TABS */}
+          <div className="flex gap-4 border-b mb-4 print-hide">
+            {["info", "photos", "comps", "notes"].map((key) => (
+              <button
+                key={key}
+                className={`pb-2 px-3 font-bold capitalize border-b-2 ${
+                  tab === key ? "border-blue-600 text-blue-700" : "border-transparent text-gray-500"
+                }`}
+                onClick={() => setTab(key)}
+              >
+                {key === "info" && "Vehicle Info"}
+                {key === "photos" && "Photos"}
+                {key === "comps" && "Market Comps"}
+                {key === "notes" && "Notes"}
+              </button>
+            ))}
+          </div>
+
+          {/* TAB PANEL */}
+          <div className="min-h-[160px]">{tabContent[tab]}</div>
+
+          {/* PRINT FOOTER */}
+          <div className="appraisal-print-footer">
+            Garlyn Shelton Automotive Group | Temple, TX | (254) 771-0128<br />
+            Appraisal Generated: {printDate}
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
