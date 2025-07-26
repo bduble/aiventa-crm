@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default function CreateFloorTrafficForm() {
   const navigate = useNavigate();
-
-  // Determine API base: use VITE_API_BASE_URL or fall back to proxy
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
-
   const [form, setForm] = useState({
     visit_time: '',
     salesperson: '',
@@ -19,6 +20,7 @@ export default function CreateFloorTrafficForm() {
     demo: false,
     notes: '',
   });
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   const handleChange = (e) => {
@@ -29,11 +31,19 @@ export default function CreateFloorTrafficForm() {
     }));
   };
 
+  // Helper: build customer display name
+  const getFullName = (first, last) => {
+    const fn = first?.trim() || '';
+    const ln = last?.trim() || '';
+    return `${fn} ${ln}`.trim();
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSaving(true);
 
-    // Normalize visit_time to ISO string
+    // 1. Normalize visit_time to ISO string
     let { visit_time } = form;
     if (visit_time) {
       if (!visit_time.includes('T')) {
@@ -43,47 +53,66 @@ export default function CreateFloorTrafficForm() {
       visit_time = new Date(visit_time).toISOString();
     }
 
-    const payload = { ...form, visit_time };
-
+    // 2. Check for existing customer (by phone or email)
+    let customer_id = null;
     try {
-      const res = await fetch(`${API_BASE}/floor-traffic/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      let orFilters = [];
+      if (form.phone) orFilters.push(`phone.eq.${form.phone}`);
+      if (form.email) orFilters.push(`email.eq.${form.email}`);
 
-      if (!res.ok) {
-        // Attempt to parse JSON error body
-        const errData = await res.json().catch(() => ({}));
-
-        // Default message
-        let msg = 'Failed to save visitor';
-
-        // If FastAPI sent a detail payload
-        if (errData.detail) {
-          if (Array.isArray(errData.detail)) {
-            // Join multiple validation errors
-            msg = errData.detail
-              .map((e) => e.msg || JSON.stringify(e))
-              .join('; ');
-          } else if (typeof errData.detail === 'string') {
-            msg = errData.detail;
-          }
-        }
-        // HTTP-specific fallbacks
-        else if (res.status === 404) {
-          msg = 'Endpoint not found (404)';
-        } else if (res.status === 422) {
-          msg = 'Validation failed (422)';
-        }
-
-        throw new Error(msg);
+      let existingCustomer = null;
+      if (orFilters.length) {
+        const { data: found, error: findErr } = await supabase
+          .from('customers')
+          .select('*')
+          .or(orFilters.join(','));
+        if (findErr) throw findErr;
+        if (found && found.length > 0) existingCustomer = found[0];
       }
 
+      // 3. Insert new customer if needed
+      if (existingCustomer) {
+        customer_id = existingCustomer.customer_id;
+      } else {
+        const displayName = getFullName(form.first_name, form.last_name);
+        const { data: inserted, error: insertErr } = await supabase
+          .from('customers')
+          .insert([
+            {
+              name: displayName,
+              first_name: form.first_name,
+              last_name: form.last_name,
+              phone: form.phone,
+              email: form.email,
+            },
+          ])
+          .select();
+        if (insertErr) throw insertErr;
+        customer_id = inserted[0].customer_id;
+      }
+
+      // 4. Insert floor traffic record
+      const floorTrafficPayload = {
+        visit_time,
+        salesperson: form.salesperson,
+        customer_id, // foreign key
+        vehicle: form.vehicle,
+        trade: form.trade,
+        demo: form.demo,
+        notes: form.notes,
+      };
+
+      const { error: trafficErr } = await supabase
+        .from('floor_traffic_customers')
+        .insert([floorTrafficPayload]);
+      if (trafficErr) throw trafficErr;
+
+      setSaving(false);
       navigate('/floor-traffic');
     } catch (err) {
+      setSaving(false);
+      setError(err.message || 'Failed to log visitor.');
       console.error(err);
-      setError(err.message);
     }
   };
 
@@ -139,6 +168,7 @@ export default function CreateFloorTrafficForm() {
               name="first_name"
               value={form.first_name}
               onChange={handleChange}
+              required
               className="mt-1 block w-full bg-white border border-gray-300 rounded-md dark:bg-gray-900 dark:border-gray-600"
             />
           </div>
@@ -150,6 +180,7 @@ export default function CreateFloorTrafficForm() {
               name="last_name"
               value={form.last_name}
               onChange={handleChange}
+              required
               className="mt-1 block w-full bg-white border border-gray-300 rounded-md dark:bg-gray-900 dark:border-gray-600"
             />
           </div>
@@ -166,6 +197,7 @@ export default function CreateFloorTrafficForm() {
               name="email"
               value={form.email}
               onChange={handleChange}
+              required
               className="mt-1 block w-full bg-white border border-gray-300 rounded-md dark:bg-gray-900 dark:border-gray-600"
             />
           </div>
@@ -177,6 +209,7 @@ export default function CreateFloorTrafficForm() {
               name="phone"
               value={form.phone}
               onChange={handleChange}
+              required
               className="mt-1 block w-full bg-white border border-gray-300 rounded-md dark:bg-gray-900 dark:border-gray-600"
             />
           </div>
@@ -238,9 +271,10 @@ export default function CreateFloorTrafficForm() {
         {/* Submit Button */}
         <button
           type="submit"
+          disabled={saving}
           className="mt-4 w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600"
         >
-          Save Visitor
+          {saving ? 'Saving...' : 'Save Visitor'}
         </button>
       </form>
     </div>
