@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import FloorTrafficTable from '../components/FloorTrafficTable';
 import FloorTrafficModal from '../components/FloorTrafficModal';
-import { Users, MailCheck, Activity, Filter, XCircle } from 'lucide-react';
+import { Users, MailCheck, Activity, XCircle } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
-const supabase =
-  supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
 export default function FloorTrafficPage() {
   const API_BASE = import.meta.env.PROD
@@ -15,7 +15,6 @@ export default function FloorTrafficPage() {
     : '/api';
 
   const [rows, setRows] = useState([]);
-  const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
@@ -28,23 +27,11 @@ export default function FloorTrafficPage() {
     textMessages: 0,
     appointmentsSet: 0,
   });
+
+  // Filtering logic
   const [filterBy, setFilterBy] = useState(null);
 
-  // STUB: Toggle handler for table rows
-  const handleToggle = (row) => {
-    console.log('toggle clicked:', row);
-    // TODO: implement update logic (Supabase or API call)
-  };
-
-  // STUB: Submit handler for modal form
-  const handleSubmit = (formData) => {
-    console.log('modal submit:', formData);
-    // TODO: implement insert logic (Supabase or API call)
-    setModalOpen(false);
-    setEditing(null);
-  };
-
-  // Filtered rows based on KPI clicks
+  // Only filter if filterBy is set
   const filteredRows = filterBy
     ? rows.filter(r => {
         if (filterBy === 'appointmentsSet') return r.appointment_set || r.appointments_set;
@@ -80,7 +67,6 @@ export default function FloorTrafficPage() {
           setRows(data || []);
         }
       } catch (err) {
-        console.error(err);
         setError('Failed to load traffic');
         setRows([]);
       } finally {
@@ -120,25 +106,27 @@ export default function FloorTrafficPage() {
           setActivity({
             salesCalls: data.sales_calls ?? data.salesCalls ?? 0,
             textMessages: data.text_messages ?? data.textMessages ?? 0,
-            appointmentsSet: data.sales_calls ?? data.appointmentsSet ?? 0,
+            appointmentsSet: data.appointments_set ?? data.appointmentsSet ?? 0,
           });
         }
-      } catch (err) {
-        console.error(err);
-      }
+      } catch (err) {}
     };
 
     fetchActivityMetrics();
   }, [API_BASE]);
 
-  // KPI counts
+  // KPI logic
   const responded = rows.filter(r => r.last_response_time).length;
+  const unresponded = rows.length - responded;
   const totalCustomers = rows.length;
   const inStoreCount = rows.filter(r => !r.time_out).length;
   const demoCount = rows.filter(r => r.demo).length;
-  const worksheetCount = rows.filter(r => r.writeUp || r.worksheet || r.worksheet_complete).length;
+  const worksheetCount = rows.filter(
+    r => r.writeUp || r.worksheet || r.worksheet_complete || r.worksheetComplete || r.write_up
+  ).length;
+  const offerCount = rows.filter(r => r.customer_offer || r.customerOffer).length;
 
-  // Animated counter component
+  // Animated counters
   function Counter({ value }) {
     const [display, setDisplay] = useState(0);
     useEffect(() => {
@@ -162,7 +150,7 @@ export default function FloorTrafficPage() {
     return <span className="font-extrabold text-3xl">{display}</span>;
   }
 
-  // Quick Add button
+  // Quick Add (Floating button)
   function QuickAddButton() {
     return (
       <button
@@ -175,90 +163,140 @@ export default function FloorTrafficPage() {
     );
   }
 
+  // Spacing for nav bar
   const navSpacer = <div className="h-20 md:h-20 w-full" />;
 
-  // Alerts
-  const waitingLong = rows.filter(
-    r => !r.time_out && r.visit_time && (Date.now() - new Date(r.visit_time).getTime()) > 20 * 60 * 1000
-  ).length;
-  const alertMsgs = [];
-  if (waitingLong > 0) alertMsgs.push(`⚡ ${waitingLong} customers have been waiting >20 min!`);
-  if (activity.appointmentsSet > 0 && activity.appointmentsSet > responded)
-    alertMsgs.push(`${activity.appointmentsSet - responded} appointments not yet followed up.`);
-
-  // KPI cards definition
+  // KPI Cards (clickable)
   const kpiCards = [
     {
-      label: <>Visitors<span className="ml-2 px-2 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800">{inStoreCount} in store</span></>,
+      label: (
+        <>
+          Visitors
+          <span className="ml-2 px-2 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800">{inStoreCount} in store</span>
+        </>
+      ),
       value: totalCustomers,
       onClick: null,
       icon: <Users className="w-6 h-6" />,
     },
     {
-      label: <>Appointments Set<span className={`ml-2 px-2 py-1 rounded-full text-xs font-bold ${activity.appointmentsSet>0?'bg-green-100 text-green-700 animate-pulse':'bg-yellow-100 text-yellow-700'}`}>{activity.appointmentsSet>0?'HOT':'Low'}</span></>,
+      label: (
+        <>
+          Appointments Set
+          <span className={`ml-2 px-2 py-1 rounded-full text-xs font-bold ${activity.appointmentsSet > 0 ? 'bg-green-100 text-green-700 animate-pulse' : 'bg-yellow-100 text-yellow-700'}`}>{activity.appointmentsSet > 0 ? 'HOT' : 'Low'}</span>
+        </>
+      ),
       value: activity.appointmentsSet,
       onClick: () => setFilterBy('appointmentsSet'),
       icon: <Activity className="w-6 h-6" />,
     },
     {
-      label: <>Demo<span className={`ml-2 px-2 py-1 rounded-full text-xs font-bold ${demoCount>0?'bg-green-100 text-green-700':'bg-yellow-100 text-yellow-700'}`}>{demoCount>0?'▲':'▼'}</span></>,
+      label: (
+        <>
+          Demo
+          <span className={`ml-2 px-2 py-1 rounded-full text-xs font-bold ${demoCount > 0 ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{demoCount > 0 ? '▲' : '▼'}</span>
+        </>
+      ),
       value: demoCount,
       onClick: () => setFilterBy('demo'),
       icon: <Activity className="w-6 h-6" />,
     },
     {
-      label: <>Worksheets<span className={`ml-2 px-2 py-1 rounded-full text-xs font-bold ${worksheetCount>0?'bg-green-100 text-green-700':'bg-yellow-100 text-yellow-700'}`}>{worksheetCount>0?'▲':'▼'}</span></>,
+      label: (
+        <>
+          Worksheets
+          <span className={`ml-2 px-2 py-1 rounded-full text-xs font-bold ${worksheetCount > 0 ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{worksheetCount > 0 ? '▲' : '▼'}</span>
+        </>
+      ),
       value: worksheetCount,
       onClick: () => setFilterBy('worksheet'),
       icon: <Activity className="w-6 h-6" />,
     },
     {
-      label: <>Sales Calls<span className={`ml-2 px-2 py-1 rounded-full text-xs font-bold ${activity.salesCalls>0?'bg-green-100 text-green-700':'bg-yellow-100 text-yellow-700'}`}>{activity.salesCalls>0?'▲':'▼'}</span></>,
+      label: (
+        <>
+          Sales Calls
+          <span className={`ml-2 px-2 py-1 rounded-full text-xs font-bold ${activity.salesCalls > 0 ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{activity.salesCalls > 0 ? '▲' : '▼'}</span>
+        </>
+      ),
       value: activity.salesCalls,
       onClick: null,
       icon: <MailCheck className="w-6 h-6" />,
     },
   ];
 
-  // Day/Week toggle state
-  const [kpiRange, setKpiRange] = useState('today');
+  // Mini-alerts
+  const waitingLong = rows.filter(
+    r => r.time_out === null && r.visit_time && (Date.now() - new Date(r.visit_time).getTime()) > 20 * 60 * 1000
+  ).length;
+  const alertMsgs = [];
+  if (waitingLong > 0) alertMsgs.push(`⚡ ${waitingLong} customers have been waiting >20 min!`);
+  if (activity.appointmentsSet > 0 && activity.appointmentsSet > responded)
+    alertMsgs.push(`${activity.appointmentsSet - responded} appointments not yet followed up.`);
+
+  // Day/Week toggle
+  const [kpiRange, setKpiRange] = useState("today");
+
+  // Handlers
+  const handleToggle = (id, field, value) => {
+    console.log('Toggle:', id, field, value);
+    // TODO: update record in Supabase or via API
+  };
+
+  const handleSubmit = formData => {
+    console.log('Form submit:', formData);
+    // TODO: insert or update record
+    setModalOpen(false);
+    setEditing(null);
+  };
 
   return (
     <div className="p-2 pt-8 md:p-8 relative min-h-screen bg-gray-50">
       {navSpacer}
       <QuickAddButton />
 
-      {alertMsgs.length>0 && (
+      {/* Alerts */}
+      {alertMsgs.length > 0 && (
         <div className="mb-3">
-          {alertMsgs.map((msg,i)=>(
-            <div key={i} className="mb-1 px-3 py-2 border-l-4 border-yellow-400 bg-yellow-100 text-yellow-900 font-bold rounded-r shadow animate-pulse">
+          {alertMsgs.map((msg, i) => (
+            <div
+              key={i}
+              className="mb-1 px-3 py-2 border-l-4 border-yellow-400 bg-yellow-100 text-yellow-900 font-bold rounded-r shadow animate-pulse"
+            >
               {msg}
             </div>
           ))}
         </div>
       )}
 
-      {/* KPI / Filters */}
+      {/* KPI/Filter Row */}
       <div className="flex flex-wrap gap-4 items-center mb-6">
         <div className="flex flex-row flex-wrap gap-3 w-full">
-          {kpiCards.map((k,i)=>(
+          {kpiCards.map((k, i) => (
             <div
               key={i}
               onClick={k.onClick}
-              className={`flex-1 min-w-[130px] p-4 rounded-2xl shadow-lg bg-white border hover:border-blue-400 transition cursor-pointer select-none ${k.onClick?'hover:bg-blue-50':''}`}
-              style={{ maxWidth:210 }}
+              className={`flex-1 min-w-[130px] p-4 rounded-2xl shadow-lg bg-white border hover:border-blue-400 transition cursor-pointer select-none ${
+                k.onClick ? 'hover:bg-blue-50' : ''
+              }`}
+              style={{ maxWidth: 210 }}
             >
               <div className="flex items-center gap-2">{k.icon}<span className="font-semibold text-base">{k.label}</span></div>
               <div className="mt-1 text-4xl font-extrabold text-darkblue">
                 <Counter value={k.value} />
               </div>
-              {k.onClick && filterBy===['appointmentsSet','demo','worksheet','salesCalls'][i] && <span className="inline-block mt-2 bg-blue-200 text-blue-800 px-2 py-1 rounded-full text-xs">Filtering</span>}
+              {k.onClick && filterBy === Object.keys(kpiCards)[i] && (
+                <span className="inline-block mt-2 bg-blue-200 text-blue-800 px-2 py-1 rounded-full text-xs">
+                  Filtering
+                </span>
+              )}
             </div>
           ))}
+          {/* Filter badge */}
           {filterBy && (
             <span
               className="ml-3 mt-2 px-3 py-2 bg-slate-200 text-blue-700 font-bold rounded-full cursor-pointer flex items-center animate-pulse"
-              onClick={()=>setFilterBy(null)}
+              onClick={() => setFilterBy(null)}
               title="Clear Filter"
             >
               <XCircle className="w-4 h-4 mr-1" /> Clear Filter
@@ -267,13 +305,69 @@ export default function FloorTrafficPage() {
         </div>
         {/* Day/Week toggle */}
         <div className="flex gap-2 items-center ml-auto">
-          <button className={`px-4 py-1 rounded-l-full font-bold ${kpiRange==='today'?'bg-blue-600 text-white':'bg-white border'}`} onClick={()=>setKpiRange('today')}>Today</button>
-          <button className={`px-4 py-1 rounded-r-full font-bold ${kpiRange==='week'?'bg-blue-600 text-white':'bg-white border'}`} onClick={()=>setKpiRange('week')}>Week</button>
+          <button
+            className={`px-4 py-1 rounded-l-full font-bold ${kpiRange === 'today' ? 'bg-blue-600 text-white' : 'bg-white border'}`}
+            onClick={() => setKpiRange('today')}
+          >
+            Today
+          </button>
+          <button
+            className={`px-4 py-1 rounded-r-full font-bold ${kpiRange === 'week' ? 'bg-blue-600 text-white' : 'bg-white border'}`}
+            onClick={() => setKpiRange('week')}
+          >
+            Week
+          </button>
         </div>
       </div>
 
       {/* Date pickers */}
       <div className="flex flex-col sm:flex-row gap-3 items-center mb-3">
         <label className="text-sm">Start:</label>
-        <input type="date" value={startDate} onChange={e=>setStartDate(e.target.value)} className="border rounded px-2 py-1" />
+        <input
+          type="date"
+          value={startDate}
+          onChange={e => setStartDate(e.target.value)}
+          className="border rounded px-2 py-1"
+        />
         <label className="text-sm">End:</label>
+        <input
+          type="date"
+          value={endDate}
+          onChange={e => setEndDate(e.target.value)}
+          className="border rounded px-2 py-1"
+        />
+      </div>
+
+      {error && (
+        <div className="p-4 bg-red-100 text-red-700 rounded">{error}</div>
+      )}
+
+      <Card className="overflow-hidden">
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="p-4">Loading…</div>
+          ) : (
+            <FloorTrafficTable
+              rows={filteredRows}
+              onEdit={row => {
+                setEditing(row);
+                setModalOpen(true);
+              }}
+              onToggle={handleToggle}
+            />
+          )}
+        </CardContent>
+      </Card>
+
+      <FloorTrafficModal
+        isOpen={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          setEditing(null);
+        }}
+        onSubmit={handleSubmit}
+        initialData={editing}
+      />
+    </div>
+  );
+}
