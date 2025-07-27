@@ -25,6 +25,7 @@ from app.routers.search         import router as search_router
 from app.routers.appraisals     import router as appraisals_router
 from app.openai_router          import router as ai_router
 from app.routers.vin            import router as vin_router
+from app.routers.auth           import router as auth_router
 
 # ── App init ──
 app = FastAPI(title="aiVenta CRM API")
@@ -98,6 +99,10 @@ app.include_router(comps_router,         prefix=f"{api_prefix}",              ta
 app.include_router(search_router,        prefix=f"{api_prefix}",              tags=["search"])
 app.include_router(ai_router,            prefix=f"{api_prefix}",              tags=["ai"])
 app.include_router(vin_router,           prefix='/api/vin',                   tags=["vin"])
+app.include_router(auth_router,          prefix=f"{api_prefix}",              tags=["auth"])
+
+# This makes your endpoints /api/login, /api/forgot-password, /api/reset-password
+
 
 print("Allowed origins for CORS:", allowed_origins)
 
