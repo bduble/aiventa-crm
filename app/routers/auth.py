@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 # ── ENV & DB ──
 load_dotenv()
 SUPABASE_URL = os.environ["SUPABASE_URL"]
-SUPABASE_KEY = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
+SUPABASE_KEY = os.environ["SUPABASE_KEY"]
 JWT_SECRET = os.environ.get("JWT_SECRET", "change_me")
 JWT_EXP = 7200  # 2 hours
 
