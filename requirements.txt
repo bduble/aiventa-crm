@@ -9,3 +9,4 @@ twilio
 python-multipart
 requests
 beautifulsoup4
+bcrypt
