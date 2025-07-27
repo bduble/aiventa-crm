@@ -1,5 +1,8 @@
 import { useState } from "react";
 
+// Get the API base URL from your environment variable
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
 export default function LoginPage() {
   const [form, setForm] = useState({ identity: "", password: "", remember: false });
   const [error, setError] = useState("");
@@ -18,7 +21,8 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/login", {
+      // Use the API_BASE env variable for the backend URL
+      const res = await fetch(`${API_BASE}/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form)
@@ -46,7 +50,8 @@ export default function LoginPage() {
     setForgotSuccess("");
     setError("");
     try {
-      const res = await fetch("/api/forgot-password", {
+      // Use the API_BASE env variable for the backend URL
+      const res = await fetch(`${API_BASE}/api/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: forgotEmail })
