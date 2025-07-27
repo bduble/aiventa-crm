@@ -1,11 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Users } from 'lucide-react';
 import { formatTime } from '../utils/formatDateTime';
-import { createClient } from '@supabase/supabase-js';
+import supabase from '../supabase';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
-const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
 export default function FloorLog() {
   const [logs, setLogs] = useState([]);
