@@ -242,6 +242,9 @@ export default function FloorTrafficPage() {
         key => (newEntry[key] === '' || newEntry[key] == null) && delete newEntry[key]
       );
 
+      // **ADD THIS LOG** — SEE THE PAYLOAD BEFORE INSERT
+      console.log("Submitting to floor_traffic_customers:", newEntry);
+
       // Insert new floor traffic customer
       const { data, error: insertErr } = await supabase
         .from('floor_traffic_customers')
