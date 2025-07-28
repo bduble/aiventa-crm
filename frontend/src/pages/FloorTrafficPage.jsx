@@ -5,11 +5,11 @@ import FloorTrafficModal from '../components/FloorTrafficModal';
 import { Users, MailCheck, Activity, XCircle } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 
-
 export default function FloorTrafficPage() {
-  const API_BASE = import.meta.env.PROD
-    ? import.meta.env.VITE_API_BASE_URL
-    : '/api';
+  // API base (not needed for Supabase use)
+  // const API_BASE = import.meta.env.PROD
+  //   ? import.meta.env.VITE_API_BASE_URL
+  //   : '/api';
 
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -27,8 +27,6 @@ export default function FloorTrafficPage() {
 
   // Filtering logic
   const [filterBy, setFilterBy] = useState(null);
-
-  // Only filter if filterBy is set
   const filteredRows = filterBy
     ? rows.filter(r => {
         if (filterBy === 'appointmentsSet') return r.appointment_set || r.appointments_set;
@@ -43,26 +41,18 @@ export default function FloorTrafficPage() {
       setLoading(true);
       setError('');
       try {
-        if (supabase) {
-          const start = new Date(startDate);
-          const end = new Date(endDate);
-          const endIso = new Date(end.getTime());
-          endIso.setDate(endIso.getDate() + 1);
-          const { data, error: err } = await supabase
-            .from('floor_traffic_customers')
-            .select('*')
-            .gte('visit_time', start.toISOString())
-            .lt('visit_time', endIso.toISOString())
-            .order('visit_time', { ascending: true });
-          if (err) throw err;
-          setRows(data || []);
-        } else {
-          const params = new URLSearchParams({ start: startDate, end: endDate });
-          const res = await fetch(`${API_BASE}/floor-traffic/search?${params}`);
-          if (!res.ok) throw new Error('Failed to load traffic');
-          const data = await res.json();
-          setRows(data || []);
-        }
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const endIso = new Date(end.getTime());
+        endIso.setDate(endIso.getDate() + 1);
+        const { data, error: err } = await supabase
+          .from('floor_traffic_customers')
+          .select('*')
+          .gte('visit_time', start.toISOString())
+          .lt('visit_time', endIso.toISOString())
+          .order('visit_time', { ascending: true });
+        if (err) throw err;
+        setRows(data || []);
       } catch (err) {
         setError('Failed to load traffic');
         setRows([]);
@@ -72,45 +62,36 @@ export default function FloorTrafficPage() {
     };
 
     fetchRange();
-  }, [API_BASE, startDate, endDate]);
+  }, [startDate, endDate]);
 
   useEffect(() => {
     const fetchActivityMetrics = async () => {
       try {
-        if (supabase) {
-          const today = new Date();
-          const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-          const end = new Date(start);
-          end.setDate(end.getDate() + 1);
-          const { data, error: err } = await supabase
-            .from('activities')
-            .select('activity_type')
-            .gte('created_at', start.toISOString())
-            .lt('created_at', end.toISOString());
-          if (err) throw err;
-          const counts = { salesCalls: 0, textMessages: 0, appointmentsSet: 0 };
-          for (const row of data || []) {
-            const t = String(row.activity_type || '').toLowerCase();
-            if (t.includes('call')) counts.salesCalls++;
-            else if (t.includes('text')) counts.textMessages++;
-            else if (t.includes('appointment')) counts.appointmentsSet++;
-          }
-          setActivity(counts);
-        } else {
-          const res = await fetch(`${API_BASE}/activities/today-metrics`);
-          if (!res.ok) throw new Error('Failed to load activity metrics');
-          const data = await res.json();
-          setActivity({
-            salesCalls: data.sales_calls ?? data.salesCalls ?? 0,
-            textMessages: data.text_messages ?? data.textMessages ?? 0,
-            appointmentsSet: data.appointments_set ?? data.appointmentsSet ?? 0,
-          });
+        const today = new Date();
+        const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const end = new Date(start);
+        end.setDate(end.getDate() + 1);
+        const { data, error: err } = await supabase
+          .from('activities')
+          .select('activity_type')
+          .gte('created_at', start.toISOString())
+          .lt('created_at', end.toISOString());
+        if (err) throw err;
+        const counts = { salesCalls: 0, textMessages: 0, appointmentsSet: 0 };
+        for (const row of data || []) {
+          const t = String(row.activity_type || '').toLowerCase();
+          if (t.includes('call')) counts.salesCalls++;
+          else if (t.includes('text')) counts.textMessages++;
+          else if (t.includes('appointment')) counts.appointmentsSet++;
         }
-      } catch (err) {}
+        setActivity(counts);
+      } catch (err) {
+        // Silently ignore errors here
+      }
     };
 
     fetchActivityMetrics();
-  }, [API_BASE]);
+  }, []);
 
   // KPI logic
   const responded = rows.filter(r => r.last_response_time).length;
@@ -234,7 +215,40 @@ export default function FloorTrafficPage() {
   // Day/Week toggle
   const [kpiRange, setKpiRange] = useState("today");
 
-  // Handlers
+  // Floor Traffic Quick Add/Modal Submit
+  const handleSubmit = async (formData) => {
+    setLoading(true);
+    setError('');
+    try {
+      // Always include visit_time (now) if not set
+      const visit_time = formData.visit_time || new Date().toISOString();
+
+      // Clean up (remove empty/undefined fields)
+      let newEntry = { ...formData, visit_time };
+      Object.keys(newEntry).forEach(
+        key => (newEntry[key] === '' || newEntry[key] == null) && delete newEntry[key]
+      );
+
+      // Insert new floor traffic customer
+      const { data, error: insertErr } = await supabase
+        .from('floor_traffic_customers')
+        .insert([newEntry])
+        .select();
+
+      if (insertErr) throw insertErr;
+
+      // Add the newly inserted row(s) to top of table
+      setRows(prev => [ ...(data || []), ...prev ]);
+      setModalOpen(false);
+      setEditing(null);
+    } catch (err) {
+      setError('Failed to add customer');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Toggle handler (edit row inline)
   const handleToggle = async (id, field, value) => {
     setRows(rows =>
       rows.map(row =>
@@ -242,25 +256,23 @@ export default function FloorTrafficPage() {
       )
     );
     try {
-      if (supabase) {
-        const { error } = await supabase
-          .from('floor_traffic_customers')
-          .update({ [field]: value })
-          .eq('id', id);
+      const { error } = await supabase
+        .from('floor_traffic_customers')
+        .update({ [field]: value })
+        .eq('id', id);
 
-        if (error) throw error;
+      if (error) throw error;
 
-        if (field === 'sold' && value === true) {
-          const soldRow = rows.find(row => row.id === id);
-          // Adjust fields as needed for your "deals" table
-          await supabase.from('deals').insert([{
-            customer_id: soldRow.customer_id || null,
-            vehicle: soldRow.vehicle || null,
-            salesperson: soldRow.salesperson || null,
-            floor_traffic_id: soldRow.id,
-            date: new Date().toISOString(),
-          }]);
-        }
+      // If sold, create a deal as well
+      if (field === 'sold' && value === true) {
+        const soldRow = rows.find(row => row.id === id);
+        await supabase.from('deals').insert([{
+          customer_id: soldRow.customer_id || null,
+          vehicle: soldRow.vehicle || null,
+          salesperson: soldRow.salesperson || null,
+          floor_traffic_id: soldRow.id,
+          date: new Date().toISOString(),
+        }]);
       }
     } catch (err) {
       // Revert UI if error
@@ -272,12 +284,6 @@ export default function FloorTrafficPage() {
       alert('Failed to update record.');
       console.error(err);
     }
-  };
-
-  const handleSubmit = formData => {
-    // TODO: insert or update record
-    setModalOpen(false);
-    setEditing(null);
   };
 
   return (
@@ -292,9 +298,8 @@ export default function FloorTrafficPage() {
             <div
               key={i}
               className="mb-1 px-3 py-2 border-l-4 border-yellow-400 bg-yellow-100 text-yellow-900 font-bold rounded-r shadow animate-pulse"
-            >
-              {msg}
-            </div>
+              dangerouslySetInnerHTML={{ __html: msg }}
+            />
           ))}
         </div>
       )}
