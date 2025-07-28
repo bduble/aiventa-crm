@@ -30,7 +30,11 @@ export default function FloorTrafficPage() {
         return true;
       })
     : rows;
-
+  
+  console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
+  console.log('VITE_SUPABASE_KEY:', import.meta.env.VITE_SUPABASE_KEY);
+  console.log('Supabase client:', supabase);
+  
   useEffect(() => {
     const fetchRange = async () => {
       setLoading(true);
