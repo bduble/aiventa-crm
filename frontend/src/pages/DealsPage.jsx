@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
+import CustomerNameLink from "../components/CustomerNameLink";
 
 // Use env var for backend URL!
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
@@ -250,10 +251,12 @@ export default function DealsPage() {
                       </span>
                     ) : field.includes("gross") ? (
                       formatCurrency(deal[field])
+                    ) : field === "customer_name" ? (
+                      <CustomerNameLink id={deal.customer_id} name={deal.customer_name} />
                     ) : (
                       deal[field] ?? "-"
                     )}
-                  </td>
+                 </td>
                 ))}
                 {/* Non-editable cells for Days to Book and Actions */}
                 <td className="py-2 px-3 text-center">

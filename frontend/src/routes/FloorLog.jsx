@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Users } from 'lucide-react';
 import { formatTime } from '../utils/formatDateTime';
 import supabase from '../supabase';
+import CustomerNameLink from '../components/CustomerNameLink';
 
 
 export default function FloorLog() {
@@ -190,6 +191,8 @@ export default function FloorLog() {
                               handleToggle(log.id, key, e.target.checked);
                             }}
                           />
+                        ) : key === 'customer_name' ? (
+                          <CustomerNameLink id={log.customer_id} name={log.customer_name} />
                         ) : (
                           String(log[key] ?? '')
                         )}

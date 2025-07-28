@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Phone, MessageCircle, Mail, Pencil, ChevronUp, ChevronDown } from 'lucide-react';
 import { Progress } from './ui/progress'; // adjust path if needed
 import { formatTime } from '../utils/formatDateTime';
+import CustomerNameLink from './CustomerNameLink';
 
 export default function FloorTrafficTable({ rows = [], onEdit, onToggle }) {
   const [sortConfig, setSortConfig] = useState({ key: 'visit_time', direction: 'ascending' });
@@ -100,7 +101,9 @@ export default function FloorTrafficTable({ rows = [], onEdit, onToggle }) {
         <td className="p-2">{row.salesperson || ''}</td>
 
         {/* Customer Name */}
-        <td className="p-2">{row.customer_name || ''}</td>
+        <td className="p-2">
+          <CustomerNameLink id={row.customer_id} name={row.customer_name || ''} />
+        </td>
 
         {/* Vehicle */}
         <td className="p-2">{row.vehicle || ''}</td>
