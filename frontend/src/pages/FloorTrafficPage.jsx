@@ -30,11 +30,12 @@ export default function FloorTrafficPage() {
         return true;
       })
     : rows;
-  
+
+  // Debug for env/connection
   console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
   console.log('VITE_SUPABASE_KEY:', import.meta.env.VITE_SUPABASE_KEY);
   console.log('Supabase client:', supabase);
-  
+
   useEffect(() => {
     const fetchRange = async () => {
       setLoading(true);
@@ -223,11 +224,20 @@ export default function FloorTrafficPage() {
 
     setLoading(true);
     try {
-      // Always include visit_time (now) if not set
-      const visit_time = formData.visit_time || new Date().toISOString();
+      // Always supply a valid ISO visit_time if not present
+      let visit_time = formData.visit_time;
+      if (!visit_time || visit_time.trim() === '') {
+        visit_time = new Date().toISOString();
+      } else if (!visit_time.includes('T')) {
+        const today = new Date().toISOString().slice(0, 10);
+        visit_time = `${today}T${visit_time}`;
+        visit_time = new Date(visit_time).toISOString();
+      } else {
+        visit_time = new Date(visit_time).toISOString();
+      }
 
-      // Clean up (remove empty/undefined fields)
       let newEntry = { ...formData, visit_time };
+      // Remove empty/null fields
       Object.keys(newEntry).forEach(
         key => (newEntry[key] === '' || newEntry[key] == null) && delete newEntry[key]
       );
@@ -245,6 +255,7 @@ export default function FloorTrafficPage() {
       setEditing(null);
     } catch (err) {
       setError('Failed to add customer. Please check all required fields.');
+      console.error('Supabase insert error:', err);
     } finally {
       setLoading(false);
     }
