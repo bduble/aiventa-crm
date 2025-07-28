@@ -18,7 +18,6 @@ const INTEGER_FIELDS = [
 
 // ─── HEADER → COLUMN MAPPING ───────────────────────────────────────────────
 // Only map sheet headers that correspond to real Supabase columns.
-// Removed the 'statuscode' mapping to avoid schema errors.
 const HEADER_TO_COLUMN = {
   'drive_type':            'drive_type',
   'transmission':          'transmission',
@@ -119,9 +118,10 @@ function fullSyncInventory() {
     method: 'post',
     contentType: 'application/json',
     headers: {
-      apikey:        SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`,
-      Prefer:        'return=representation,resolution=merge-duplicates'
+      'apikey':        SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type':  'application/json',
+      'Prefer':        'return=representation,resolution=merge-duplicates'
     },
     payload: JSON.stringify(payloads),
     muteHttpExceptions: true
@@ -140,4 +140,3 @@ function fullSyncInventory() {
     sh.getRange(r, statusIdx + 1).setValue(ts);
   });
 }
-
