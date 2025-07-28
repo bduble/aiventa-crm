@@ -66,12 +66,14 @@ def login(data: LoginRequest):
     else:
         user_resp = supabase.from_("users").select("*").eq("username", identity).single().execute()
     user = user_resp.data
-     print("identity sent:", identity)
-     print("user loaded from db:", user)
+
+    # Debug print statements to help troubleshoot login issues
+    print("identity sent:", identity)
+    print("user loaded from db:", user)
     if user:
         print("hashed in db:", user["hashed_password"])
         print("password match:", check_password(data.password, user["hashed_password"]))
-        
+
     if not user or not check_password(data.password, user["hashed_password"]):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     token = create_jwt(
