@@ -2,11 +2,14 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import supabase from '../supabase';
 
-
 export default function CreateFloorTrafficForm() {
   const navigate = useNavigate();
+
+  // Set default visit_time to now (yyyy-MM-ddTHH:mm for datetime-local)
+  const nowStr = new Date().toISOString().slice(0, 16);
+
   const [form, setForm] = useState({
-    visit_time: '',
+    visit_time: nowStr,
     salesperson: '',
     first_name: '',
     last_name: '',
@@ -40,14 +43,22 @@ export default function CreateFloorTrafficForm() {
     setError('');
     setSaving(true);
 
-    // 1. Normalize visit_time to ISO string
+    // 1. Normalize visit_time to ISO string or use now if blank
     let { visit_time } = form;
     if (visit_time) {
-      if (!visit_time.includes('T')) {
-        const todayDate = new Date().toISOString().slice(0, 10);
-        visit_time = `${todayDate}T${visit_time}`;
+      // If user cleared it, still fill with now
+      if (visit_time.trim() === '') {
+        visit_time = new Date().toISOString();
+      } else {
+        // Ensure it has T separator for ISO string
+        if (!visit_time.includes('T')) {
+          const todayDate = new Date().toISOString().slice(0, 10);
+          visit_time = `${todayDate}T${visit_time}`;
+        }
+        visit_time = new Date(visit_time).toISOString();
       }
-      visit_time = new Date(visit_time).toISOString();
+    } else {
+      visit_time = new Date().toISOString();
     }
 
     // 2. Check for existing customer (by phone or email if provided)
