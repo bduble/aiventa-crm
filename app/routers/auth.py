@@ -67,7 +67,7 @@ def login(data: LoginRequest):
         user_resp = supabase.from_("users").select("*").eq("username", identity).single().execute()
     user = user_resp.data
      print("identity sent:", identity)
-    print("user loaded from db:", user)
+     print("user loaded from db:", user)
     if user:
         print("hashed in db:", user["hashed_password"])
         print("password match:", check_password(data.password, user["hashed_password"]))
