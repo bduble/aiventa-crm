@@ -6,11 +6,6 @@ import { Users, MailCheck, Activity, XCircle } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 
 export default function FloorTrafficPage() {
-  // API base (not needed for Supabase use)
-  // const API_BASE = import.meta.env.PROD
-  //   ? import.meta.env.VITE_API_BASE_URL
-  //   : '/api';
-
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -95,14 +90,12 @@ export default function FloorTrafficPage() {
 
   // KPI logic
   const responded = rows.filter(r => r.last_response_time).length;
-  const unresponded = rows.length - responded;
   const totalCustomers = rows.length;
   const inStoreCount = rows.filter(r => !r.time_out).length;
   const demoCount = rows.filter(r => r.demo).length;
   const worksheetCount = rows.filter(
     r => r.writeUp || r.worksheet || r.worksheet_complete || r.worksheetComplete || r.write_up
   ).length;
-  const offerCount = rows.filter(r => r.customer_offer || r.customerOffer).length;
 
   // Animated counters
   function Counter({ value }) {
@@ -128,7 +121,6 @@ export default function FloorTrafficPage() {
     return <span className="font-extrabold text-3xl">{display}</span>;
   }
 
-  // Quick Add (Floating button)
   function QuickAddButton() {
     return (
       <button
@@ -141,10 +133,8 @@ export default function FloorTrafficPage() {
     );
   }
 
-  // Spacing for nav bar
   const navSpacer = <div className="h-20 md:h-20 w-full" />;
 
-  // KPI Cards (clickable)
   const kpiCards = [
     {
       label: (
@@ -203,7 +193,6 @@ export default function FloorTrafficPage() {
     },
   ];
 
-  // Mini-alerts
   const waitingLong = rows.filter(
     r => r.time_out === null && r.visit_time && (Date.now() - new Date(r.visit_time).getTime()) > 20 * 60 * 1000
   ).length;
@@ -212,13 +201,23 @@ export default function FloorTrafficPage() {
   if (activity.appointmentsSet > 0 && activity.appointmentsSet > responded)
     alertMsgs.push(`${activity.appointmentsSet - responded} appointments not yet followed up.`);
 
-  // Day/Week toggle
   const [kpiRange, setKpiRange] = useState("today");
 
   // Floor Traffic Quick Add/Modal Submit
   const handleSubmit = async (formData) => {
-    setLoading(true);
     setError('');
+    // Validate required fields
+    if (
+      !formData.first_name ||
+      !formData.last_name ||
+      formData.first_name.trim() === '' ||
+      formData.last_name.trim() === ''
+    ) {
+      setError('First Name and Last Name are required.');
+      return;
+    }
+
+    setLoading(true);
     try {
       // Always include visit_time (now) if not set
       const visit_time = formData.visit_time || new Date().toISOString();
@@ -237,18 +236,16 @@ export default function FloorTrafficPage() {
 
       if (insertErr) throw insertErr;
 
-      // Add the newly inserted row(s) to top of table
       setRows(prev => [ ...(data || []), ...prev ]);
       setModalOpen(false);
       setEditing(null);
     } catch (err) {
-      setError('Failed to add customer');
+      setError('Failed to add customer. Please check all required fields.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Toggle handler (edit row inline)
   const handleToggle = async (id, field, value) => {
     setRows(rows =>
       rows.map(row =>
@@ -275,7 +272,6 @@ export default function FloorTrafficPage() {
         }]);
       }
     } catch (err) {
-      // Revert UI if error
       setRows(rows =>
         rows.map(row =>
           row.id === id ? { ...row, [field]: !value } : row
