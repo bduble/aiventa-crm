@@ -39,6 +39,10 @@ class ResetPasswordRequest(BaseModel):
     reset_code: str
     new_password: str
 
+class SetPasswordRequest(BaseModel):  # For temp route
+    identity: str
+    password: str
+
 # ── Helpers ──
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
@@ -67,7 +71,6 @@ def login(data: LoginRequest):
         user_resp = supabase.from_("users").select("*").eq("username", identity).single().execute()
     user = user_resp.data
 
-    # Debug print statements to help troubleshoot login issues
     print("identity sent:", identity)
     print("user loaded from db:", user)
     if user:
@@ -126,3 +129,18 @@ def reset_password(data: ResetPasswordRequest):
     supabase.from_("users").update({"hashed_password": new_hash}).eq("email", data.email).execute()
     supabase.from_("password_resets").update({"used": True}).eq("id", record["id"]).execute()
     return {"message": "Password updated."}
+
+# ── TEMP: DEV/ADMIN PASSWORD SETTER (REMOVE AFTER USE) ──
+@router.post("/set-password")
+def set_password(req: SetPasswordRequest):
+    # For DEV/DEBUG ONLY -- REMOVE when done!
+    if "@" in req.identity:
+        user_resp = supabase.from_("users").select("*").eq("email", req.identity).single().execute()
+    else:
+        user_resp = supabase.from_("users").select("*").eq("username", req.identity).single().execute()
+    user = user_resp.data
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    new_hash = hash_password(req.password)
+    supabase.from_("users").update({"hashed_password": new_hash}).eq("id", user["id"]).execute()
+    return {"message": "Password updated"}
