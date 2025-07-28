@@ -4,82 +4,204 @@ export default function LeadLog() {
   const API_BASE = `${import.meta.env.VITE_API_BASE_URL}/leads`;
   const today = new Date().toISOString().split('T')[0];
 
+  // Main State
   const [leads, setLeads] = useState([]);
+  const [leadsError, setLeadsError] = useState('');
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(today);
+
   const [prioritized, setPrioritized] = useState([]);
+  const [prioritizedError, setPrioritizedError] = useState('');
+
   const [awaiting, setAwaiting] = useState([]);
+  const [awaitingError, setAwaitingError] = useState('');
+
   const [metrics, setMetrics] = useState(null);
+  const [metricsError, setMetricsError] = useState('');
+
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
   const [leadId, setLeadId] = useState('');
+  const [askError, setAskError] = useState('');
 
+  // Utility
+  const formatDate = d => (d ? new Date(d).toLocaleDateString() : '');
+
+  // -- FETCH Functions with robust error handling/logging --
   const fetchLeads = async () => {
+    setLeadsError('');
     const params = new URLSearchParams();
     if (startDate) params.append('startDate', startDate);
     if (endDate) params.append('endDate', endDate);
+    const url = `${API_BASE}?${params.toString()}`;
+    console.log('[fetchLeads] Fetching:', url);
     try {
-      const res = await fetch(`${API_BASE}?${params.toString()}`);
-      setLeads(await res.json());
+      const res = await fetch(url);
+      if (!res.ok) {
+        const text = await res.text();
+        console.error('[fetchLeads] API Error:', res.status, text);
+        setLeads([]);
+        setLeadsError(`API error ${res.status}: ${text}`);
+        return;
+      }
+      const data = await res.json();
+      if (!Array.isArray(data)) {
+        console.error('[fetchLeads] Non-array data returned:', data);
+        setLeads([]);
+        setLeadsError('API did not return an array.');
+        return;
+      }
+      setLeads(data);
+      if (data.length === 0) {
+        console.warn('[fetchLeads] Data is empty array.');
+      }
+      console.log('[fetchLeads] Success:', data);
     } catch (err) {
-      console.error(err);
+      console.error('[fetchLeads] Fetch failed:', err);
       setLeads([]);
+      setLeadsError(`Fetch failed: ${err.message}`);
     }
   };
 
   const fetchPrioritized = async () => {
+    setPrioritizedError('');
+    const url = `${API_BASE}/prioritized`;
+    console.log('[fetchPrioritized] Fetching:', url);
     try {
-      const res = await fetch(`${API_BASE}/prioritized`);
-      setPrioritized(await res.json());
+      const res = await fetch(url);
+      if (!res.ok) {
+        const text = await res.text();
+        console.error('[fetchPrioritized] API Error:', res.status, text);
+        setPrioritized([]);
+        setPrioritizedError(`API error ${res.status}: ${text}`);
+        return;
+      }
+      const data = await res.json();
+      if (!Array.isArray(data)) {
+        console.error('[fetchPrioritized] Non-array data returned:', data);
+        setPrioritized([]);
+        setPrioritizedError('API did not return an array.');
+        return;
+      }
+      setPrioritized(data);
+      if (data.length === 0) {
+        console.warn('[fetchPrioritized] Data is empty array.');
+      }
+      console.log('[fetchPrioritized] Success:', data);
     } catch (err) {
-      console.error(err);
+      console.error('[fetchPrioritized] Fetch failed:', err);
       setPrioritized([]);
+      setPrioritizedError(`Fetch failed: ${err.message}`);
     }
   };
 
   const fetchAwaiting = async () => {
+    setAwaitingError('');
+    const url = `${API_BASE}/awaiting-response`;
+    console.log('[fetchAwaiting] Fetching:', url);
     try {
-      const res = await fetch(`${API_BASE}/awaiting-response`);
-      setAwaiting(await res.json());
+      const res = await fetch(url);
+      if (!res.ok) {
+        const text = await res.text();
+        console.error('[fetchAwaiting] API Error:', res.status, text);
+        setAwaiting([]);
+        setAwaitingError(`API error ${res.status}: ${text}`);
+        return;
+      }
+      const data = await res.json();
+      if (!Array.isArray(data)) {
+        console.error('[fetchAwaiting] Non-array data returned:', data);
+        setAwaiting([]);
+        setAwaitingError('API did not return an array.');
+        return;
+      }
+      setAwaiting(data);
+      if (data.length === 0) {
+        console.warn('[fetchAwaiting] Data is empty array.');
+      }
+      console.log('[fetchAwaiting] Success:', data);
     } catch (err) {
-      console.error(err);
+      console.error('[fetchAwaiting] Fetch failed:', err);
       setAwaiting([]);
+      setAwaitingError(`Fetch failed: ${err.message}`);
     }
   };
 
   const fetchMetrics = async () => {
+    setMetricsError('');
+    const url = `${API_BASE}/metrics`;
+    console.log('[fetchMetrics] Fetching:', url);
     try {
-      const res = await fetch(`${API_BASE}/metrics`);
-      setMetrics(await res.json());
+      const res = await fetch(url);
+      if (!res.ok) {
+        const text = await res.text();
+        console.error('[fetchMetrics] API Error:', res.status, text);
+        setMetrics(null);
+        setMetricsError(`API error ${res.status}: ${text}`);
+        return;
+      }
+      const data = await res.json();
+      if (!data || typeof data !== 'object') {
+        console.error('[fetchMetrics] Non-object data returned:', data);
+        setMetrics(null);
+        setMetricsError('API did not return an object.');
+        return;
+      }
+      setMetrics(data);
+      console.log('[fetchMetrics] Success:', data);
     } catch (err) {
-      console.error(err);
+      console.error('[fetchMetrics] Fetch failed:', err);
       setMetrics(null);
+      setMetricsError(`Fetch failed: ${err.message}`);
     }
   };
 
   const askQuestion = async () => {
-    if (!question.trim()) return;
+    setAskError('');
+    setAnswer('');
+    if (!question.trim()) {
+      setAskError('Enter a question.');
+      return;
+    }
+    const url = `${API_BASE}/ask`;
+    const payload = { question, lead_id: leadId || null };
+    console.log('[askQuestion] Posting:', url, payload);
     try {
-      const res = await fetch(`${API_BASE}/ask`, {
+      const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question, lead_id: leadId || null }),
+        body: JSON.stringify(payload),
       });
+      if (!res.ok) {
+        const text = await res.text();
+        console.error('[askQuestion] API Error:', res.status, text);
+        setAskError(`API error ${res.status}: ${text}`);
+        setAnswer('');
+        return;
+      }
       const data = await res.json();
       setAnswer(data.answer || 'No response');
+      console.log('[askQuestion] Success:', data);
     } catch (err) {
-      console.error(err);
-      setAnswer('Failed to get response');
+      console.error('[askQuestion] Fetch failed:', err);
+      setAnswer('');
+      setAskError(`Fetch failed: ${err.message}`);
     }
   };
 
+  // Fetch triggers
   useEffect(() => { fetchLeads(); }, [startDate, endDate]);
   useEffect(() => { fetchPrioritized(); fetchAwaiting(); fetchMetrics(); }, []);
 
-  const formatDate = d => (d ? new Date(d).toLocaleDateString() : '');
+  // For troubleshooting, always log API_BASE on page load
+  useEffect(() => {
+    console.log('[LeadLog] API_BASE:', API_BASE);
+  }, [API_BASE]);
 
+  // --- UI Render ---
   return (
     <div className="w-full min-h-screen bg-offwhite dark:bg-gray-800 px-4 pb-4 pt-8 grid gap-6 md:grid-cols-2">
+      {/* Prioritized */}
       <section className="bg-white dark:bg-gray-900 shadow rounded p-4 space-y-2">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">AI‑Powered Leads Prioritization</h2>
         <div className="mb-4 flex gap-2">
@@ -101,7 +223,11 @@ export default function LeadLog() {
             Ask aiVenta
           </button>
         </div>
+        {askError && <div className="bg-red-100 border border-red-400 text-red-700 rounded p-2 mb-2">{askError}</div>}
         {answer && <p className="border p-2 rounded bg-gray-50 dark:bg-gray-900 dark:border-gray-700 whitespace-pre-wrap">{answer}</p>}
+        {prioritizedError && (
+          <div className="bg-red-100 border border-red-400 text-red-700 rounded p-2 mb-2">{prioritizedError}</div>
+        )}
         <div className="overflow-x-auto mt-4">
           <table className="min-w-full border border-gray-200 dark:border-gray-700 divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-slategray dark:bg-slategray text-white">
@@ -126,6 +252,7 @@ export default function LeadLog() {
         </div>
       </section>
 
+      {/* Lead Log */}
       <section className="bg-white dark:bg-gray-900 shadow rounded p-4 space-y-2">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Lead Log</h2>
         <div className="flex gap-4 items-end mb-2">
@@ -139,6 +266,9 @@ export default function LeadLog() {
           </div>
           <button onClick={fetchLeads} className="px-3 py-2 bg-electricblue text-white rounded">Filter</button>
         </div>
+        {leadsError && (
+          <div className="bg-red-100 border border-red-400 text-red-700 rounded p-2 mb-2">{leadsError}</div>
+        )}
         <div className="overflow-x-auto">
           <table className="min-w-full border border-gray-200 dark:border-gray-700 divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-slategray dark:bg-slategray text-white">
@@ -163,8 +293,12 @@ export default function LeadLog() {
         </div>
       </section>
 
+      {/* Awaiting Response */}
       <section className="bg-white dark:bg-gray-900 shadow rounded p-4 space-y-2">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Awaiting Response</h2>
+        {awaitingError && (
+          <div className="bg-red-100 border border-red-400 text-red-700 rounded p-2 mb-2">{awaitingError}</div>
+        )}
         <div className="overflow-x-auto">
           <table className="min-w-full border border-gray-200 dark:border-gray-700 divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-slategray dark:bg-slategray text-white">
@@ -187,13 +321,17 @@ export default function LeadLog() {
         </div>
       </section>
 
+      {/* Metrics */}
       <section className="bg-white dark:bg-gray-900 shadow rounded p-4 space-y-2">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Sales Performance Metrics</h2>
+        {metricsError && (
+          <div className="bg-red-100 border border-red-400 text-red-700 rounded p-2 mb-2">{metricsError}</div>
+        )}
         {metrics && (
           <ul className="list-disc pl-5">
             <li>Total leads: {metrics.total_leads}</li>
             <li>Conversion rate: {metrics.conversion_rate}%</li>
-            <li>Average response time: {metrics.average_response_time.toFixed(2)} seconds</li>
+            <li>Average response time: {Number(metrics.average_response_time).toFixed(2)} seconds</li>
             <li>Lead engagement rate: {metrics.lead_engagement_rate}%</li>
           </ul>
         )}
