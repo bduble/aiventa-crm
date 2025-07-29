@@ -10,7 +10,7 @@ import InventoryPage          from "./routes/InventoryPage";
 import CustomersPage          from "./routes/CustomersPage";
 import CustomerCard           from "./routes/CustomerCard";
 import { Toaster }            from "react-hot-toast";
-import ActivityTimeline       from "./components/ActivityTimeline";
+import ActivitiesPage         from "./pages/ActivitiesPage";
 import CreateLeadForm         from "./components/CreateLeadForm";
 import FloorTrafficPage       from "./pages/FloorTrafficPage";
 import CreateFloorTrafficForm from "./components/CreateFloorTrafficForm";
@@ -242,7 +242,7 @@ export default function App() {
             <Route path="/deals" element={<DealsPage />} /> {/* <-- Add this! */}
             <Route path="/appraisals" element={<AppraisalsPage />} />
             <Route path="/recon" element={<ReconPage />} />
-            <Route path="/activities" element={<ActivityTimeline />} />
+            <Route path="/activities" element={<ActivitiesPage />} />
             <Route path="/floor-traffic" element={<FloorTrafficPage />} />
             <Route path="/floor-traffic/new" element={<CreateFloorTrafficForm />} />
             <Route path="/appraisals/:id" element={<EditAppraisalPage />} />
