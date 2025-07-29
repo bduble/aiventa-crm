@@ -27,8 +27,13 @@ from app.openai_router          import router as ai_router
 from app.routers.vin            import router as vin_router
 from app.routers.auth           import router as auth_router
 
-# ── App init ──
-app = FastAPI(title="aiVenta CRM API")
+# ── App init with docs paths ──
+app = FastAPI(
+    title="aiVenta CRM API",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json"
+)
 
 # ── CORS Config ──
 def build_allowed_origins() -> list[str]:
@@ -103,10 +108,9 @@ app.include_router(auth_router,          prefix=f"{api_prefix}",              ta
 
 # This makes your endpoints /api/login, /api/forgot-password, /api/reset-password
 
-
 print("Allowed origins for CORS:", allowed_origins)
 
-# ── Serve React build (catch-all) ──
+# ── Serve React build (catch-all, must be LAST) ──
 app.mount(
     "/",
     StaticFiles(directory="frontend/dist", html=True),
