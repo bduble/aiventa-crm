@@ -21,8 +21,8 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
     try {
-      // Use the API_BASE env variable for the backend URL
-      const res = await fetch(`${API_BASE}/api/login`, {
+      // FIXED: Only append /login, NOT /api/login
+      const res = await fetch(`${API_BASE}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form)
@@ -50,8 +50,8 @@ export default function LoginPage() {
     setForgotSuccess("");
     setError("");
     try {
-      // Use the API_BASE env variable for the backend URL
-      const res = await fetch(`${API_BASE}/api/forgot-password`, {
+      // FIXED: Only append /forgot-password, NOT /api/forgot-password
+      const res = await fetch(`${API_BASE}/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: forgotEmail })
