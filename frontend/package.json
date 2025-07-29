@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.3",
+    "@tanstack/react-table": "^8.21.3",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.3",
     "html2canvas": "^1.4.1",
