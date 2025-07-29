@@ -4,7 +4,10 @@ import { Progress } from './ui/progress'; // adjust path if needed
 import { formatTime } from '../utils/formatDateTime';
 import CustomerNameLink from './CustomerNameLink';
 
-export default function FloorTrafficTable({ rows = [], onEdit, onToggle, onCustomerClick }) {
+import { useCustomerCard } from '../context/CustomerCardContext';
+
+export default function FloorTrafficTable({ rows = [], onEdit, onToggle }) {
+  const { open } = useCustomerCard();
   const [sortConfig, setSortConfig] = useState({ key: 'visit_time', direction: 'ascending' });
   const [acknowledged, setAcknowledged] = useState(new Set());
 
@@ -105,7 +108,7 @@ export default function FloorTrafficTable({ rows = [], onEdit, onToggle, onCusto
           <CustomerNameLink
             id={row.customer_id}
             name={row.customer_name || ''}
-            onClick={onCustomerClick ? (id => onCustomerClick(id)) : undefined}
+            onClick={open}
           />
         </td>
 
