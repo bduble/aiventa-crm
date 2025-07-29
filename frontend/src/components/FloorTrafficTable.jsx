@@ -122,7 +122,7 @@ export default function FloorTrafficTable({ rows = [], onEdit, onToggle, onCusto
                 e.stopPropagation();
                 onToggle && onToggle(row.id, field, e.target.checked);
               }}
-              disabled={field === 'sold'}
+              // Allow toggling the "sold" checkbox
             />
           </td>
         ))}
