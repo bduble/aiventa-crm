@@ -89,6 +89,10 @@ def get_customer(customer_id: str):
     except APIError as e:
         raise HTTPException(status_code=400, detail=e.message)
 
+    if not res or not hasattr(res, "data"):
+        print(f"Supabase returned None or invalid object for customer_id {customer_id}: {res}")
+        raise HTTPException(status_code=500, detail="Supabase did not return data as expected.")
+
     if not res.data:
         raise HTTPException(status_code=404, detail="Customer not found")
     c = res.data
@@ -179,14 +183,23 @@ async def customer_ai_summary(customer_id: str):
             .maybe_single()
             .execute()
         )
-    except APIError as e:
-        raise HTTPException(status_code=400, detail=e.message)
+    except Exception as e:
+        print("Supabase DB error in ai-summary:", str(e))
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Supabase DB error: {e}")
+
+    if not res or not hasattr(res, "data"):
+        print(f"Supabase returned None or invalid object for customer_id {customer_id}: {res}")
+        raise HTTPException(status_code=500, detail="Supabase did not return data as expected.")
+
     if not res.data:
+        print(f"Customer {customer_id} not found for ai-summary. Query result: {res}")
         raise HTTPException(status_code=404, detail="Customer not found")
     customer = res.data
 
     client = get_openai_client()
     if not client:
+        print("OpenAI client not configured in ai-summary.")
         return {
             "summary": "OpenAI API key not configured",
             "next_steps": [],
@@ -228,14 +241,18 @@ async def ai_next_action(customer_id: str):
             .maybe_single()
             .execute()
         )
-    except APIError as e:
-        print("Supabase error in ai-next-action:", str(e))
+    except Exception as e:
+        print("Supabase DB error in ai-next-action:", str(e))
         traceback.print_exc()
-        raise HTTPException(status_code=400, detail=e.message)
+        raise HTTPException(status_code=500, detail=f"Supabase DB error: {e}")
+
+    if not res or not hasattr(res, "data"):
+        print(f"Supabase returned None or invalid object for customer_id {customer_id}: {res}")
+        raise HTTPException(status_code=500, detail="Supabase did not return data as expected.")
 
     customer = res.data
     if not customer:
-        print(f"Customer {customer_id} not found for ai-next-action.")
+        print(f"Customer {customer_id} not found for ai-next-action. Query result: {res}")
         raise HTTPException(status_code=404, detail="Customer not found")
 
     client = get_openai_client()
@@ -281,6 +298,9 @@ async def add_customer_to_floor_log(customer_id: str, entry: CustomerFloorTraffi
         )
     except APIError as e:
         raise HTTPException(status_code=400, detail=e.message)
+    if not res or not hasattr(res, "data"):
+        print(f"Supabase returned None or invalid object for customer_id {customer_id}: {res}")
+        raise HTTPException(status_code=500, detail="Supabase did not return data as expected.")
     if not res.data:
         raise HTTPException(status_code=404, detail="Customer not found")
 
