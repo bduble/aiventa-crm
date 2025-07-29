@@ -48,17 +48,14 @@ def list_customers(
 
     customers = res.data or []
     for c in customers:
-        # Patch: Guarantee 'name'
         if not c.get("name"):
             c["name"] = (
                 (c.get("first_name", "") + " " + c.get("last_name", "")).strip()
                 or c.get("customer_name", "")
                 or ""
             )
-        # Patch: Convert empty email string to None
         if c.get("email", "") == "":
             c["email"] = None
-
     return customers
 
 # ----------- No trailing slash support -----------
@@ -213,6 +210,50 @@ async def customer_ai_summary(customer_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# ----------- AI Next Action (NEW) -----------
+@router.get("/{customer_id}/ai-next-action", summary="AI-Recommended Next Action")
+async def ai_next_action(customer_id: str):
+    """
+    Use AI to recommend the best next action for a customer.
+    """
+    try:
+        res = (
+            supabase
+            .table("customers")
+            .select("*")
+            .eq("id", customer_id)
+            .maybe_single()
+            .execute()
+        )
+    except APIError as e:
+        raise HTTPException(status_code=400, detail=e.message)
+
+    customer = res.data
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+
+    client = get_openai_client()
+    if not client:
+        return {"next_action": "AI not available. Please try again later."}
+
+    prompt = (
+        f"Given the following car dealership customer record, recommend the single best next action for a salesperson "
+        f"to move the customer forward in the buying process. "
+        f"Return only a short, specific action, not a summary.\n\n"
+        f"Customer Data: {json.dumps(customer)}"
+    )
+
+    try:
+        chat = await client.chat.completions.create(
+            model="gpt-4o",  # Use your preferred model
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.2,
+        )
+        next_action = chat.choices[0].message.content.strip()
+        return {"next_action": next_action}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI error: {e}")
+
 # ----------- Add Customer to Floor Traffic -----------
 @router.post(
     "/{customer_id}/floor-traffic",
@@ -237,7 +278,6 @@ async def add_customer_to_floor_log(customer_id: str, entry: CustomerFloorTraffi
     customer = res.data
     first = customer.get("first_name") or ""
     last = customer.get("last_name") or ""
-    # Check if they've visited in last 30 days
     thirty_days_ago = datetime.utcnow() - timedelta(days=30)
     try:
         past = (
