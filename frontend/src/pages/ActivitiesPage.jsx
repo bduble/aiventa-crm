@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { format, subDays } from "date-fns";
-import { Card, CardContent } from "../../components/ui/card"; // <- RELATIVE IMPORT
+import { Card, CardContent } from "../../components/ui/card.js"; // <- RELATIVE IMPORT
 // If you do not have shadcn/ui for Tabs, Button, Input, stub them or create your own:
 import { Tabs, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { Button } from "../../components/ui/button";
