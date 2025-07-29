@@ -4,6 +4,7 @@ import FloorTrafficTable from '../components/FloorTrafficTable';
 import FloorTrafficModal from '../components/FloorTrafficModal';
 import { Users, MailCheck, Activity, XCircle } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
+import toast from 'react-hot-toast';
 
 export default function FloorTrafficPage() {
   const [rows, setRows] = useState([]);
@@ -19,9 +20,9 @@ export default function FloorTrafficPage() {
     textMessages: 0,
     appointmentsSet: 0,
   });
-
-  // Filtering logic
   const [filterBy, setFilterBy] = useState(null);
+  const [kpiRange, setKpiRange] = useState("today");
+
   const filteredRows = filterBy
     ? rows.filter(r => {
         if (filterBy === 'appointmentsSet') return r.appointment_set || r.appointments_set;
@@ -30,11 +31,6 @@ export default function FloorTrafficPage() {
         return true;
       })
     : rows;
-
-  // Debug for env/connection
-  console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
-  console.log('VITE_SUPABASE_KEY:', import.meta.env.VITE_SUPABASE_KEY);
-  console.log('Supabase client:', supabase);
 
   useEffect(() => {
     const fetchRange = async () => {
@@ -60,7 +56,6 @@ export default function FloorTrafficPage() {
         setLoading(false);
       }
     };
-
     fetchRange();
   }, [startDate, endDate]);
 
@@ -85,11 +80,8 @@ export default function FloorTrafficPage() {
           else if (t.includes('appointment')) counts.appointmentsSet++;
         }
         setActivity(counts);
-      } catch (err) {
-        // Silently ignore errors here
-      }
+      } catch (err) {}
     };
-
     fetchActivityMetrics();
   }, []);
 
@@ -102,7 +94,6 @@ export default function FloorTrafficPage() {
     r => r.writeUp || r.worksheet || r.worksheet_complete || r.worksheetComplete || r.write_up
   ).length;
 
-  // Animated counters
   function Counter({ value }) {
     const [display, setDisplay] = useState(0);
     useEffect(() => {
@@ -206,12 +197,9 @@ export default function FloorTrafficPage() {
   if (activity.appointmentsSet > 0 && activity.appointmentsSet > responded)
     alertMsgs.push(`${activity.appointmentsSet - responded} appointments not yet followed up.`);
 
-  const [kpiRange, setKpiRange] = useState("today");
-
   // Floor Traffic Quick Add/Modal Submit
   const handleSubmit = async (formData) => {
     setError('');
-    // Validate required fields
     if (
       !formData.first_name ||
       !formData.last_name ||
@@ -224,7 +212,6 @@ export default function FloorTrafficPage() {
 
     setLoading(true);
     try {
-      // Always supply a valid ISO visit_time if not present
       let visit_time = formData.visit_time;
       if (!visit_time || visit_time.trim() === '') {
         visit_time = new Date().toISOString();
@@ -235,17 +222,12 @@ export default function FloorTrafficPage() {
       } else {
         visit_time = new Date(visit_time).toISOString();
       }
-
       let newEntry = { ...formData, visit_time };
-      // Remove empty/null fields
       Object.keys(newEntry).forEach(
         key => (newEntry[key] === '' || newEntry[key] == null) && delete newEntry[key]
       );
-
-      // **ADD THIS LOG** — SEE THE PAYLOAD BEFORE INSERT
       console.log("Submitting to floor_traffic_customers:", newEntry);
 
-      // Insert new floor traffic customer
       const { data, error: insertErr } = await supabase
         .from('floor_traffic_customers')
         .insert([newEntry])
@@ -264,6 +246,7 @@ export default function FloorTrafficPage() {
     }
   };
 
+  // SOLD TOASTS + BADGE LOGIC
   const handleToggle = async (id, field, value) => {
     setRows(rows =>
       rows.map(row =>
@@ -278,16 +261,41 @@ export default function FloorTrafficPage() {
 
       if (error) throw error;
 
-      // If sold, create a deal as well
       if (field === 'sold' && value === true) {
         const soldRow = rows.find(row => row.id === id);
-        await supabase.from('deals').insert([{
-          customer_id: soldRow.customer_id || null,
-          vehicle: soldRow.vehicle || null,
-          salesperson: soldRow.salesperson || null,
-          floor_traffic_id: soldRow.id,
-          date: new Date().toISOString(),
-        }]);
+        // Prevent duplicate deals
+        const { data: existingDeal, error: dealCheckErr } = await supabase
+          .from('deals')
+          .select('id')
+          .eq('floor_traffic_customer_id', id)
+          .maybeSingle();
+
+        if (dealCheckErr) throw dealCheckErr;
+
+        if (!existingDeal) {
+          await supabase.from('deals').insert([{
+            floor_traffic_customer_id: id,
+            customer_id: soldRow.customer_id || null,
+            customer_name: soldRow.customer_name || `${soldRow.first_name || ''} ${soldRow.last_name || ''}`,
+            vehicle: soldRow.vehicle || null,
+            trade: soldRow.trade || null,
+            notes: soldRow.notes || null,
+            salesperson: soldRow.salesperson || null,
+            sold: true,
+            stage: "Contract Pending",
+            status: "open",
+            created_at: new Date().toISOString(),
+            audit: JSON.stringify({
+              created_from: "floor_traffic_customers",
+              triggered_by: "frontend",
+              timestamp: new Date().toISOString(),
+              auto_created_on_sold: true,
+            }),
+          }]);
+          toast.success('Deal created and marked SOLD!');
+        } else {
+          toast('Already marked SOLD. Deal exists.', { icon: '✅' });
+        }
       }
     } catch (err) {
       setRows(rows =>
@@ -295,10 +303,27 @@ export default function FloorTrafficPage() {
           row.id === id ? { ...row, [field]: !value } : row
         )
       );
-      alert('Failed to update record.');
+      toast.error('Failed to update record.');
       console.error(err);
     }
   };
+
+  // BADGE: Add to table rendering
+  function FloorTrafficTableWithSoldBadge(props) {
+    return (
+      <FloorTrafficTable
+        {...props}
+        renderCustomerName={row => (
+          <>
+            {row.customer_name || `${row.first_name || ''} ${row.last_name || ''}`}
+            {row.sold && (
+              <span className="inline-block ml-2 bg-green-600 text-white px-2 py-1 rounded text-xs font-bold">SOLD</span>
+            )}
+          </>
+        )}
+      />
+    );
+  }
 
   return (
     <div className="p-2 pt-8 md:p-8 relative min-h-screen bg-gray-50">
@@ -352,7 +377,6 @@ export default function FloorTrafficPage() {
             </span>
           )}
         </div>
-        {/* Day/Week toggle */}
         <div className="flex gap-2 items-center ml-auto">
           <button
             className={`px-4 py-1 rounded-l-full font-bold ${kpiRange === 'today' ? 'bg-blue-600 text-white' : 'bg-white border'}`}
@@ -396,7 +420,7 @@ export default function FloorTrafficPage() {
           {loading ? (
             <div className="p-4">Loading…</div>
           ) : (
-            <FloorTrafficTable
+            <FloorTrafficTableWithSoldBadge
               rows={filteredRows}
               onEdit={row => {
                 setEditing(row);
