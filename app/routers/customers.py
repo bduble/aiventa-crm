@@ -139,13 +139,15 @@ def update_customer(customer_id: str, c: CustomerUpdate):
             .table("customers")
             .update(payload)
             .eq("id", customer_id)
+            .select("*")
+            .maybe_single()
             .execute()
         )
     except APIError as e:
         raise HTTPException(status_code=400, detail=e.message)
     if not res.data:
         raise HTTPException(status_code=404, detail="Customer not found")
-    updated = res.data[0]
+    updated = res.data
     if updated.get("email", "") == "":
         updated["email"] = None
     return updated
