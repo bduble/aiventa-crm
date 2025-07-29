@@ -5,6 +5,7 @@ import {
   ArrowUpRight, Search, MessageCircle, Image, Mic, Zap,
   TrendingUp, TrendingDown, Printer, Share2, Edit3, Save, X, CheckCircle
 } from "lucide-react";
+import CustomerNameLink from "../components/CustomerNameLink";
 
 // ----------- MOCK MARKET COMPS (for demo) --------------
 const mockComps = [
@@ -53,7 +54,10 @@ export default function AppraisalsPage() {
   const getCustomerName = (id) => {
     if (!id) return <span className="italic text-gray-400">No Customer</span>;
     const c = customers.find((cust) => String(cust.id) === String(id));
-    if (c) return c.name || `${c.first_name || ""} ${c.last_name || ""}`.trim();
+    if (c) {
+      const name = c.name || `${c.first_name || ""} ${c.last_name || ""}`.trim();
+      return <CustomerNameLink id={c.id} name={name} />;
+    }
     return <span className="italic text-gray-400">Unknown</span>;
   };
 
