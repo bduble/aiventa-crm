@@ -3,11 +3,13 @@ import { Users } from 'lucide-react';
 import { formatTime } from '../utils/formatDateTime';
 import supabase from '../supabase';
 import CustomerNameLink from '../components/CustomerNameLink';
+import CustomerCardOverlay from '../components/CustomerCardOverlay';
 
 
 export default function FloorLog() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedCustomerId, setSelectedCustomerId] = useState(null);
 
   // Match your API or Supabase field names!
   const headers = [
@@ -192,7 +194,11 @@ export default function FloorLog() {
                             }}
                           />
                         ) : key === 'customer_name' ? (
-                          <CustomerNameLink id={log.customer_id} name={log.customer_name} />
+                          <CustomerNameLink
+                            id={log.customer_id}
+                            name={log.customer_name}
+                            onClick={id => setSelectedCustomerId(id)}
+                          />
                         ) : (
                           String(log[key] ?? '')
                         )}
@@ -214,6 +220,10 @@ export default function FloorLog() {
           </tbody>
         </table>
       </div>
+      <CustomerCardOverlay
+        customerId={selectedCustomerId}
+        onClose={() => setSelectedCustomerId(null)}
+      />
     </div>
   );
 }

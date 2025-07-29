@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import supabase from '../supabase';
 import FloorTrafficTable from '../components/FloorTrafficTable';
 import FloorTrafficModal from '../components/FloorTrafficModal';
+import CustomerCardOverlay from '../components/CustomerCardOverlay';
 import { Users, MailCheck, Activity, XCircle } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 
@@ -14,6 +15,7 @@ export default function FloorTrafficPage() {
   const todayStr = new Date().toISOString().slice(0, 10);
   const [startDate, setStartDate] = useState(todayStr);
   const [endDate, setEndDate] = useState(todayStr);
+  const [selectedCustomerId, setSelectedCustomerId] = useState(null);
   const [activity, setActivity] = useState({
     salesCalls: 0,
     textMessages: 0,
@@ -403,6 +405,7 @@ export default function FloorTrafficPage() {
                 setModalOpen(true);
               }}
               onToggle={handleToggle}
+              onCustomerClick={id => setSelectedCustomerId(id)}
             />
           )}
         </CardContent>
@@ -416,6 +419,10 @@ export default function FloorTrafficPage() {
         }}
         onSubmit={handleSubmit}
         initialData={editing}
+      />
+      <CustomerCardOverlay
+        customerId={selectedCustomerId}
+        onClose={() => setSelectedCustomerId(null)}
       />
     </div>
   );
