@@ -1,6 +1,10 @@
 import sys
 import types
+import os
 from unittest.mock import MagicMock
+
+os.environ.setdefault("SUPABASE_URL", "http://localhost")
+os.environ.setdefault("SUPABASE_KEY", "key")
 
 # Provide dummy dotenv module if missing
 if 'dotenv' not in sys.modules:
@@ -15,7 +19,10 @@ if 'supabase' not in sys.modules:
     supabase_module = types.ModuleType('supabase')
     def create_client(*args, **kwargs):
         return MagicMock()
+    class Client(MagicMock):
+        pass
     supabase_module.create_client = create_client
+    supabase_module.Client = Client
     sys.modules['supabase'] = supabase_module
 
 # Provide stub httpx module when the installed version does not support the

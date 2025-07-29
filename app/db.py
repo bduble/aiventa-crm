@@ -5,6 +5,9 @@ import logging
 from dotenv import load_dotenv
 from supabase import create_client
 from types import SimpleNamespace
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from .db_models import Base
 
 # 1️⃣ Load your .env (SUPABASE_URL, SUPABASE_KEY)
 load_dotenv()
@@ -48,3 +51,22 @@ else:
             return _StubQuery()
 
     supabase = _StubClient()
+
+# --- SQLAlchemy setup ------------------------------------------------------
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///:memory:")
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+try:
+    Base.metadata.create_all(bind=engine)
+except Exception as e:  # pragma: no cover - best effort for missing deps
+    logger.error(f"Failed creating tables: {e}")
+
+
+def get_db_session():
+    """FastAPI dependency that yields a SQLAlchemy session."""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

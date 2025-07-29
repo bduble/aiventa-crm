@@ -26,6 +26,7 @@ from app.routers.appraisals     import router as appraisals_router
 from app.openai_router          import router as ai_router
 from app.routers.vin            import router as vin_router
 from app.routers.auth           import router as auth_router
+from app.routers.ai_hotness     import router as ai_hotness_router
 
 # ── App init with docs paths ──
 app = FastAPI(
@@ -102,6 +103,7 @@ app.include_router(deals_router,         prefix=f"{api_prefix}/deals",        ta
 app.include_router(appraisals_router,    prefix=f"{api_prefix}/appraisals",   tags=["appraisals"])
 app.include_router(comps_router,         prefix=f"{api_prefix}",              tags=["comps"])
 app.include_router(search_router,        prefix=f"{api_prefix}",              tags=["search"])
+app.include_router(ai_hotness_router,    prefix=f"{api_prefix}",              tags=["ai-hotness"])
 app.include_router(ai_router,            prefix=f"{api_prefix}",              tags=["ai"])
 app.include_router(vin_router,           prefix='/api/vin',                   tags=["vin"])
 app.include_router(auth_router,          prefix=f"{api_prefix}",              tags=["auth"])
