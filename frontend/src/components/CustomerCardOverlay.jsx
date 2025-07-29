@@ -20,16 +20,26 @@ export default function CustomerCardOverlay({ customerId, onClose }) {
       .catch(() => setLedger([]));
   }, [customerId, API_BASE]);
 
+  useEffect(() => {
+    if (!customerId) return;
+    const handleEsc = e => e.key === 'Escape' && onClose();
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [customerId, onClose]);
+
   if (!customerId) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 overflow-y-auto flex justify-center items-start p-4">
-      <div className="w-full max-w-3xl">
+    <div
+      className="fixed inset-0 bg-black/50 z-50 overflow-y-auto flex justify-center items-start p-4"
+      onClick={onClose}
+    >
+      <div className="w-full max-w-3xl" onClick={e => e.stopPropagation()}>
         <button
           onClick={onClose}
           className="mb-4 text-blue-600 hover:underline bg-white px-3 py-1 rounded shadow"
         >
-          &larr; Back to Floor Log
+          &larr; Back
         </button>
         {customer ? (
           <CustomerProfileCard customer={customer} ledger={ledger} />

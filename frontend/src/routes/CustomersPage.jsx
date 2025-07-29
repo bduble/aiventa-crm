@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom'
+import CustomerNameLink from '../components/CustomerNameLink'
 import { Phone, MessageCircle, Mail } from 'lucide-react'
 
 export default function CustomersPage() {
@@ -67,9 +68,7 @@ export default function CustomersPage() {
               {customers.map(c => (
                 <tr key={c.id} className="odd:bg-gray-50 hover:bg-gray-100">
                   <td className="p-2 whitespace-nowrap">
-                    <Link to={`/customers/${c.id}`} className="text-blue-600 hover:underline">
-                      {c.name}
-                    </Link>
+                    <CustomerNameLink id={c.id} name={c.name} />
                   </td>
                   <td className="p-2 whitespace-nowrap">{c.email}</td>
                   <td className="p-2 whitespace-nowrap">{c.phone}</td>

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search } from "lucide-react";
 import { Link } from "react-router-dom";
+import CustomerNameLink from "./CustomerNameLink";
 
 export default function SmartSearchBar() {
   const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
@@ -52,15 +53,13 @@ export default function SmartSearchBar() {
             <div className="px-2 py-1 font-semibold text-gray-700 dark:text-gray-200 border-b">Customers</div>
           )}
           {results.customers.map(c => (
-            <Link
+            <div
               key={`c-${c.id}`}
-              to={`/customers/${c.id}`}
               onMouseDown={e => e.preventDefault()}
-              onClick={clear}
-              className="block px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="block px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
             >
-              {c.name}
-            </Link>
+              <CustomerNameLink id={c.id} name={c.name} onClick={clear} />
+            </div>
           ))}
           {results.inventory.length > 0 && (
             <div className="px-2 py-1 font-semibold text-gray-700 dark:text-gray-200 border-t">Inventory</div>
