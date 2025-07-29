@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo, Fragment } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { format, subDays } from "date-fns";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "../../components/ui/card"; // <- RELATIVE IMPORT
+// If you do not have shadcn/ui for Tabs, Button, Input, stub them or create your own:
+import { Tabs, TabsList, TabsTrigger } from "../../components/ui/tabs";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
 import { ArrowUpRight, Loader2 } from "lucide-react";
 import {
   useReactTable,
@@ -13,17 +14,6 @@ import {
   flexRender,
 } from "@tanstack/react-table";
 import classNames from "classnames";
-
-/**
- * ActivitiesPage.jsx — aiVenta CRM
- * -------------------------------------------------------------
- * Shows all sales‑side activities for the current day (default).
- * – Reps see only their activities (server enforces RLS)
- * – Managers/Admins get full‑store view w/ advisor + contact‑type filters
- * – Categories via Tabs
- * – KPI Bar for yesterday (calls, texts, emails, appts)
- * – Drawer reveals full history + AI next‑best‑action (placeholder component)
- */
 
 const CATEGORY_KEYS = [
   "all",
@@ -36,7 +26,6 @@ const CATEGORY_KEYS = [
 ];
 
 export default function ActivitiesPage() {
-  // ──────────────────────────────── STATE ────────────────────────────────
   const [activities, setActivities] = useState([]);
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -51,7 +40,6 @@ export default function ActivitiesPage() {
   // TODO: replace with real auth hook
   const role = window.__AIVENTA_USER_ROLE__ || "rep"; // "manager" | "admin" | "rep"
 
-  // ────────────────────────────── EFFECTS ────────────────────────────────
   useEffect(() => {
     const fetchMetrics = async () => {
       const yesterday = format(subDays(new Date(), 1), "yyyy-MM-dd");
@@ -88,7 +76,6 @@ export default function ActivitiesPage() {
     load();
   }, [category, dateRange, search]);
 
-  // ────────────────────────────── TABLE ────────────────────────────────
   const columns = useMemo(() => [
     {
       accessorKey: "time",
@@ -130,13 +117,10 @@ export default function ActivitiesPage() {
     getPaginationRowModel: getPaginationRowModel(),
   });
 
-  // ─────────────────────────────── RENDER ───────────────────────────────
   return (
     <div className="p-4 space-y-4">
-      {/* KPI BAR */}
       <KPIBar metrics={metrics} />
 
-      {/* CATEGORY TABS */}
       <Tabs value={category} onValueChange={setCategory} className="w-full">
         <TabsList>
           {CATEGORY_KEYS.map(key => (
@@ -147,7 +131,6 @@ export default function ActivitiesPage() {
         </TabsList>
       </Tabs>
 
-      {/* CONTROLS */}
       <div className="flex flex-wrap gap-2 items-center">
         <Input
           placeholder="Search (VIN, customer, notes)"
@@ -158,7 +141,6 @@ export default function ActivitiesPage() {
         <DateRangePicker value={dateRange} onChange={setDateRange} />
       </div>
 
-      {/* TABLE */}
       <Card className="overflow-hidden shadow-sm">
         <CardContent className="p-0">
           {loading ? (
@@ -205,7 +187,6 @@ export default function ActivitiesPage() {
   );
 }
 
-// ──────────────────────────────── COMPONENTS ────────────────────────────────
 function KPIBar({ metrics }) {
   if (!metrics) return null;
   const { calls, texts, emails, appointments } = metrics;
@@ -260,7 +241,6 @@ function StatusBadge({ status }) {
   );
 }
 
-// Dummy date‑range picker placeholder — replace with shadcn DateRange picker
 function DateRangePicker({ value, onChange }) {
   const handleStart = e => onChange({ ...value, start: e.target.value });
   const handleEnd = e => onChange({ ...value, end: e.target.value });
@@ -314,7 +294,6 @@ function ActivityDrawer({ activity, onClose }) {
   );
 }
 
-// Placeholder AI component — call /activities/{id}/insight for next‑best‑action
 function AIInsights({ activityId }) {
   const [tip, setTip] = useState(null);
   useEffect(() => {
