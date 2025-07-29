@@ -10,3 +10,5 @@ python-multipart
 requests
 beautifulsoup4
 bcrypt
+SQLAlchemy>=2.0
+psycopg2-binary   # or asyncpg if you’re using SQLAlchemy’s async API
