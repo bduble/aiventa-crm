@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import CustomerNameLink from '../components/CustomerNameLink';
 
 export default function LeadLog() {
   const API_BASE = `${import.meta.env.VITE_API_BASE_URL}/leads`;
@@ -242,9 +241,7 @@ export default function LeadLog() {
             <tbody>
               {prioritized.map(l => (
                 <tr key={l.id} className="odd:bg-gray-50 dark:odd:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700">
-                  <td className="p-2 whitespace-nowrap">
-                    <CustomerNameLink id={l.id} name={l.name} />
-                  </td>
+                  <td className="p-2 whitespace-nowrap">{l.name}</td>
                   <td className="p-2 whitespace-nowrap">{l.email}</td>
                   <td className="p-2 whitespace-nowrap">{formatDate(l.last_lead_response_at)}</td>
                   <td className="p-2 whitespace-nowrap">{formatDate(l.last_staff_response_at)}</td>
@@ -285,9 +282,7 @@ export default function LeadLog() {
             <tbody>
               {leads.map(l => (
                 <tr key={l.id} className="odd:bg-gray-50 dark:odd:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700">
-                  <td className="p-2 whitespace-nowrap">
-                    <CustomerNameLink id={l.id} name={l.name} />
-                  </td>
+                  <td className="p-2 whitespace-nowrap">{l.name}</td>
                   <td className="p-2 whitespace-nowrap">{l.email}</td>
                   <td className="p-2 whitespace-nowrap">{formatDate(l.created_at)}</td>
                   <td className="p-2 whitespace-nowrap">{formatDate(l.last_lead_response_at)}</td>
@@ -316,9 +311,7 @@ export default function LeadLog() {
             <tbody>
               {awaiting.map(l => (
                 <tr key={l.id} className="bg-red-100 dark:bg-red-900 odd:bg-red-50 dark:odd:bg-red-800 hover:bg-red-200 dark:hover:bg-red-700">
-                  <td className="p-2 whitespace-nowrap">
-                    <CustomerNameLink id={l.id} name={l.name} />
-                  </td>
+                  <td className="p-2 whitespace-nowrap">{l.name}</td>
                   <td className="p-2 whitespace-nowrap">{l.email}</td>
                   <td className="p-2 whitespace-nowrap">{formatDate(l.last_lead_response_at)}</td>
                 </tr>
