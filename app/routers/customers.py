@@ -14,6 +14,7 @@ from app.openai_client import get_openai_client
 from pydantic import BaseModel
 import uuid
 import json
+import traceback
 
 router = APIRouter()
 
@@ -208,9 +209,11 @@ async def customer_ai_summary(customer_id: str):
         data = json.loads(chat.choices[0].message.content)
         return data
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print("AI ERROR (ai-summary):", str(e))
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"AI error: {e}")
 
-# ----------- AI Next Action (NEW) -----------
+# ----------- AI Next Action (NEW, with logging) -----------
 @router.get("/{customer_id}/ai-next-action", summary="AI-Recommended Next Action")
 async def ai_next_action(customer_id: str):
     """
@@ -226,14 +229,18 @@ async def ai_next_action(customer_id: str):
             .execute()
         )
     except APIError as e:
+        print("Supabase error in ai-next-action:", str(e))
+        traceback.print_exc()
         raise HTTPException(status_code=400, detail=e.message)
 
     customer = res.data
     if not customer:
+        print(f"Customer {customer_id} not found for ai-next-action.")
         raise HTTPException(status_code=404, detail="Customer not found")
 
     client = get_openai_client()
     if not client:
+        print("OpenAI client not configured in ai-next-action.")
         return {"next_action": "AI not available. Please try again later."}
 
     prompt = (
@@ -252,6 +259,8 @@ async def ai_next_action(customer_id: str):
         next_action = chat.choices[0].message.content.strip()
         return {"next_action": next_action}
     except Exception as e:
+        print("AI ERROR (ai-next-action):", str(e))
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"AI error: {e}")
 
 # ----------- Add Customer to Floor Traffic -----------
