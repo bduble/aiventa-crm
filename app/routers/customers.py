@@ -52,7 +52,6 @@ def list_customers(
         res = query.execute()
     except APIError as e:
         logger.error(
-            "Supabase API error",
             event="supabase_api_error",
             endpoint="/customers",
             trace_id=trace_id,
@@ -72,11 +71,11 @@ def list_customers(
         if c.get("email", "") == "":
             c["email"] = None
     logger.info(
-    event="customers_listed",
-    filters={"q": q, "email": email, "phone": phone},
-    count=len(customers),
-    trace_id=trace_id,
-)
+        event="customers_listed",
+        filters={"q": q, "email": email, "phone": phone},
+        count=len(customers),
+        trace_id=trace_id,
+    )
     return customers
 
 @router.get("", include_in_schema=False, response_model=list[Customer], response_model_exclude_none=True)
@@ -107,7 +106,6 @@ def get_customer(customer_id: str, request: Request):
         )
     except APIError as e:
         logger.error(
-            "Supabase API error",
             event="supabase_api_error",
             endpoint=f"/customers/{customer_id}",
             customer_id=customer_id,
@@ -120,7 +118,6 @@ def get_customer(customer_id: str, request: Request):
 
     if not res or not hasattr(res, "data"):
         logger.error(
-            "Supabase returned None or invalid object",
             event="supabase_data_error",
             customer_id=customer_id,
             trace_id=trace_id,
@@ -132,7 +129,6 @@ def get_customer(customer_id: str, request: Request):
 
     if not res.data:
         logger.info(
-            "Customer not found",
             event="customer_not_found",
             customer_id=customer_id,
             trace_id=trace_id,
@@ -148,7 +144,6 @@ def get_customer(customer_id: str, request: Request):
     if c.get("email", "") == "":
         c["email"] = None
     logger.info(
-        "Customer fetched successfully",
         event="customer_fetch_success",
         customer_id=customer_id,
         trace_id=trace_id,
@@ -167,7 +162,6 @@ def create_customer(c: CustomerCreate, request: Request):
         res = supabase.table("customers").insert(c.dict()).execute()
     except APIError as e:
         logger.error(
-            "Supabase API error",
             event="supabase_api_error",
             endpoint="/customers (POST)",
             trace_id=trace_id,
@@ -180,7 +174,6 @@ def create_customer(c: CustomerCreate, request: Request):
     if created.get("email", "") == "":
         created["email"] = None
     logger.info(
-        "Customer created",
         event="customer_created",
         customer_id=created.get("id"),
         trace_id=trace_id,
@@ -209,7 +202,6 @@ def update_customer(customer_id: str, c: CustomerUpdate, request: Request):
         )
     except APIError as e:
         logger.error(
-            "Supabase API error",
             event="supabase_api_error",
             endpoint=f"/customers/{customer_id} (PATCH)",
             customer_id=customer_id,
@@ -225,7 +217,6 @@ def update_customer(customer_id: str, c: CustomerUpdate, request: Request):
     if updated.get("email", "") == "":
         updated["email"] = None
     logger.info(
-        "Customer updated",
         event="customer_updated",
         customer_id=customer_id,
         trace_id=trace_id,
@@ -249,7 +240,6 @@ def delete_customer(customer_id: str, request: Request):
         )
     except APIError as e:
         logger.error(
-            "Supabase API error",
             event="supabase_api_error",
             endpoint=f"/customers/{customer_id} (DELETE)",
             customer_id=customer_id,
@@ -262,7 +252,6 @@ def delete_customer(customer_id: str, request: Request):
     if not res.data:
         raise HTTPException(status_code=404, detail="Customer not found")
     logger.info(
-        "Customer deleted",
         event="customer_deleted",
         customer_id=customer_id,
         trace_id=trace_id,
@@ -283,7 +272,6 @@ async def customer_ai_summary(customer_id: str, request: Request):
         )
     except Exception as e:
         logger.error(
-            "Supabase DB error in ai-summary",
             event="ai_summary_db_error",
             customer_id=customer_id,
             trace_id=trace_id,
@@ -296,7 +284,6 @@ async def customer_ai_summary(customer_id: str, request: Request):
 
     if not res or not hasattr(res, "data"):
         logger.error(
-            "Supabase returned None or invalid object for ai-summary",
             event="ai_summary_data_error",
             customer_id=customer_id,
             trace_id=trace_id,
@@ -308,7 +295,6 @@ async def customer_ai_summary(customer_id: str, request: Request):
 
     if not res.data:
         logger.warning(
-            "Customer not found for ai-summary",
             event="ai_summary_customer_not_found",
             customer_id=customer_id,
             trace_id=trace_id,
@@ -319,7 +305,6 @@ async def customer_ai_summary(customer_id: str, request: Request):
     client = get_openai_client()
     if not client:
         logger.error(
-            "OpenAI client not configured",
             event="ai_summary_no_openai",
             trace_id=trace_id,
             CRITICAL_ALERT=True,
@@ -345,7 +330,6 @@ async def customer_ai_summary(customer_id: str, request: Request):
         )
         data = json.loads(chat.choices[0].message.content)
         logger.info(
-            "AI summary generated",
             event="ai_summary_generated",
             customer_id=customer_id,
             trace_id=trace_id,
@@ -353,7 +337,6 @@ async def customer_ai_summary(customer_id: str, request: Request):
         return data
     except Exception as e:
         logger.error(
-            "AI ERROR (ai-summary)",
             event="ai_summary_ai_error",
             customer_id=customer_id,
             trace_id=trace_id,
@@ -379,7 +362,6 @@ async def ai_next_action(customer_id: str, request: Request):
         )
     except Exception as e:
         logger.error(
-            "Supabase DB error in ai-next-action",
             event="ai_next_action_db_error",
             customer_id=customer_id,
             trace_id=trace_id,
@@ -392,7 +374,6 @@ async def ai_next_action(customer_id: str, request: Request):
 
     if not res or not hasattr(res, "data"):
         logger.error(
-            "Supabase returned None or invalid object for ai-next-action",
             event="ai_next_action_data_error",
             customer_id=customer_id,
             trace_id=trace_id,
@@ -405,7 +386,6 @@ async def ai_next_action(customer_id: str, request: Request):
     customer = res.data
     if not customer:
         logger.warning(
-            "Customer not found for ai-next-action",
             event="ai_next_action_customer_not_found",
             customer_id=customer_id,
             trace_id=trace_id,
@@ -415,7 +395,6 @@ async def ai_next_action(customer_id: str, request: Request):
     client = get_openai_client()
     if not client:
         logger.error(
-            "OpenAI client not configured",
             event="ai_next_action_no_openai",
             trace_id=trace_id,
             CRITICAL_ALERT=True,
@@ -437,7 +416,6 @@ async def ai_next_action(customer_id: str, request: Request):
         )
         next_action = chat.choices[0].message.content.strip()
         logger.info(
-            "AI next action generated",
             event="ai_next_action_generated",
             customer_id=customer_id,
             trace_id=trace_id,
@@ -446,7 +424,6 @@ async def ai_next_action(customer_id: str, request: Request):
         return {"next_action": next_action}
     except Exception as e:
         logger.error(
-            "AI ERROR (ai-next-action)",
             event="ai_next_action_ai_error",
             customer_id=customer_id,
             trace_id=trace_id,
@@ -475,7 +452,6 @@ async def add_customer_to_floor_log(customer_id: str, entry: CustomerFloorTraffi
         )
     except APIError as e:
         logger.error(
-            "Supabase API error",
             event="supabase_api_error",
             endpoint=f"/customers/{customer_id}/floor-traffic (GET)",
             customer_id=customer_id,
@@ -487,7 +463,6 @@ async def add_customer_to_floor_log(customer_id: str, entry: CustomerFloorTraffi
         raise HTTPException(status_code=400, detail=e.message)
     if not res or not hasattr(res, "data"):
         logger.error(
-            "Supabase returned None or invalid object for floor-traffic",
             event="floor_traffic_data_error",
             customer_id=customer_id,
             trace_id=trace_id,
@@ -516,7 +491,6 @@ async def add_customer_to_floor_log(customer_id: str, entry: CustomerFloorTraffi
         be_back = bool(past.data)
     except APIError as e:
         logger.error(
-            "Supabase API error",
             event="supabase_api_error",
             endpoint=f"/customers/{customer_id}/floor-traffic (CHECK)",
             customer_id=customer_id,
@@ -542,7 +516,6 @@ async def add_customer_to_floor_log(customer_id: str, entry: CustomerFloorTraffi
         res = supabase.table("floor_traffic_customers").insert(payload).execute()
     except APIError as e:
         logger.error(
-            "Supabase API error",
             event="supabase_api_error",
             endpoint=f"/customers/{customer_id}/floor-traffic (INSERT)",
             customer_id=customer_id,
@@ -554,96 +527,6 @@ async def add_customer_to_floor_log(customer_id: str, entry: CustomerFloorTraffi
         raise HTTPException(status_code=400, detail=str(e))
     if not res.data:
         logger.error(
-            "Database insertion failed, no data returned",
             event="floor_traffic_insert_fail",
             customer_id=customer_id,
             trace_id=trace_id,
-            CRITICAL_ALERT=True,
-        )
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Database insertion failed, no data returned.",
-        )
-    logger.info(
-        "Customer added to floor traffic",
-        event="customer_floor_traffic_added",
-        customer_id=customer_id,
-        trace_id=trace_id,
-    )
-    return res.data[0]
-
-# ----------- Customer Files (Upload/List) -----------
-class CustomerFile(BaseModel):
-    id: str
-    customer_id: str
-    name: str
-    url: str
-
-@router.get("/{customer_id}/files", response_model=list[CustomerFile])
-def list_customer_files(customer_id: str, request: Request):
-    trace_id = get_trace_id(request)
-    try:
-        res = (
-            supabase.table("customer_files")
-            .select("*")
-            .eq("customer_id", customer_id)
-            .execute()
-        )
-        logger.info(
-            "Listed customer files",
-            event="customer_files_listed",
-            customer_id=customer_id,
-            trace_id=trace_id,
-            file_count=len(res.data or []),
-        )
-        return res.data or []
-    except APIError as e:
-        logger.error(
-            "Supabase API error listing customer files",
-            event="supabase_api_error",
-            endpoint=f"/customers/{customer_id}/files (GET)",
-            customer_id=customer_id,
-            trace_id=trace_id,
-            error_message=str(e),
-        )
-        loguru_logger.error(f"[{trace_id}] Supabase API error listing customer files: {e}")
-        raise HTTPException(status_code=400, detail=e.message)
-
-@router.post(
-    "/{customer_id}/files",
-    response_model=CustomerFile,
-    status_code=status.HTTP_201_CREATED,
-)
-def upload_customer_file(customer_id: str, file: UploadFile = File(...), request: Request = None):
-    trace_id = get_trace_id(request)
-    try:
-        content = file.file.read()
-        filename = f"{uuid.uuid4()}_{file.filename}"
-        path = f"{customer_id}/{filename}"
-        bucket = supabase.storage.from_("customer-files")
-        bucket.upload(path, content, {"content-type": file.content_type})
-        url = bucket.get_public_url(path)
-        res = (
-            supabase.table("customer_files")
-            .insert({"customer_id": customer_id, "name": file.filename, "url": url})
-            .execute()
-        )
-        logger.info(
-            "Uploaded customer file",
-            event="customer_file_uploaded",
-            customer_id=customer_id,
-            trace_id=trace_id,
-            filename=file.filename,
-        )
-        return res.data[0]
-    except APIError as e:
-        logger.error(
-            "Supabase API error uploading customer file",
-            event="supabase_api_error",
-            endpoint=f"/customers/{customer_id}/files (POST)",
-            customer_id=customer_id,
-            trace_id=trace_id,
-            error_message=str(e),
-        )
-        loguru_logger.error(f"[{trace_id}] Supabase API error uploading customer file: {e}")
-        raise HTTPException(status_code=400, detail=e.message)
