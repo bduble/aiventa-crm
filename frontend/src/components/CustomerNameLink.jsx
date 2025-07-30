@@ -1,39 +1,19 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+iimport React from 'react';
 import { useCustomerCard } from '../context/CustomerCardContext';
 
-export default function CustomerNameLink({ id, name, onClick }) {
+export default function CustomerNameLink({ id, name }) {
   const { open } = useCustomerCard();
+
   if (!id) return <span>{name || ''}</span>;
 
-  const handle = () => {
-    if (typeof onClick === 'function') {
-      onClick(id);
-    } else if (open) {
-      open(id);
-    }
-  };
-
-  if (open || typeof onClick === 'function') {
-    return (
-      <button
-        type="button"
-        onClick={handle}
-        title="View customer card"
-        className="text-blue-600 hover:underline"
-      >
-        {name}
-      </button>
-    );
-  }
-
   return (
-    <Link
-      to={`/customers/${id}`}
+    <button
+      type="button"
+      onClick={() => open(id)}
       title="View customer card"
       className="text-blue-600 hover:underline"
     >
       {name}
-    </Link>
+    </button>
   );
 }
