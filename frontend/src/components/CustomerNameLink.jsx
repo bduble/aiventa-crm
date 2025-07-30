@@ -1,4 +1,4 @@
-iimport React from 'react';
+import React from 'react';
 import { useCustomerCard } from '../context/CustomerCardContext';
 
 export default function CustomerNameLink({ id, name }) {
