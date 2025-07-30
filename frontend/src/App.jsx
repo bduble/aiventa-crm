@@ -1,6 +1,7 @@
+// frontend/src/App.jsx
 import { useState, useEffect, useRef } from 'react';
-import { useTheme } from './context/ThemeContext.jsx';
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { ThemeProvider, useTheme } from './context/ThemeContext.jsx'; // <== Import ThemeProvider!
 import PrivateRoute from "./components/PrivateRoute.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 
@@ -22,13 +23,14 @@ import ReconPage              from "./pages/ReconPage";
 import AppraisalsPage         from "./pages/AppraisalsPage";
 import ChatGPTPrompt          from "./components/ChatGPTPrompt";
 import KPIDetailPage          from "./routes/KPIDetailPage";
-import DealsPage              from "./pages/DealsPage"; // <-- Add this line!
+import DealsPage              from "./pages/DealsPage";
 import { Plus, User }         from "lucide-react";
+import ThemeToggleButton      from './components/ThemeToggleButton'; // <== Import the toggle button!
+import { CustomerCardProvider } from './context/CustomerCardContext'; // <== Overlay provider!
 
-// Debug check
 console.log({ Home, Logo });
 
-export default function App() {
+function AppContent() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const [customerMenuOpen, setCustomerMenuOpen] = useState(false);
@@ -55,7 +57,6 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // Inline styles
   const navStyle = {
     position: "fixed",
     top: 0,
@@ -84,7 +85,6 @@ export default function App() {
     padding: "2rem",
   };
 
-  // Nav items as an array for clarity
   const navItems = [
     { to: "/",         label: "Home"             },
     { to: "/users",    label: "Users"            },
@@ -222,7 +222,10 @@ export default function App() {
             )}
           </div>
 
-          <ChatGPTPrompt />
+          <span className="ml-auto flex items-center gap-2">
+            <ThemeToggleButton />
+            <ChatGPTPrompt />
+          </span>
         </div>
       </nav>
 
@@ -239,7 +242,7 @@ export default function App() {
             <Route path="/customers/:id" element={<CustomerCard />} />
             <Route path="/users" element={<UsersPage />} />
             <Route path="/inventory" element={<InventoryPage />} />
-            <Route path="/deals" element={<DealsPage />} /> {/* <-- Add this! */}
+            <Route path="/deals" element={<DealsPage />} />
             <Route path="/appraisals" element={<AppraisalsPage />} />
             <Route path="/recon" element={<ReconPage />} />
             <Route path="/activities" element={<ActivitiesPage />} />
@@ -251,5 +254,15 @@ export default function App() {
         </Routes>
       </div>
     </Router>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <CustomerCardProvider>
+        <AppContent />
+      </CustomerCardProvider>
+    </ThemeProvider>
   );
 }
