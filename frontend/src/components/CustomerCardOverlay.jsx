@@ -62,7 +62,6 @@ export default function CustomerCardOverlay({ customerId, onClose, userRole = "s
   const [showCreditModal, setShowCreditModal] = useState(false);
   const [creditStatus, setCreditStatus] = useState(null);
 
-  // AI Hotness Auto-Update
   useEffect(() => {
     if (!customerId || !customer) return;
     const interval = setInterval(async () => {
@@ -77,7 +76,6 @@ export default function CustomerCardOverlay({ customerId, onClose, userRole = "s
     return () => clearInterval(interval);
   }, [customerId, customer]);
 
-  // Next Best Action
   const [nextAction, setNextAction] = useState('');
   useEffect(() => {
     if (!customerId) return;
@@ -126,6 +124,13 @@ export default function CustomerCardOverlay({ customerId, onClose, userRole = "s
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, [customerId, onClose]);
+
+  useEffect(() => {
+    if (!customerId) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; }
+  }, [customerId]);
 
   const fetchTasks = async () => {
     try {
@@ -215,7 +220,7 @@ export default function CustomerCardOverlay({ customerId, onClose, userRole = "s
       }, 1800);
     }
     return (
-      <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
+      <div className="fixed inset-0 z-[110] bg-black/40 flex items-center justify-center">
         <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow w-96 max-w-full">
           <h3 className="font-bold mb-2 flex items-center gap-2"><CreditCard /> Credit Application</h3>
           <input className="border rounded w-full p-2 mb-2" placeholder="SSN" value={form.ssn} onChange={e => setForm(f => ({ ...f, ssn: e.target.value }))} />
@@ -245,7 +250,7 @@ export default function CustomerCardOverlay({ customerId, onClose, userRole = "s
       fetchTasks()
     }
     return (
-      <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
+      <div className="fixed inset-0 z-[110] bg-black/40 flex items-center justify-center">
         <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow w-80">
           <h3 className="font-bold mb-2 flex items-center gap-2"><Plus /> Add Task</h3>
           <input className="border rounded w-full p-2 mb-2" placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} />
@@ -273,7 +278,7 @@ export default function CustomerCardOverlay({ customerId, onClose, userRole = "s
       fetchAppointments()
     }
     return (
-      <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
+      <div className="fixed inset-0 z-[110] bg-black/40 flex items-center justify-center">
         <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow w-80">
           <h3 className="font-bold mb-2 flex items-center gap-2"><Plus /> Book Appointment</h3>
           <input className="border rounded w-full p-2 mb-2" placeholder="Type (e.g., Test Drive)" value={type} onChange={e => setType(e.target.value)} />
@@ -289,13 +294,13 @@ export default function CustomerCardOverlay({ customerId, onClose, userRole = "s
 
   if (!customerId) return null;
   if (loading) return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center">
-      <div className="bg-white p-8 rounded-2xl shadow text-lg font-bold">Loading...</div>
+    <div className="fixed inset-0 bg-black/50 z-[100] flex justify-center items-center">
+      <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow text-lg font-bold">Loading...</div>
     </div>
   );
 
   if (!customer) return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center">
+    <div className="fixed inset-0 bg-black/50 z-[100] flex justify-center items-center">
       <div className="bg-white p-8 rounded-2xl shadow text-lg font-bold">Customer not found</div>
       <button className="absolute top-4 right-4 text-blue-600" onClick={onClose}>&times;</button>
     </div>
@@ -315,11 +320,30 @@ export default function CustomerCardOverlay({ customerId, onClose, userRole = "s
   ].filter(s => s.url)
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 overflow-y-auto flex justify-center items-start p-4" onClick={onClose}>
-      <div className="w-full max-w-3xl mx-auto mt-8 mb-12 rounded-2xl shadow-2xl p-4 sm:p-6 transition-all duration-300 bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-100 dark:border-slate-800" onClick={e => e.stopPropagation()}>
-        <button onClick={onClose} className="mb-4 text-blue-600 hover:underline bg-white px-3 py-1 rounded shadow">
-          &larr; Close
-        </button>
+    <div
+      className="fixed inset-0 z-[100] bg-black/50 flex justify-center items-start sm:items-center p-1 sm:p-6 overflow-y-auto"
+      onClick={onClose}
+      style={{ overscrollBehavior: "contain" }}
+    >
+      <Motion.div
+        {...ANIM_PROPS}
+        className="w-full max-w-3xl mx-auto mt-3 sm:mt-8 mb-8 sm:mb-12 rounded-2xl shadow-2xl p-2 sm:p-6 transition-all duration-300 bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-100 dark:border-slate-800 relative"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Top close/dark mode row */}
+        <div className="flex items-center justify-between mb-2">
+          <button onClick={onClose} className="text-blue-600 hover:underline bg-white dark:bg-slate-900 px-3 py-1 rounded shadow">
+            &larr; Close
+          </button>
+          <button
+            className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            title="Toggle dark mode"
+          >
+            {theme === 'dark' ? <Sun /> : <Moon />}
+          </button>
+        </div>
+
         {/* ---- Context Highlights ---- */}
         <div className="flex flex-wrap gap-4 mb-2">
           {nextTask && (
@@ -387,13 +411,6 @@ export default function CustomerCardOverlay({ customerId, onClose, userRole = "s
               )}
             </div>
           </div>
-          <button
-            className="ml-auto p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            title="Toggle dark mode"
-          >
-            {theme === 'dark' ? <Sun /> : <Moon />}
-          </button>
         </div>
         <div className="flex gap-2 flex-wrap mb-2 items-center">
           {(customer.tags || []).map((tag, i) =>
@@ -620,7 +637,6 @@ export default function CustomerCardOverlay({ customerId, onClose, userRole = "s
               </Motion.div>
             )}
 
-            {/* Deal Desk */}
             {tab === 'dealdesk' && (
               <Motion.div key="dealdesk" {...ANIM_PROPS}>
                 <div className="flex items-center mb-3 gap-2">
@@ -668,7 +684,7 @@ export default function CustomerCardOverlay({ customerId, onClose, userRole = "s
         {showTaskModal && <TaskModal onClose={() => setShowTaskModal(false)} />}
         {showApptModal && <AppointmentModal onClose={() => setShowApptModal(false)} />}
         {showCreditModal && <CreditAppModal onClose={() => setShowCreditModal(false)} />}
-      </div>
+      </Motion.div>
     </div>
   );
 }
