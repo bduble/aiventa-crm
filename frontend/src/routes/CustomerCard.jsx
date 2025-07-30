@@ -65,19 +65,44 @@ export default function CustomerCard({ userRole = "sales" }) {
   const [creditStatus, setCreditStatus] = useState(null);
 
   // ---- AI Live Hotness Auto-Update ----
-  useEffect(() => {
-    if (!customer) return;
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch(`${API_BASE}/customers/${id}/ai-hotness`);
-        if (res.ok) {
-          const { score } = await res.json();
-          setCustomer(prev => ({ ...prev, hotness: score }));
-        }
-      } catch {}
-    }, 8000);
-    return () => clearInterval(interval);
-  }, [id, customer]);
+   useEffect(() => {
+    if (!customerId) return;
+    fetchCustomerData();
+    fetchHotness();
+  }, [customerId]);
+
+  const fetchCustomerData = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/customers/${customerId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setCustomer(data);
+      }
+    } catch (e) {
+      // handle customer fetch error
+    }
+  };
+
+  const fetchHotness = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/customers/${customerId}/ai-hotness`);
+      if (res.ok) {
+        const { score } = await res.json();
+        setCustomer(prev => prev ? { ...prev, hotness: score } : prev);
+      }
+    } catch (e) {
+      // Optionally handle error
+    }
+  };
+
+  // Example: Call this after successfully adding an activity/note
+  const handleAddActivity = async (activityData) => {
+    await addActivity(activityData); // however you do this (API call, etc)
+    await fetchHotness();            // update hotness immediately
+  };
+
+  // ...rest of your component UI
+}
 
   // ---- Next Best Action ----
   const [nextAction, setNextAction] = useState('');
