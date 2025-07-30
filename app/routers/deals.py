@@ -1,16 +1,12 @@
-# app/routers/deals.py
-
 from fastapi import APIRouter, HTTPException, status, Depends, Body
 from postgrest.exceptions import APIError
 from app.db import supabase
 from typing import Optional, List
-from app.models import Deal, DealCreate, DealUpdate
+from app.models import Deal, DealCreate, DealUpdate, Customer  # <- Customer added!
 from datetime import datetime
 import logging
 
 router = APIRouter()
-
-
 
 # ── Permissions Stub ─────────────────────────────
 def get_current_user():
@@ -34,6 +30,18 @@ def days_to_book(sold_date: Optional[str], booked_date: Optional[str]) -> Option
 def log_audit_action(deal_id: str, action: str, user_id: int, details: str = ""):
     # TODO: Write to an 'audit' table or append to a JSONB field
     logging.info(f"Audit: deal {deal_id} - {action} by {user_id} - {details}")
+
+# ── ENDPOINT: Get only sold customers ─────────────
+@router.get("/sold-customers", response_model=List[Customer])
+def list_sold_customers():
+    """
+    Returns all customers in customers table where sold is True.
+    """
+    try:
+        res = supabase.table("customers").select("*").eq("sold", True).execute()
+        return res.data or []
+    except APIError as e:
+        raise HTTPException(400, detail=e.message)
 
 # ── Endpoints ────────────────────────────────────
 
@@ -146,4 +154,3 @@ def unwind_deal(
         return res.data[0]
     except APIError as e:
         raise HTTPException(400, detail=e.message)
-
