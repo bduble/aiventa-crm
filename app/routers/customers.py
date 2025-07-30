@@ -1,5 +1,6 @@
-print("CUSTOMERS ROUTER LOADED")
-from fastapi import APIRouter, HTTPException, status, Query, UploadFile, File
+import structlog
+from loguru import logger as loguru_logger
+from fastapi import APIRouter, HTTPException, status, Query, UploadFile, File, Request
 from datetime import datetime, timedelta
 from postgrest.exceptions import APIError
 from app.db import supabase
@@ -16,25 +17,30 @@ import uuid
 import json
 import traceback
 
+# --- Setup structlog globally ---
+structlog.configure(
+    processors=[
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.add_log_level,
+        structlog.processors.JSONRenderer(),
+    ]
+)
+logger = structlog.get_logger("aiventa.customers")
+
 router = APIRouter()
 
+def get_trace_id(request: Request):
+    return request.headers.get("X-Request-ID", str(uuid.uuid4()))
+
 # ----------- Customer List/Search -----------
-@router.get(
-    "/",
-    response_model=list[Customer],
-    response_model_exclude_none=True,
-)
+@router.get("/", response_model=list[Customer], response_model_exclude_none=True)
 def list_customers(
     q: str | None = Query(None, description="Search term for first or last name"),
     email: str | None = Query(None, description="Filter by email"),
     phone: str | None = Query(None, description="Filter by phone"),
+    request: Request = None,
 ):
-    """
-    List customers with optional search filters.
-    - q: ILIKE filter on name
-    - email: ILIKE filter on email
-    - phone: ILIKE filter on phone
-    """
+    trace_id = get_trace_id(request) if request else str(uuid.uuid4())
     try:
         query = supabase.table("customers").select("*")
         if q:
@@ -45,6 +51,14 @@ def list_customers(
             query = query.ilike("phone", f"%{phone}%")
         res = query.execute()
     except APIError as e:
+        logger.error(
+            "Supabase API error",
+            event="supabase_api_error",
+            endpoint="/customers",
+            trace_id=trace_id,
+            error_message=str(e)
+        )
+        loguru_logger.error(f"[{trace_id}] Supabase API error in list_customers: {e}")
         raise HTTPException(status_code=400, detail=e.message)
 
     customers = res.data or []
@@ -57,17 +71,23 @@ def list_customers(
             )
         if c.get("email", "") == "":
             c["email"] = None
+    logger.info(
+        "Listed customers",
+        event="customers_listed",
+        filters={"q": q, "email": email, "phone": phone},
+        count=len(customers),
+        trace_id=trace_id,
+    )
     return customers
 
-# ----------- No trailing slash support -----------
 @router.get("", include_in_schema=False, response_model=list[Customer], response_model_exclude_none=True)
 def list_customers_noslash(
     q: str | None = Query(None, description="Search term for first or last name"),
     email: str | None = Query(None, description="Filter by email"),
     phone: str | None = Query(None, description="Filter by phone"),
+    request: Request = None,
 ):
-    """Support /api/customers (no trailing slash)."""
-    return list_customers(q, email, phone)
+    return list_customers(q, email, phone, request)
 
 # ----------- Get Single Customer -----------
 @router.get(
@@ -75,8 +95,8 @@ def list_customers_noslash(
     response_model=Customer,
     response_model_exclude_none=True,
 )
-def get_customer(customer_id: str):
-    """Fetch a single customer by integer ID."""
+def get_customer(customer_id: str, request: Request):
+    trace_id = get_trace_id(request)
     try:
         res = (
             supabase
@@ -87,13 +107,37 @@ def get_customer(customer_id: str):
             .execute()
         )
     except APIError as e:
+        logger.error(
+            "Supabase API error",
+            event="supabase_api_error",
+            endpoint=f"/customers/{customer_id}",
+            customer_id=customer_id,
+            trace_id=trace_id,
+            error_message=str(e),
+            CRITICAL_ALERT=True,
+        )
+        loguru_logger.error(f"[{trace_id}] Supabase API error in get_customer: {e}")
         raise HTTPException(status_code=400, detail=e.message)
 
     if not res or not hasattr(res, "data"):
-        print(f"Supabase returned None or invalid object for customer_id {customer_id}: {res}")
+        logger.error(
+            "Supabase returned None or invalid object",
+            event="supabase_data_error",
+            customer_id=customer_id,
+            trace_id=trace_id,
+            response=str(res),
+            CRITICAL_ALERT=True,
+        )
+        loguru_logger.error(f"[{trace_id}] Supabase returned invalid for get_customer: {res}")
         raise HTTPException(status_code=500, detail="Supabase did not return data as expected.")
 
     if not res.data:
+        logger.info(
+            "Customer not found",
+            event="customer_not_found",
+            customer_id=customer_id,
+            trace_id=trace_id,
+        )
         raise HTTPException(status_code=404, detail="Customer not found")
     c = res.data
     if not c.get("name"):
@@ -104,6 +148,12 @@ def get_customer(customer_id: str):
         )
     if c.get("email", "") == "":
         c["email"] = None
+    logger.info(
+        "Customer fetched successfully",
+        event="customer_fetch_success",
+        customer_id=customer_id,
+        trace_id=trace_id,
+    )
     return c
 
 # ----------- Create Customer -----------
@@ -112,15 +162,30 @@ def get_customer(customer_id: str):
     response_model=Customer,
     status_code=status.HTTP_201_CREATED,
 )
-def create_customer(c: CustomerCreate):
-    """Insert a new customer."""
+def create_customer(c: CustomerCreate, request: Request):
+    trace_id = get_trace_id(request)
     try:
         res = supabase.table("customers").insert(c.dict()).execute()
     except APIError as e:
+        logger.error(
+            "Supabase API error",
+            event="supabase_api_error",
+            endpoint="/customers (POST)",
+            trace_id=trace_id,
+            error_message=str(e),
+            CRITICAL_ALERT=True,
+        )
+        loguru_logger.error(f"[{trace_id}] Supabase API error in create_customer: {e}")
         raise HTTPException(status_code=400, detail=e.message)
     created = res.data[0]
     if created.get("email", "") == "":
         created["email"] = None
+    logger.info(
+        "Customer created",
+        event="customer_created",
+        customer_id=created.get("id"),
+        trace_id=trace_id,
+    )
     return created
 
 # ----------- Patch (Update) Customer -----------
@@ -128,8 +193,8 @@ def create_customer(c: CustomerCreate):
     "/{customer_id}",
     response_model=Customer,
 )
-def update_customer(customer_id: str, c: CustomerUpdate):
-    """Update existing customer fields."""
+def update_customer(customer_id: str, c: CustomerUpdate, request: Request):
+    trace_id = get_trace_id(request)
     payload = {k: v for k, v in c.dict().items() if v is not None}
     if not payload:
         raise HTTPException(status_code=400, detail="No fields to update")
@@ -144,12 +209,28 @@ def update_customer(customer_id: str, c: CustomerUpdate):
             .execute()
         )
     except APIError as e:
+        logger.error(
+            "Supabase API error",
+            event="supabase_api_error",
+            endpoint=f"/customers/{customer_id} (PATCH)",
+            customer_id=customer_id,
+            trace_id=trace_id,
+            error_message=str(e),
+            CRITICAL_ALERT=True,
+        )
+        loguru_logger.error(f"[{trace_id}] Supabase API error in update_customer: {e}")
         raise HTTPException(status_code=400, detail=e.message)
     if not res.data:
         raise HTTPException(status_code=404, detail="Customer not found")
     updated = res.data
     if updated.get("email", "") == "":
         updated["email"] = None
+    logger.info(
+        "Customer updated",
+        event="customer_updated",
+        customer_id=customer_id,
+        trace_id=trace_id,
+    )
     return updated
 
 # ----------- Delete Customer -----------
@@ -157,8 +238,8 @@ def update_customer(customer_id: str, c: CustomerUpdate):
     "/{customer_id}",
     status_code=status.HTTP_204_NO_CONTENT,
 )
-def delete_customer(customer_id: str):
-    """Delete a customer by ID."""
+def delete_customer(customer_id: str, request: Request):
+    trace_id = get_trace_id(request)
     try:
         res = (
             supabase
@@ -168,15 +249,31 @@ def delete_customer(customer_id: str):
             .execute()
         )
     except APIError as e:
+        logger.error(
+            "Supabase API error",
+            event="supabase_api_error",
+            endpoint=f"/customers/{customer_id} (DELETE)",
+            customer_id=customer_id,
+            trace_id=trace_id,
+            error_message=str(e),
+            CRITICAL_ALERT=True,
+        )
+        loguru_logger.error(f"[{trace_id}] Supabase API error in delete_customer: {e}")
         raise HTTPException(status_code=400, detail=e.message)
     if not res.data:
         raise HTTPException(status_code=404, detail="Customer not found")
+    logger.info(
+        "Customer deleted",
+        event="customer_deleted",
+        customer_id=customer_id,
+        trace_id=trace_id,
+    )
     return
 
 # ----------- AI Customer Summary -----------
 @router.get("/{customer_id}/ai-summary")
-async def customer_ai_summary(customer_id: str):
-    """Return an AI generated summary and messaging templates for the customer."""
+async def customer_ai_summary(customer_id: str, request: Request):
+    trace_id = get_trace_id(request)
     try:
         res = (
             supabase.table("customers")
@@ -186,22 +283,48 @@ async def customer_ai_summary(customer_id: str):
             .execute()
         )
     except Exception as e:
-        print("Supabase DB error in ai-summary:", str(e))
-        traceback.print_exc()
+        logger.error(
+            "Supabase DB error in ai-summary",
+            event="ai_summary_db_error",
+            customer_id=customer_id,
+            trace_id=trace_id,
+            error_message=str(e),
+            traceback=traceback.format_exc(),
+            CRITICAL_ALERT=True,
+        )
+        loguru_logger.error(f"[{trace_id}] Supabase DB error in ai-summary: {e}")
         raise HTTPException(status_code=500, detail=f"Supabase DB error: {e}")
 
     if not res or not hasattr(res, "data"):
-        print(f"Supabase returned None or invalid object for customer_id {customer_id}: {res}")
+        logger.error(
+            "Supabase returned None or invalid object for ai-summary",
+            event="ai_summary_data_error",
+            customer_id=customer_id,
+            trace_id=trace_id,
+            response=str(res),
+            CRITICAL_ALERT=True,
+        )
+        loguru_logger.error(f"[{trace_id}] Supabase returned invalid for ai-summary: {res}")
         raise HTTPException(status_code=500, detail="Supabase did not return data as expected.")
 
     if not res.data:
-        print(f"Customer {customer_id} not found for ai-summary. Query result: {res}")
+        logger.warning(
+            "Customer not found for ai-summary",
+            event="ai_summary_customer_not_found",
+            customer_id=customer_id,
+            trace_id=trace_id,
+        )
         raise HTTPException(status_code=404, detail="Customer not found")
     customer = res.data
 
     client = get_openai_client()
     if not client:
-        print("OpenAI client not configured in ai-summary.")
+        logger.error(
+            "OpenAI client not configured",
+            event="ai_summary_no_openai",
+            trace_id=trace_id,
+            CRITICAL_ALERT=True,
+        )
         return {
             "summary": "OpenAI API key not configured",
             "next_steps": [],
@@ -222,18 +345,30 @@ async def customer_ai_summary(customer_id: str):
             temperature=0.3,
         )
         data = json.loads(chat.choices[0].message.content)
+        logger.info(
+            "AI summary generated",
+            event="ai_summary_generated",
+            customer_id=customer_id,
+            trace_id=trace_id,
+        )
         return data
     except Exception as e:
-        print("AI ERROR (ai-summary):", str(e))
-        traceback.print_exc()
+        logger.error(
+            "AI ERROR (ai-summary)",
+            event="ai_summary_ai_error",
+            customer_id=customer_id,
+            trace_id=trace_id,
+            error_message=str(e),
+            traceback=traceback.format_exc(),
+            CRITICAL_ALERT=True,
+        )
+        loguru_logger.error(f"[{trace_id}] AI error in ai-summary: {e}\n{traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"AI error: {e}")
 
-# ----------- AI Next Action (NEW, with logging) -----------
+# ----------- AI Next Action -----------
 @router.get("/{customer_id}/ai-next-action", summary="AI-Recommended Next Action")
-async def ai_next_action(customer_id: str):
-    """
-    Use AI to recommend the best next action for a customer.
-    """
+async def ai_next_action(customer_id: str, request: Request):
+    trace_id = get_trace_id(request)
     try:
         res = (
             supabase
@@ -244,22 +379,48 @@ async def ai_next_action(customer_id: str):
             .execute()
         )
     except Exception as e:
-        print("Supabase DB error in ai-next-action:", str(e))
-        traceback.print_exc()
+        logger.error(
+            "Supabase DB error in ai-next-action",
+            event="ai_next_action_db_error",
+            customer_id=customer_id,
+            trace_id=trace_id,
+            error_message=str(e),
+            traceback=traceback.format_exc(),
+            CRITICAL_ALERT=True,
+        )
+        loguru_logger.error(f"[{trace_id}] Supabase DB error in ai-next-action: {e}")
         raise HTTPException(status_code=500, detail=f"Supabase DB error: {e}")
 
     if not res or not hasattr(res, "data"):
-        print(f"Supabase returned None or invalid object for customer_id {customer_id}: {res}")
+        logger.error(
+            "Supabase returned None or invalid object for ai-next-action",
+            event="ai_next_action_data_error",
+            customer_id=customer_id,
+            trace_id=trace_id,
+            response=str(res),
+            CRITICAL_ALERT=True,
+        )
+        loguru_logger.error(f"[{trace_id}] Supabase returned invalid for ai-next-action: {res}")
         raise HTTPException(status_code=500, detail="Supabase did not return data as expected.")
 
     customer = res.data
     if not customer:
-        print(f"Customer {customer_id} not found for ai-next-action. Query result: {res}")
+        logger.warning(
+            "Customer not found for ai-next-action",
+            event="ai_next_action_customer_not_found",
+            customer_id=customer_id,
+            trace_id=trace_id,
+        )
         raise HTTPException(status_code=404, detail="Customer not found")
 
     client = get_openai_client()
     if not client:
-        print("OpenAI client not configured in ai-next-action.")
+        logger.error(
+            "OpenAI client not configured",
+            event="ai_next_action_no_openai",
+            trace_id=trace_id,
+            CRITICAL_ALERT=True,
+        )
         return {"next_action": "AI not available. Please try again later."}
 
     prompt = (
@@ -276,10 +437,25 @@ async def ai_next_action(customer_id: str):
             temperature=0.2,
         )
         next_action = chat.choices[0].message.content.strip()
+        logger.info(
+            "AI next action generated",
+            event="ai_next_action_generated",
+            customer_id=customer_id,
+            trace_id=trace_id,
+            next_action=next_action
+        )
         return {"next_action": next_action}
     except Exception as e:
-        print("AI ERROR (ai-next-action):", str(e))
-        traceback.print_exc()
+        logger.error(
+            "AI ERROR (ai-next-action)",
+            event="ai_next_action_ai_error",
+            customer_id=customer_id,
+            trace_id=trace_id,
+            error_message=str(e),
+            traceback=traceback.format_exc(),
+            CRITICAL_ALERT=True,
+        )
+        loguru_logger.error(f"[{trace_id}] AI error in ai-next-action: {e}\n{traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"AI error: {e}")
 
 # ----------- Add Customer to Floor Traffic -----------
@@ -288,8 +464,8 @@ async def ai_next_action(customer_id: str):
     response_model=FloorTrafficCustomer,
     status_code=status.HTTP_201_CREATED,
 )
-async def add_customer_to_floor_log(customer_id: str, entry: CustomerFloorTrafficCreate):
-    """Create a floor-traffic entry for an existing customer."""
+async def add_customer_to_floor_log(customer_id: str, entry: CustomerFloorTrafficCreate, request: Request):
+    trace_id = get_trace_id(request)
     try:
         res = (
             supabase.table("customers")
@@ -299,9 +475,27 @@ async def add_customer_to_floor_log(customer_id: str, entry: CustomerFloorTraffi
             .execute()
         )
     except APIError as e:
+        logger.error(
+            "Supabase API error",
+            event="supabase_api_error",
+            endpoint=f"/customers/{customer_id}/floor-traffic (GET)",
+            customer_id=customer_id,
+            trace_id=trace_id,
+            error_message=str(e),
+            CRITICAL_ALERT=True,
+        )
+        loguru_logger.error(f"[{trace_id}] Supabase API error in add_customer_to_floor_log: {e}")
         raise HTTPException(status_code=400, detail=e.message)
     if not res or not hasattr(res, "data"):
-        print(f"Supabase returned None or invalid object for customer_id {customer_id}: {res}")
+        logger.error(
+            "Supabase returned None or invalid object for floor-traffic",
+            event="floor_traffic_data_error",
+            customer_id=customer_id,
+            trace_id=trace_id,
+            response=str(res),
+            CRITICAL_ALERT=True,
+        )
+        loguru_logger.error(f"[{trace_id}] Supabase returned invalid for floor-traffic: {res}")
         raise HTTPException(status_code=500, detail="Supabase did not return data as expected.")
     if not res.data:
         raise HTTPException(status_code=404, detail="Customer not found")
@@ -322,6 +516,16 @@ async def add_customer_to_floor_log(customer_id: str, entry: CustomerFloorTraffi
         )
         be_back = bool(past.data)
     except APIError as e:
+        logger.error(
+            "Supabase API error",
+            event="supabase_api_error",
+            endpoint=f"/customers/{customer_id}/floor-traffic (CHECK)",
+            customer_id=customer_id,
+            trace_id=trace_id,
+            error_message=str(e),
+            CRITICAL_ALERT=True,
+        )
+        loguru_logger.error(f"[{trace_id}] Supabase API error checking past floor traffic: {e}")
         raise HTTPException(status_code=400, detail=e.message)
 
     payload = entry.dict(exclude_unset=True)
@@ -338,12 +542,35 @@ async def add_customer_to_floor_log(customer_id: str, entry: CustomerFloorTraffi
     try:
         res = supabase.table("floor_traffic_customers").insert(payload).execute()
     except APIError as e:
+        logger.error(
+            "Supabase API error",
+            event="supabase_api_error",
+            endpoint=f"/customers/{customer_id}/floor-traffic (INSERT)",
+            customer_id=customer_id,
+            trace_id=trace_id,
+            error_message=str(e),
+            CRITICAL_ALERT=True,
+        )
+        loguru_logger.error(f"[{trace_id}] Supabase API error inserting floor traffic: {e}")
         raise HTTPException(status_code=400, detail=str(e))
     if not res.data:
+        logger.error(
+            "Database insertion failed, no data returned",
+            event="floor_traffic_insert_fail",
+            customer_id=customer_id,
+            trace_id=trace_id,
+            CRITICAL_ALERT=True,
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Database insertion failed, no data returned.",
         )
+    logger.info(
+        "Customer added to floor traffic",
+        event="customer_floor_traffic_added",
+        customer_id=customer_id,
+        trace_id=trace_id,
+    )
     return res.data[0]
 
 # ----------- Customer Files (Upload/List) -----------
@@ -354,8 +581,8 @@ class CustomerFile(BaseModel):
     url: str
 
 @router.get("/{customer_id}/files", response_model=list[CustomerFile])
-def list_customer_files(customer_id: str):
-    """Return files uploaded for a customer."""
+def list_customer_files(customer_id: str, request: Request):
+    trace_id = get_trace_id(request)
     try:
         res = (
             supabase.table("customer_files")
@@ -363,8 +590,24 @@ def list_customer_files(customer_id: str):
             .eq("customer_id", customer_id)
             .execute()
         )
+        logger.info(
+            "Listed customer files",
+            event="customer_files_listed",
+            customer_id=customer_id,
+            trace_id=trace_id,
+            file_count=len(res.data or []),
+        )
         return res.data or []
     except APIError as e:
+        logger.error(
+            "Supabase API error listing customer files",
+            event="supabase_api_error",
+            endpoint=f"/customers/{customer_id}/files (GET)",
+            customer_id=customer_id,
+            trace_id=trace_id,
+            error_message=str(e),
+        )
+        loguru_logger.error(f"[{trace_id}] Supabase API error listing customer files: {e}")
         raise HTTPException(status_code=400, detail=e.message)
 
 @router.post(
@@ -372,8 +615,8 @@ def list_customer_files(customer_id: str):
     response_model=CustomerFile,
     status_code=status.HTTP_201_CREATED,
 )
-def upload_customer_file(customer_id: str, file: UploadFile = File(...)):
-    """Upload a document for the customer."""
+def upload_customer_file(customer_id: str, file: UploadFile = File(...), request: Request = None):
+    trace_id = get_trace_id(request)
     try:
         content = file.file.read()
         filename = f"{uuid.uuid4()}_{file.filename}"
@@ -386,6 +629,22 @@ def upload_customer_file(customer_id: str, file: UploadFile = File(...)):
             .insert({"customer_id": customer_id, "name": file.filename, "url": url})
             .execute()
         )
+        logger.info(
+            "Uploaded customer file",
+            event="customer_file_uploaded",
+            customer_id=customer_id,
+            trace_id=trace_id,
+            filename=file.filename,
+        )
         return res.data[0]
     except APIError as e:
+        logger.error(
+            "Supabase API error uploading customer file",
+            event="supabase_api_error",
+            endpoint=f"/customers/{customer_id}/files (POST)",
+            customer_id=customer_id,
+            trace_id=trace_id,
+            error_message=str(e),
+        )
+        loguru_logger.error(f"[{trace_id}] Supabase API error uploading customer file: {e}")
         raise HTTPException(status_code=400, detail=e.message)
