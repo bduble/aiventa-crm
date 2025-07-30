@@ -62,19 +62,19 @@ export default function CustomerCardOverlay({ customerId, onClose, userRole = "s
   const [showCreditModal, setShowCreditModal] = useState(false);
   const [creditStatus, setCreditStatus] = useState(null);
 
-  useEffect(() => {
-    if (!customerId || !customer) return;
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch(`${API_BASE}/customers/${customerId}/ai-hotness`);
-        if (res.ok) {
-          const { score } = await res.json();
-          setCustomer(prev => ({ ...prev, hotness: score }));
-        }
-      } catch {}
-    }, 8000);
-    return () => clearInterval(interval);
-  }, [customerId, customer]);
+ useEffect(() => {
+  if (!customerId || !customer) return;
+  const fetchHotness = async () => {
+    try {
+      const res = await fetch(${API_BASE}/customers/${customerId}/ai-hotness);
+      if (res.ok) {
+        const { score } = await res.json();
+        setCustomer(prev => ({ ...prev, hotness: score }));
+      }
+    } catch {}
+  };
+  fetchHotness();
+}, [customerId, customer]);
 
   const [nextAction, setNextAction] = useState('');
   useEffect(() => {
