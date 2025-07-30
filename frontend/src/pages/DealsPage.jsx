@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import CustomerNameLink from "../components/CustomerNameLink";
 
-// Use env var for backend URL!
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 
 const STATUS_COLORS = {
@@ -45,11 +44,13 @@ export default function DealsPage() {
   const [editing, setEditing] = useState(false);
   const [refresh, setRefresh] = useState(0);
   const [error, setError] = useState("");
+  const [soldCustomers, setSoldCustomers] = useState([]);
 
   // In-table edit state
   const [editCell, setEditCell] = useState({ id: null, field: null, value: "" });
   const [savingId, setSavingId] = useState(null);
 
+  // Fetch all deals
   useEffect(() => {
     fetch(`${API_BASE}/deals/`)
       .then((res) => {
@@ -59,6 +60,17 @@ export default function DealsPage() {
       .then((data) => setDeals(data))
       .catch(() => setError("Could not load deals. Check your backend connection."));
   }, [refresh]);
+
+  // Fetch sold customers for dropdown
+  useEffect(() => {
+    fetch(`${API_BASE}/deals/sold-customers`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to load sold customers");
+        return res.json();
+      })
+      .then(setSoldCustomers)
+      .catch(() => setSoldCustomers([]));
+  }, []);
 
   function handleEdit(deal) {
     setSelectedDeal(deal);
@@ -77,10 +89,18 @@ export default function DealsPage() {
   function handleSave(e) {
     e.preventDefault();
     const form = e.target;
+    // Find the selected customer
+    const customer_id = form.customer_id.value;
+    const customer = soldCustomers.find((c) => c.id === customer_id);
+    const customer_name =
+      customer?.customer_name ||
+      `${customer?.first_name || ""} ${customer?.last_name || ""}`.trim();
+
     const updated = {
       status: form.status.value,
       salesperson: form.salesperson.value,
-      customer_name: form.customer_name.value,
+      customer_id,
+      customer_name,
       vehicle: form.vehicle.value,
       trade: form.trade.value,
       front_gross: parseFloat(form.front_gross.value) || 0,
@@ -133,7 +153,6 @@ export default function DealsPage() {
     if (!editCell.id || !editCell.field) return;
     setSavingId(editCell.id);
     let val = editCell.value;
-    // Numbers for currency fields
     if (
       ["front_gross", "back_gross", "total_gross"].includes(editCell.field)
     ) {
@@ -256,7 +275,7 @@ export default function DealsPage() {
                     ) : (
                       deal[field] ?? "-"
                     )}
-                 </td>
+                  </td>
                 ))}
                 {/* Non-editable cells for Days to Book and Actions */}
                 <td className="py-2 px-3 text-center">
@@ -292,7 +311,7 @@ export default function DealsPage() {
           </tbody>
         </table>
       </div>
-      {/* Side-panel edit (optional, advanced fields) */}
+      {/* Side-panel edit (uses only sold customers for customer selection) */}
       {editing && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-40">
           <motion.div
@@ -314,11 +333,21 @@ export default function DealsPage() {
                 </label>
                 <label className="block flex-1">
                   Customer
-                  <input
-                    name="customer_name"
-                    defaultValue={selectedDeal?.customer_name || ""}
+                  <select
+                    name="customer_id"
+                    defaultValue={selectedDeal?.customer_id || ""}
                     className="border rounded w-full p-2"
-                  />
+                    required
+                  >
+                    <option value="">Select customer</option>
+                    {soldCustomers.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.customer_name ||
+                          `${c.first_name || ""} ${c.last_name || ""}`.trim() ||
+                          c.email}
+                      </option>
+                    ))}
+                  </select>
                 </label>
               </div>
               <div className="flex gap-2">
