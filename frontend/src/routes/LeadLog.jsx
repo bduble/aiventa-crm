@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react';
+import { useCustomerCard } from '../context/CustomerCardContext';
 
 export default function LeadLog() {
   const API_BASE = `${import.meta.env.VITE_API_BASE_URL}/leads`;
   const today = new Date().toISOString().split('T')[0];
+
+  // Overlay context
+  const { open } = useCustomerCard();
 
   // Main State
   const [leads, setLeads] = useState([]);
@@ -24,40 +28,30 @@ export default function LeadLog() {
   const [leadId, setLeadId] = useState('');
   const [askError, setAskError] = useState('');
 
-  // Utility
   const formatDate = d => (d ? new Date(d).toLocaleDateString() : '');
 
-  // -- FETCH Functions with robust error handling/logging --
+  // Fetch Functions
   const fetchLeads = async () => {
     setLeadsError('');
     const params = new URLSearchParams();
     if (startDate) params.append('startDate', startDate);
     if (endDate) params.append('endDate', endDate);
     const url = `${API_BASE}?${params.toString()}`;
-    console.log('[fetchLeads] Fetching:', url);
     try {
       const res = await fetch(url);
       if (!res.ok) {
-        const text = await res.text();
-        console.error('[fetchLeads] API Error:', res.status, text);
         setLeads([]);
-        setLeadsError(`API error ${res.status}: ${text}`);
+        setLeadsError(`API error ${res.status}: ${await res.text()}`);
         return;
       }
       const data = await res.json();
       if (!Array.isArray(data)) {
-        console.error('[fetchLeads] Non-array data returned:', data);
         setLeads([]);
         setLeadsError('API did not return an array.');
         return;
       }
       setLeads(data);
-      if (data.length === 0) {
-        console.warn('[fetchLeads] Data is empty array.');
-      }
-      console.log('[fetchLeads] Success:', data);
     } catch (err) {
-      console.error('[fetchLeads] Fetch failed:', err);
       setLeads([]);
       setLeadsError(`Fetch failed: ${err.message}`);
     }
@@ -66,30 +60,21 @@ export default function LeadLog() {
   const fetchPrioritized = async () => {
     setPrioritizedError('');
     const url = `${API_BASE}/prioritized`;
-    console.log('[fetchPrioritized] Fetching:', url);
     try {
       const res = await fetch(url);
       if (!res.ok) {
-        const text = await res.text();
-        console.error('[fetchPrioritized] API Error:', res.status, text);
         setPrioritized([]);
-        setPrioritizedError(`API error ${res.status}: ${text}`);
+        setPrioritizedError(`API error ${res.status}: ${await res.text()}`);
         return;
       }
       const data = await res.json();
       if (!Array.isArray(data)) {
-        console.error('[fetchPrioritized] Non-array data returned:', data);
         setPrioritized([]);
         setPrioritizedError('API did not return an array.');
         return;
       }
       setPrioritized(data);
-      if (data.length === 0) {
-        console.warn('[fetchPrioritized] Data is empty array.');
-      }
-      console.log('[fetchPrioritized] Success:', data);
     } catch (err) {
-      console.error('[fetchPrioritized] Fetch failed:', err);
       setPrioritized([]);
       setPrioritizedError(`Fetch failed: ${err.message}`);
     }
@@ -98,30 +83,21 @@ export default function LeadLog() {
   const fetchAwaiting = async () => {
     setAwaitingError('');
     const url = `${API_BASE}/awaiting-response`;
-    console.log('[fetchAwaiting] Fetching:', url);
     try {
       const res = await fetch(url);
       if (!res.ok) {
-        const text = await res.text();
-        console.error('[fetchAwaiting] API Error:', res.status, text);
         setAwaiting([]);
-        setAwaitingError(`API error ${res.status}: ${text}`);
+        setAwaitingError(`API error ${res.status}: ${await res.text()}`);
         return;
       }
       const data = await res.json();
       if (!Array.isArray(data)) {
-        console.error('[fetchAwaiting] Non-array data returned:', data);
         setAwaiting([]);
         setAwaitingError('API did not return an array.');
         return;
       }
       setAwaiting(data);
-      if (data.length === 0) {
-        console.warn('[fetchAwaiting] Data is empty array.');
-      }
-      console.log('[fetchAwaiting] Success:', data);
     } catch (err) {
-      console.error('[fetchAwaiting] Fetch failed:', err);
       setAwaiting([]);
       setAwaitingError(`Fetch failed: ${err.message}`);
     }
@@ -130,27 +106,21 @@ export default function LeadLog() {
   const fetchMetrics = async () => {
     setMetricsError('');
     const url = `${API_BASE}/metrics`;
-    console.log('[fetchMetrics] Fetching:', url);
     try {
       const res = await fetch(url);
       if (!res.ok) {
-        const text = await res.text();
-        console.error('[fetchMetrics] API Error:', res.status, text);
         setMetrics(null);
-        setMetricsError(`API error ${res.status}: ${text}`);
+        setMetricsError(`API error ${res.status}: ${await res.text()}`);
         return;
       }
       const data = await res.json();
       if (!data || typeof data !== 'object') {
-        console.error('[fetchMetrics] Non-object data returned:', data);
         setMetrics(null);
         setMetricsError('API did not return an object.');
         return;
       }
       setMetrics(data);
-      console.log('[fetchMetrics] Success:', data);
     } catch (err) {
-      console.error('[fetchMetrics] Fetch failed:', err);
       setMetrics(null);
       setMetricsError(`Fetch failed: ${err.message}`);
     }
@@ -165,7 +135,6 @@ export default function LeadLog() {
     }
     const url = `${API_BASE}/ask`;
     const payload = { question, lead_id: leadId || null };
-    console.log('[askQuestion] Posting:', url, payload);
     try {
       const res = await fetch(url, {
         method: 'POST',
@@ -173,17 +142,13 @@ export default function LeadLog() {
         body: JSON.stringify(payload),
       });
       if (!res.ok) {
-        const text = await res.text();
-        console.error('[askQuestion] API Error:', res.status, text);
-        setAskError(`API error ${res.status}: ${text}`);
+        setAskError(`API error ${res.status}: ${await res.text()}`);
         setAnswer('');
         return;
       }
       const data = await res.json();
       setAnswer(data.answer || 'No response');
-      console.log('[askQuestion] Success:', data);
     } catch (err) {
-      console.error('[askQuestion] Fetch failed:', err);
       setAnswer('');
       setAskError(`Fetch failed: ${err.message}`);
     }
@@ -192,8 +157,6 @@ export default function LeadLog() {
   // Fetch triggers
   useEffect(() => { fetchLeads(); }, [startDate, endDate]);
   useEffect(() => { fetchPrioritized(); fetchAwaiting(); fetchMetrics(); }, []);
-
-  // For troubleshooting, always log API_BASE on page load
   useEffect(() => {
     console.log('[LeadLog] API_BASE:', API_BASE);
   }, [API_BASE]);
@@ -241,7 +204,16 @@ export default function LeadLog() {
             <tbody>
               {prioritized.map(l => (
                 <tr key={l.id} className="odd:bg-gray-50 dark:odd:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700">
-                  <td className="p-2 whitespace-nowrap">{l.name}</td>
+                  <td className="p-2 whitespace-nowrap">
+                    <button
+                      className="text-blue-600 hover:underline"
+                      onClick={() => open(l.customer_id || l.id)}
+                      title="Open customer card"
+                      type="button"
+                    >
+                      {l.name}
+                    </button>
+                  </td>
                   <td className="p-2 whitespace-nowrap">{l.email}</td>
                   <td className="p-2 whitespace-nowrap">{formatDate(l.last_lead_response_at)}</td>
                   <td className="p-2 whitespace-nowrap">{formatDate(l.last_staff_response_at)}</td>
@@ -282,7 +254,16 @@ export default function LeadLog() {
             <tbody>
               {leads.map(l => (
                 <tr key={l.id} className="odd:bg-gray-50 dark:odd:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700">
-                  <td className="p-2 whitespace-nowrap">{l.name}</td>
+                  <td className="p-2 whitespace-nowrap">
+                    <button
+                      className="text-blue-600 hover:underline"
+                      onClick={() => open(l.customer_id || l.id)}
+                      title="Open customer card"
+                      type="button"
+                    >
+                      {l.name}
+                    </button>
+                  </td>
                   <td className="p-2 whitespace-nowrap">{l.email}</td>
                   <td className="p-2 whitespace-nowrap">{formatDate(l.created_at)}</td>
                   <td className="p-2 whitespace-nowrap">{formatDate(l.last_lead_response_at)}</td>
@@ -311,7 +292,16 @@ export default function LeadLog() {
             <tbody>
               {awaiting.map(l => (
                 <tr key={l.id} className="bg-red-100 dark:bg-red-900 odd:bg-red-50 dark:odd:bg-red-800 hover:bg-red-200 dark:hover:bg-red-700">
-                  <td className="p-2 whitespace-nowrap">{l.name}</td>
+                  <td className="p-2 whitespace-nowrap">
+                    <button
+                      className="text-blue-600 hover:underline"
+                      onClick={() => open(l.customer_id || l.id)}
+                      title="Open customer card"
+                      type="button"
+                    >
+                      {l.name}
+                    </button>
+                  </td>
                   <td className="p-2 whitespace-nowrap">{l.email}</td>
                   <td className="p-2 whitespace-nowrap">{formatDate(l.last_lead_response_at)}</td>
                 </tr>
