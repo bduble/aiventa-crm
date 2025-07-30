@@ -70,3 +70,4 @@ def get_db_session():
         yield db
     finally:
         db.close()
+logger.info(f"Using DATABASE_URL: {DATABASE_URL}")
