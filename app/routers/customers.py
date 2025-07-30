@@ -72,12 +72,11 @@ def list_customers(
         if c.get("email", "") == "":
             c["email"] = None
     logger.info(
-        "Listed customers",
-        event="customers_listed",
-        filters={"q": q, "email": email, "phone": phone},
-        count=len(customers),
-        trace_id=trace_id,
-    )
+    event="customers_listed",
+    filters={"q": q, "email": email, "phone": phone},
+    count=len(customers),
+    trace_id=trace_id,
+)
     return customers
 
 @router.get("", include_in_schema=False, response_model=list[Customer], response_model_exclude_none=True)
