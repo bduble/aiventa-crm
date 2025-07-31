@@ -35,13 +35,13 @@ export default function FloorTrafficPage() {
         endIso.setDate(endIso.getDate() + 1);
 
         const { data, error: err } = await supabase
-          .from('floor_traffic_customers')
-          .select(`
-            *,
-            customer:customer_id (
-              customer_name, first_name, last_name, email, phone
-            )
-          `)
+        .from('floor_traffic_customers')
+      .select(`
+        *,
+    customer:customer_id!floor_traffic_customers_customer_id_fkey (
+      customer_name, first_name, last_name, email, phone
+    )
+  `)
           .gte('visit_time', start.toISOString())
           .lt('visit_time', endIso.toISOString())
           .order('visit_time', { ascending: true });
