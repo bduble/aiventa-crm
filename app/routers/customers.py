@@ -32,6 +32,17 @@ router = APIRouter()
 def get_trace_id(request: Request):
     return request.headers.get("X-Request-ID", str(uuid.uuid4()))
 
+# ---------- Helper for Normalizing Customer Data ----------
+def normalize_customer(c):
+    # Build a name field if missing, robust to None
+    if not c.get("name"):
+        full_name = f"{c.get('first_name') or ''} {c.get('last_name') or ''}".strip()
+        c["name"] = full_name or c.get("customer_name", "") or ""
+    # Set email to None if blank
+    if c.get("email", "") == "":
+        c["email"] = None
+    return c
+
 # ----------- Customer List/Search -----------
 @router.get("/", response_model=list[Customer], response_model_exclude_none=True)
 def list_customers(
@@ -60,17 +71,7 @@ def list_customers(
         loguru_logger.error(f"[{trace_id}] Supabase API error in list_customers: {e}")
         raise HTTPException(status_code=400, detail=e.message)
 
-   customers = res.data or []
-for c in customers:
-    if not c.get("name"):
-        full_name = f"{c.get('first_name') or ''} {c.get('last_name') or ''}".strip()
-        c["name"] = (
-            full_name
-            or c.get("customer_name", "")
-            or ""
-        )
-        if c.get("email", "") == "":
-            c["email"] = None
+    customers = [normalize_customer(c) for c in (res.data or [])]
     logger.info({
         "event": "customers_listed",
         "filters": {"q": q, "email": email, "phone": phone},
@@ -135,15 +136,8 @@ def get_customer(customer_id: str, request: Request):
             "trace_id": trace_id,
         })
         raise HTTPException(status_code=404, detail="Customer not found")
-    c = res.data
-    if not c.get("name"):
-        c["name"] = (
-            (c.get("first_name", "") + " " + c.get("last_name", "")).strip()
-            or c.get("customer_name", "")
-            or ""
-        )
-    if c.get("email", "") == "":
-        c["email"] = None
+
+    c = normalize_customer(res.data)
     logger.info({
         "event": "customer_fetch_success",
         "customer_id": customer_id,
@@ -171,9 +165,7 @@ def create_customer(c: CustomerCreate, request: Request):
         })
         loguru_logger.error(f"[{trace_id}] Supabase API error in create_customer: {e}")
         raise HTTPException(status_code=400, detail=e.message)
-    created = res.data[0]
-    if created.get("email", "") == "":
-        created["email"] = None
+    created = normalize_customer(res.data[0])
     logger.info({
         "event": "customer_created",
         "customer_id": created.get("id"),
@@ -214,9 +206,7 @@ def update_customer(customer_id: str, c: CustomerUpdate, request: Request):
         raise HTTPException(status_code=400, detail=e.message)
     if not res.data:
         raise HTTPException(status_code=404, detail="Customer not found")
-    updated = res.data
-    if updated.get("email", "") == "":
-        updated["email"] = None
+    updated = normalize_customer(res.data)
     logger.info({
         "event": "customer_updated",
         "customer_id": customer_id,
@@ -301,7 +291,7 @@ async def customer_ai_summary(customer_id: str, request: Request):
             "trace_id": trace_id,
         })
         raise HTTPException(status_code=404, detail="Customer not found")
-    customer = res.data
+    customer = normalize_customer(res.data)
 
     client = get_openai_client()
     if not client:
@@ -384,7 +374,7 @@ async def ai_next_action(customer_id: str, request: Request):
         loguru_logger.error(f"[{trace_id}] Supabase returned invalid for ai-next-action: {res}")
         raise HTTPException(status_code=500, detail="Supabase did not return data as expected.")
 
-    customer = res.data
+    customer = normalize_customer(res.data)
     if not customer:
         logger.warning({
             "event": "ai_next_action_customer_not_found",
@@ -475,7 +465,7 @@ async def add_customer_to_floor_log(customer_id: str, entry: CustomerFloorTraffi
     if not res.data:
         raise HTTPException(status_code=404, detail="Customer not found")
 
-    customer = res.data
+    customer = normalize_customer(res.data)
     first = customer.get("first_name") or ""
     last = customer.get("last_name") or ""
     thirty_days_ago = datetime.utcnow() - timedelta(days=30)
