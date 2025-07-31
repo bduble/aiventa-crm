@@ -2,6 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from app.routes import bulk
 import os
 
 # ── Import routers ──
@@ -107,6 +108,7 @@ app.include_router(ai_hotness_router,    prefix=f"{api_prefix}",              ta
 app.include_router(ai_router,            prefix=f"{api_prefix}",              tags=["ai"])
 app.include_router(vin_router,           prefix='/api/vin',                   tags=["vin"])
 app.include_router(auth_router,          prefix=f"{api_prefix}",              tags=["auth"])
+app.include_router(bulk.router,          prefix="/api",                       tags=["Bulk Actions"])
 
 # This makes your endpoints /api/login, /api/forgot-password, /api/reset-password
 
