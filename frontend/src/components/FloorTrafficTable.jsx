@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Phone, MessageCircle, Mail, Pencil, ChevronUp, ChevronDown } from 'lucide-react';
-import { Progress } from './ui/progress'; // adjust path if needed
+import { Progress } from './ui/progress';
 import { formatTime } from '../utils/formatDateTime';
 import CustomerNameLink from './CustomerNameLink';
 
@@ -21,11 +21,20 @@ export default function FloorTrafficTable({ rows = [], onEdit, onToggle }) {
     });
   };
 
+  // Enhanced sorting for nested customer fields
   const sortedRows = Array.isArray(rows)
     ? [...rows].sort((a, b) => {
         const { key, direction } = sortConfig;
-        const valA = a[key];
-        const valB = b[key];
+
+        let valA = a[key];
+        let valB = b[key];
+
+        // Handle customer_name sort
+        if (key === 'customer_name') {
+          valA = a.customer?.customer_name || '';
+          valB = b.customer?.customer_name || '';
+        }
+
         if (valA == null) return 1;
         if (valB == null) return -1;
         if (valA < valB) return direction === 'ascending' ? -1 : 1;
@@ -39,7 +48,7 @@ export default function FloorTrafficTable({ rows = [], onEdit, onToggle }) {
     { key: 'time_on_lot', label: 'Time on Lot' },
     { key: 'time_out', label: 'Time Out' },
     { key: 'salesperson', label: 'Salesperson' },
-    { key: 'customer_name', label: 'Customer' },
+    { key: 'customer_name', label: 'Customer' }, // This will sort by customer.customer_name!
     { key: 'vehicle', label: 'Vehicle' },
     { key: 'demo', label: 'Demo' },
     { key: 'worksheet', label: 'Worksheet' },
@@ -107,7 +116,7 @@ export default function FloorTrafficTable({ rows = [], onEdit, onToggle }) {
         <td className="p-2">
           <CustomerNameLink
             id={row.customer_id}
-            name={row.customer_name || ''}
+            name={row.customer?.customer_name || ''}
             onClick={open}
           />
         </td>
@@ -125,7 +134,6 @@ export default function FloorTrafficTable({ rows = [], onEdit, onToggle }) {
                 e.stopPropagation();
                 onToggle && onToggle(row.id, field, e.target.checked);
               }}
-              // Allow toggling the "sold" checkbox
             />
           </td>
         ))}
@@ -140,7 +148,7 @@ export default function FloorTrafficTable({ rows = [], onEdit, onToggle }) {
             className="rounded-full p-2 hover:bg-gray-100 transition"
             onClick={e => {
               e.stopPropagation();
-              if (row.phone) window.location.href = `tel:${row.phone}`;
+              if (row.customer?.phone) window.location.href = `tel:${row.customer.phone}`;
             }}
           >
             <Phone className="w-4 h-4" />
@@ -150,7 +158,7 @@ export default function FloorTrafficTable({ rows = [], onEdit, onToggle }) {
             className="rounded-full p-2 hover:bg-gray-100 transition"
             onClick={e => {
               e.stopPropagation();
-              if (row.phone) window.location.href = `sms:${row.phone}`;
+              if (row.customer?.phone) window.location.href = `sms:${row.customer.phone}`;
             }}
           >
             <MessageCircle className="w-4 h-4" />
@@ -160,7 +168,7 @@ export default function FloorTrafficTable({ rows = [], onEdit, onToggle }) {
             className="rounded-full p-2 hover:bg-gray-100 transition"
             onClick={e => {
               e.stopPropagation();
-              if (row.email) window.location.href = `mailto:${row.email}`;
+              if (row.customer?.email) window.location.href = `mailto:${row.customer.email}`;
             }}
           >
             <Mail className="w-4 h-4" />
