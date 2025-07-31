@@ -60,14 +60,15 @@ def list_customers(
         loguru_logger.error(f"[{trace_id}] Supabase API error in list_customers: {e}")
         raise HTTPException(status_code=400, detail=e.message)
 
-    customers = res.data or []
-    for c in customers:
-        if not c.get("name"):
-            c["name"] = (
-                (c.get("first_name", "") + " " + c.get("last_name", "")).strip()
-                or c.get("customer_name", "")
-                or ""
-            )
+   customers = res.data or []
+for c in customers:
+    if not c.get("name"):
+        full_name = f"{c.get('first_name') or ''} {c.get('last_name') or ''}".strip()
+        c["name"] = (
+            full_name
+            or c.get("customer_name", "")
+            or ""
+        )
         if c.get("email", "") == "":
             c["email"] = None
     logger.info({
