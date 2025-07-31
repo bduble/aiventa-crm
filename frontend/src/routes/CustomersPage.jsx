@@ -1,102 +1,69 @@
-import { useEffect, useState } from 'react'
-import CustomerNameLink from '../components/CustomerNameLink'
-import { Phone, MessageCircle, Mail } from 'lucide-react'
+import { useState, useEffect } from 'react';
+import KPIBar from '../components/KPIBar';
+import CustomerFilters from '../components/CustomerFilters';
+import CustomerTable from '../components/CustomerTable';
+import Customer360Panel from '../components/Customer360Panel';
 
 export default function CustomersPage() {
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api'
-  const [search, setSearch] = useState('')
-  const [debounced, setDebounced] = useState('')
-  const [customers, setCustomers] = useState([])
-  const [isLoading, setIsLoading] = useState(false)
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
+  const [search, setSearch] = useState('');
+  const [filters, setFilters] = useState(['All', 'Hot Leads', 'Service', 'BMW Owners', 'Equity+']);
+  const [selectedFilter, setSelectedFilter] = useState('All');
+  const [customers, setCustomers] = useState([]);
+  const [panelCustomer, setPanelCustomer] = useState(null);
+  // These stats could come from an API endpoint or calculated here
+  const [kpi, setKPI] = useState({ total: 0, newThisMonth: 0, hotLeads: 0, missed: 0, nextAppt: '--' });
 
   useEffect(() => {
-    const t = setTimeout(() => setDebounced(search), 300)
-    return () => clearTimeout(t)
-  }, [search])
-
-  useEffect(() => {
+    // Fetch customers & update KPI stats
     const fetchCustomers = async () => {
-      setIsLoading(true)
       try {
-        const params = new URLSearchParams()
-        if (debounced) params.append('q', debounced)
-        const url = `${API_BASE}/customers${params.toString() ? '?' + params.toString() : ''}`
-        console.log('Fetching customers from:', url)
-        const res = await fetch(url)
-        if (!res.ok) throw new Error('Failed to load customers')
-        const data = await res.json()
-        // Normalize customer name field
-        setCustomers(Array.isArray(data)
-          ? data.map(c => ({
-              ...c,
-              name: c.name || `${c.first_name ?? ''} ${c.last_name ?? ''}`.trim()
-            }))
-          : []
-        )
+        let url = `${API_BASE}/customers`;
+        const params = [];
+        if (search) params.push(`q=${encodeURIComponent(search)}`);
+        // For filter: implement custom filter logic (API or frontend)
+        url += params.length ? '?' + params.join('&') : '';
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Failed to load customers');
+        const data = await res.json();
+        setCustomers(Array.isArray(data) ? data : []);
+        // Calculate KPI here for demo (replace with real stats API)
+        setKPI({
+          total: data.length,
+          newThisMonth: data.filter(c => isNewThisMonth(c.created_at)).length,
+          hotLeads: data.filter(c => c.hotness >= 8).length,
+          missed: data.filter(c => c.missedFollowup).length,
+          nextAppt: data
+            .filter(c => c.nextAppointment)
+            .sort((a, b) => new Date(a.nextAppointment) - new Date(b.nextAppointment))[0]?.nextAppointment || '--'
+        });
       } catch (err) {
-        console.error(err)
-        setCustomers([])
-      } finally {
-        setIsLoading(false)
+        setCustomers([]);
+        setKPI({ total: 0, newThisMonth: 0, hotLeads: 0, missed: 0, nextAppt: '--' });
       }
-    }
-    fetchCustomers()
-  }, [debounced, API_BASE])
+    };
+    fetchCustomers();
+  }, [search, selectedFilter, API_BASE]);
+
+  function isNewThisMonth(dateStr) {
+    if (!dateStr) return false;
+    const d = new Date(dateStr);
+    const now = new Date();
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }
 
   return (
-    <div className="p-4 space-y-4">
-      <h2 className="text-2xl font-bold">Customers</h2>
-      <input
-        type="text"
-        placeholder="Search by name, email or phone"
-        className="border rounded px-3 py-2 w-64"
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-      />
-
-      {isLoading ? (
-        <div className="text-center">Loading...</div>
-      ) : customers.length === 0 ? (
-        <div className="text-center text-gray-500 py-8">No customers found.</div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y">
-            <thead className="bg-slate-700 text-white">
-              <tr>
-                <th className="p-2 text-left">Name</th>
-                <th className="p-2 text-left">Email</th>
-                <th className="p-2 text-left">Phone</th>
-                <th className="p-2 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {customers.map(c => (
-                <tr key={c.id} className="odd:bg-gray-50 hover:bg-gray-100">
-                  <td className="p-2 whitespace-nowrap">
-                    <CustomerNameLink id={c.id} name={c.name} />
-                  </td>
-                  <td className="p-2 whitespace-nowrap">{c.email}</td>
-                  <td className="p-2 whitespace-nowrap">{c.phone}</td>
-                  <td className="p-2 space-x-1 whitespace-nowrap">
-                    <button aria-label={`Call ${c.name}`} className="rounded-full p-2 hover:bg-gray-100 transition"
-                      onClick={() => { window.location.href = `tel:${c.phone ?? ''}` }}>
-                      <Phone className="h-4 w-4" />
-                    </button>
-                    <button aria-label={`Text ${c.name}`} className="rounded-full p-2 hover:bg-gray-100 transition"
-                      onClick={() => { window.location.href = `sms:${c.phone ?? ''}` }}>
-                      <MessageCircle className="h-4 w-4" />
-                    </button>
-                    <button aria-label={`Email ${c.name}`} className="rounded-full p-2 hover:bg-gray-100 transition"
-                      onClick={() => { window.location.href = `mailto:${c.email ?? ''}` }}>
-                      <Mail className="h-4 w-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+    <div className="min-h-screen flex flex-col">
+      <KPIBar {...kpi} />
+      <CustomerFilters search={search} setSearch={setSearch} filters={filters} onFilterClick={setSelectedFilter} />
+      <CustomerTable customers={customers} onRowClick={setPanelCustomer} />
+      {panelCustomer && (
+        <Customer360Panel
+          customer={panelCustomer}
+          onClose={() => setPanelCustomer(null)}
+        />
       )}
+      {/* AddCustomerModal and ImportCSVModal go here, triggered by events/buttons */}
     </div>
-  )
+  );
 }
