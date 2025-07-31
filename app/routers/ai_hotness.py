@@ -12,11 +12,11 @@ from app.schemas import SignalIn, AiHotnessResponse, BreakdownItem
 router = APIRouter()
 
 @router.post(
-    "/customers/{id}/signals",
+    "/customers/{customer_id}/signals",
     status_code=status.HTTP_201_CREATED,
 )
 def ingest_signal(
-    id: UUID,
+    customer_id: UUID,
     payload: SignalIn,
     db: Session = Depends(get_db_session),
 ):
@@ -32,7 +32,7 @@ def ingest_signal(
 
 
 @router.get(
-    "/customers/{id}/ai-hotness",
+    "/customers/{customer_id}/ai-hotness",
     response_model=AiHotnessResponse,
 )
 def get_ai_hotness(
