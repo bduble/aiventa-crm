@@ -23,6 +23,7 @@ export default function FloorTrafficPage() {
   const [filterBy, setFilterBy] = useState(null);
   const [kpiRange, setKpiRange] = useState("today");
 
+  // FILTERED ROWS
   const filteredRows = filterBy
     ? rows.filter(r => {
         if (filterBy === 'appointmentsSet') return r.appointment_set || r.appointments_set;
@@ -32,6 +33,7 @@ export default function FloorTrafficPage() {
       })
     : rows;
 
+  // FETCH FLOOR TRAFFIC W/ JOINED CUSTOMER DATA
   useEffect(() => {
     const fetchRange = async () => {
       setLoading(true);
@@ -41,12 +43,20 @@ export default function FloorTrafficPage() {
         const end = new Date(endDate);
         const endIso = new Date(end.getTime());
         endIso.setDate(endIso.getDate() + 1);
+
+        // 👇 JOIN customers table!
         const { data, error: err } = await supabase
           .from('floor_traffic_customers')
-          .select('*')
+          .select(`
+            *,
+            customer:customer_id (
+              customer_name, first_name, last_name, email, phone
+            )
+          `)
           .gte('visit_time', start.toISOString())
           .lt('visit_time', endIso.toISOString())
           .order('visit_time', { ascending: true });
+
         if (err) throw err;
         setRows(data || []);
       } catch (err) {
@@ -59,6 +69,7 @@ export default function FloorTrafficPage() {
     fetchRange();
   }, [startDate, endDate]);
 
+  // FETCH DAILY KPI METRICS
   useEffect(() => {
     const fetchActivityMetrics = async () => {
       try {
@@ -200,13 +211,8 @@ export default function FloorTrafficPage() {
   // Floor Traffic Quick Add/Modal Submit
   const handleSubmit = async (formData) => {
     setError('');
-    if (
-      !formData.first_name ||
-      !formData.last_name ||
-      formData.first_name.trim() === '' ||
-      formData.last_name.trim() === ''
-    ) {
-      setError('First Name and Last Name are required.');
+    if (!formData.customer_id) {
+      setError('Customer is required.');
       return;
     }
 
@@ -226,12 +232,22 @@ export default function FloorTrafficPage() {
       Object.keys(newEntry).forEach(
         key => (newEntry[key] === '' || newEntry[key] == null) && delete newEntry[key]
       );
-      console.log("Submitting to floor_traffic_customers:", newEntry);
+      // Only include fields relevant to floor_traffic_customers table!
+      const allowedFields = [
+        'customer_id', 'visit_time', 'salesperson', 'vehicle', 'trade', 'demo', 'notes', 'customer_offer',
+        'worksheet', 'sold', 'status'
+      ];
+      newEntry = Object.fromEntries(Object.entries(newEntry).filter(([k]) => allowedFields.includes(k)));
 
       const { data, error: insertErr } = await supabase
         .from('floor_traffic_customers')
         .insert([newEntry])
-        .select();
+        .select(`
+          *,
+          customer:customer_id (
+            customer_name, first_name, last_name, email, phone
+          )
+        `);
 
       if (insertErr) throw insertErr;
 
@@ -276,7 +292,7 @@ export default function FloorTrafficPage() {
           await supabase.from('deals').insert([{
             floor_traffic_customer_id: id,
             customer_id: soldRow.customer_id || null,
-            customer_name: soldRow.customer_name || `${soldRow.first_name || ''} ${soldRow.last_name || ''}`,
+            customer_name: soldRow.customer?.customer_name || '',
             vehicle: soldRow.vehicle || null,
             trade: soldRow.trade || null,
             notes: soldRow.notes || null,
@@ -315,7 +331,7 @@ export default function FloorTrafficPage() {
         {...props}
         renderCustomerName={row => (
           <>
-            {row.customer_name || `${row.first_name || ''} ${row.last_name || ''}`}
+            {row.customer?.customer_name || ''}
             {row.sold && (
               <span className="inline-block ml-2 bg-green-600 text-white px-2 py-1 rounded text-xs font-bold">SOLD</span>
             )}
