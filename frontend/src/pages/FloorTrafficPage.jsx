@@ -23,29 +23,6 @@ export default function FloorTrafficPage() {
   const [filterBy, setFilterBy] = useState(null);
   const [kpiRange, setKpiRange] = useState("today");
 
-  // ---------- DEBUG SIMPLE SELECT -----------
-  useEffect(() => {
-    async function testSimpleSelect() {
-      const { data, error } = await supabase
-        .from('floor_traffic_customers')
-        .select('*')
-        .limit(10);
-      console.log("TEST SIMPLE SELECT:", data, error);
-    }
-    testSimpleSelect();
-  }, []);
-  // ------------------------------------------
-
-  // FILTERED ROWS
-  const filteredRows = filterBy
-    ? rows.filter(r => {
-        if (filterBy === 'appointmentsSet') return r.appointment_set || r.appointments_set;
-        if (filterBy === 'demo') return r.demo;
-        if (filterBy === 'worksheet') return r.worksheet;
-        return true;
-      })
-    : rows;
-
   // FETCH FLOOR TRAFFIC W/ JOINED CUSTOMER DATA
   useEffect(() => {
     const fetchRange = async () => {
@@ -57,7 +34,6 @@ export default function FloorTrafficPage() {
         const endIso = new Date(end.getTime());
         endIso.setDate(endIso.getDate() + 1);
 
-        // 👇 JOIN customers table!
         const { data, error: err } = await supabase
           .from('floor_traffic_customers')
           .select(`
@@ -105,10 +81,22 @@ export default function FloorTrafficPage() {
           else if (t.includes('appointment')) counts.appointmentsSet++;
         }
         setActivity(counts);
-      } catch (err) {}
+      } catch (err) {
+        setActivity({ salesCalls: 0, textMessages: 0, appointmentsSet: 0 });
+      }
     };
     fetchActivityMetrics();
   }, []);
+
+  // FILTERED ROWS
+  const filteredRows = filterBy
+    ? rows.filter(r => {
+        if (filterBy === 'appointmentsSet') return r.appointment_set || r.appointments_set;
+        if (filterBy === 'demo') return r.demo;
+        if (filterBy === 'worksheet') return r.worksheet;
+        return true;
+      })
+    : rows;
 
   // KPI logic
   const responded = rows.filter(r => r.last_response_time).length;
@@ -268,6 +256,7 @@ export default function FloorTrafficPage() {
       setRows(prev => [ ...(data || []), ...prev ]);
       setModalOpen(false);
       setEditing(null);
+      toast.success('Visitor logged!');
     } catch (err) {
       setError('Failed to add customer. Please check all required fields.');
       console.error('Supabase insert error:', err);
