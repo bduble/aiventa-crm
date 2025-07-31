@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
+import CustomerPicker from './CustomerPicker'; // You need a customer picker component!
 
 export default function FloorTrafficModal({ isOpen, onClose, onSubmit, initialData }) {
   const [form, setForm] = useState({
+    customer_id: '',
     salesperson: '',
-    first_name: '',
-    last_name: '',
-    email: '',
-    phone: '',
     vehicle: '',
     trade: '',
     demo: false,
@@ -16,14 +14,12 @@ export default function FloorTrafficModal({ isOpen, onClose, onSubmit, initialDa
     notes: '',
   });
 
+  // Populate initial data if editing
   useEffect(() => {
     if (initialData) {
       setForm({
+        customer_id: initialData.customer_id || '',
         salesperson: initialData.salesperson || '',
-        first_name: initialData.first_name || '',
-        last_name: initialData.last_name || '',
-        email: initialData.email || '',
-        phone: initialData.phone || '',
         vehicle: initialData.vehicle || '',
         trade: initialData.trade || '',
         demo: !!initialData.demo,
@@ -37,6 +33,18 @@ export default function FloorTrafficModal({ isOpen, onClose, onSubmit, initialDa
         sold: !!initialData.sold,
         notes: initialData.notes || '',
       });
+    } else {
+      setForm({
+        customer_id: '',
+        salesperson: '',
+        vehicle: '',
+        trade: '',
+        demo: false,
+        worksheet: false,
+        customer_offer: false,
+        sold: false,
+        notes: '',
+      });
     }
   }, [initialData]);
 
@@ -47,16 +55,33 @@ export default function FloorTrafficModal({ isOpen, onClose, onSubmit, initialDa
     setForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
   };
 
+  // This will be called by your customer picker component
+  const handleCustomerSelect = customer => {
+    setForm(f => ({ ...f, customer_id: customer.id }));
+  };
+
   const handleSubmit = e => {
     e.preventDefault();
+    if (!form.customer_id) {
+      alert('Customer is required.');
+      return;
+    }
     onSubmit(form);
   };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
       <div className="bg-white dark:bg-gray-800 p-6 rounded w-full max-w-xl space-y-4">
-        <h3 className="text-lg font-semibold">Edit Customer</h3>
+        <h3 className="text-lg font-semibold">Floor Traffic Entry</h3>
         <form onSubmit={handleSubmit} className="space-y-4 max-h-[80vh] overflow-y-auto pr-2">
+          {/* Customer Picker */}
+          <div>
+            <label className="block text-sm mb-1">Customer</label>
+            <CustomerPicker
+              value={form.customer_id}
+              onSelect={handleCustomerSelect}
+            />
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm mb-1">Salesperson</label>
@@ -65,26 +90,6 @@ export default function FloorTrafficModal({ isOpen, onClose, onSubmit, initialDa
             <div>
               <label className="block text-sm mb-1">Vehicle</label>
               <input name="vehicle" value={form.vehicle} onChange={handleChange} className="w-full border rounded px-2 py-1" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm mb-1">First Name</label>
-              <input name="first_name" value={form.first_name} onChange={handleChange} className="w-full border rounded px-2 py-1" />
-            </div>
-            <div>
-              <label className="block text-sm mb-1">Last Name</label>
-              <input name="last_name" value={form.last_name} onChange={handleChange} className="w-full border rounded px-2 py-1" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm mb-1">Email</label>
-              <input name="email" type="email" value={form.email} onChange={handleChange} className="w-full border rounded px-2 py-1" />
-            </div>
-            <div>
-              <label className="block text-sm mb-1">Phone</label>
-              <input name="phone" value={form.phone} onChange={handleChange} className="w-full border rounded px-2 py-1" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
