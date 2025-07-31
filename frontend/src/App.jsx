@@ -37,6 +37,7 @@ function AppContent() {
   const [logMenuOpen, setLogMenuOpen] = useState(false);
   const [lightText, setLightText] = useState(false);
   const navRef = useRef(null);
+  const [navHeight, setNavHeight] = useState(0);
 
   useEffect(() => {
     const navEl = navRef.current;
@@ -51,10 +52,17 @@ function AppContent() {
       const luminance =
         (0.299 * values[0] + 0.587 * values[1] + 0.114 * values[2]) / 255;
       setLightText(luminance < 0.5);
+      const h = navEl.offsetHeight;
+      setNavHeight(h);
+      document.documentElement.style.setProperty("--header-height", `${h}px`);
     };
     update();
     const interval = setInterval(update, 500);
-    return () => clearInterval(interval);
+    window.addEventListener("resize", update);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("resize", update);
+    };
   }, []);
 
   const navStyle = {
@@ -78,7 +86,7 @@ function AppContent() {
   };
   const navTextColor = lightText ? "#ffffff" : "#000000";
   const contentWrapperStyle = {
-    paddingTop: "64px",
+    paddingTop: navHeight ? `${navHeight}px` : "64px",
     minHeight: "100vh",
     background: isDark ? "#2d3748" : "#f9f9f9",
     color: isDark ? "#f7fafc" : "#1a202c",
