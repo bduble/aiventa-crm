@@ -4,12 +4,10 @@ import { formatTime } from '../utils/formatDateTime';
 import supabase from '../supabase';
 import CustomerNameLink from '../components/CustomerNameLink';
 
-
 export default function FloorLog() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Match your API or Supabase field names!
   const headers = [
     { key: 'visit_time', label: 'In' },
     { key: 'time_out', label: 'Out' },
@@ -30,27 +28,17 @@ export default function FloorLog() {
     const fetchLogs = async () => {
       setLoading(true);
       try {
-        let data;
-        if (supabase) {
-          const today = new Date();
-          const start = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
-          const end = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
-          const { data: res, error } = await supabase
-            .from('floor_traffic_customers')
-            .select('*')
-            .gte('visit_time', start)
-            .lt('visit_time', end)
-            .order('visit_time', { ascending: true });
-          if (error) throw error;
-          data = res || [];
-        } else {
-          const API_BASE = import.meta.env.DEV
-            ? '/api'
-            : 'https://aiventa-crm.onrender.com/api';
-          const res = await fetch(`${API_BASE}/floor-traffic/today`);
-          data = await res.json();
-        }
-        setLogs(data || []);
+        const today = new Date();
+        const start = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+        const end = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
+        const { data: res, error } = await supabase
+          .from('floor_traffic_customers')
+          .select('*')
+          .gte('visit_time', start)
+          .lt('visit_time', end)
+          .order('visit_time', { ascending: true });
+        if (error) throw error;
+        setLogs(res || []);
       } catch (err) {
         setLogs([]);
       } finally {
@@ -71,7 +59,7 @@ export default function FloorLog() {
   const soldCount = logs.filter(l => l.sold).length;
   const pct = c => (totalCustomers ? Math.round((c / totalCustomers) * 100) : 0);
 
-  // Handle checkbox change and persist it
+  // Persist field changes
   const handleToggle = async (id, field, value) => {
     setLogs(logs =>
       logs.map(row =>
@@ -79,29 +67,24 @@ export default function FloorLog() {
       )
     );
     try {
-      if (supabase) {
-        const { error } = await supabase
-          .from('floor_traffic_customers')
-          .update({ [field]: value })
-          .eq('id', id);
+      const { error } = await supabase
+        .from('floor_traffic_customers')
+        .update({ [field]: value })
+        .eq('id', id);
 
-        if (error) throw error;
+      if (error) throw error;
 
-        if (field === 'sold' && value === true) {
-          const soldRow = logs.find(row => row.id === id);
-          await supabase.from('deals').insert([{
-            customer_id: soldRow.customer_id || null,
-            vehicle: soldRow.vehicle || null,
-            salesperson: soldRow.salesperson || null,
-            floor_traffic_id: soldRow.id,
-            date: new Date().toISOString(),
-          }]);
-        }
-      } else {
-        // Call your API here if not Supabase
+      if (field === 'sold' && value === true) {
+        const soldRow = logs.find(row => row.id === id);
+        await supabase.from('deals').insert([{
+          customer_id: soldRow.customer_id || null,
+          vehicle: soldRow.vehicle || null,
+          salesperson: soldRow.salesperson || null,
+          floor_traffic_id: soldRow.id,
+          date: new Date().toISOString(),
+        }]);
       }
     } catch (err) {
-      // revert UI if backend fails
       setLogs(logs =>
         logs.map(row =>
           row.id === id ? { ...row, [field]: !value } : row
@@ -194,7 +177,7 @@ export default function FloorLog() {
                         ) : key === 'customer_name' ? (
                           <CustomerNameLink
                             id={log.customer_id}
-                            name={log.customer_name}
+                            name={log.customer_name /* or log.customer?.customer_name for joined data */}
                           />
                         ) : (
                           String(log[key] ?? '')
@@ -213,10 +196,3 @@ export default function FloorLog() {
                   No visitors recorded yet today.
                 </td>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
