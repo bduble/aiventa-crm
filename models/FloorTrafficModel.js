@@ -16,7 +16,7 @@ export default class FloorTrafficModel {
       .from('floor_traffic_customers')
       .select(`
         *,
-        customer:customer_id (
+        customer:customer_id!floor_traffic_customers_customer_id_fkey (
           customer_name, first_name, last_name, email, phone
         )
       `)
