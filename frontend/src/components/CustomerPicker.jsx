@@ -17,7 +17,7 @@ function validateCompany(name) {
 }
 
 // --- Main Picker Component ---
-export default function UltraCustomerPicker({ value, onSelect, mode = "all" /* people|business|all */ }) {
+export default function CustomerPicker({ value, onSelect, mode = "all" /* people|business|all */ }) {
   const [search, setSearch] = useState("");
   const [customers, setCustomers] = useState([]);
   const [fuse, setFuse] = useState(null);
