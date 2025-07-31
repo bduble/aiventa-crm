@@ -1,15 +1,9 @@
 // models/FloorTrafficModel.js
 import supabase from '../lib/supabaseClient.js';
 
-/**
- * Persistence layer for floor-traffic entries.
- * Uses Supabase if credentials are configured, otherwise
- * the underlying supabase client provides stubbed methods
- * that return an error. The router handles any thrown errors.
- */
 export default class FloorTrafficModel {
   /**
-   * Fetch today's floor-traffic entries ordered by visit time.
+   * Fetch today's floor-traffic entries, joined with customer info.
    */
   static async findToday() {
     const today = new Date();
@@ -17,9 +11,15 @@ export default class FloorTrafficModel {
     const end = new Date(start);
     end.setDate(end.getDate() + 1);
 
+    // JOIN customer table, get normalized fields
     const { data, error } = await supabase
       .from('floor_traffic_customers')
-      .select('*')
+      .select(`
+        *,
+        customer:customer_id (
+          customer_name, first_name, last_name, email, phone
+        )
+      `)
       .gte('visit_time', start.toISOString())
       .lt('visit_time', end.toISOString())
       .order('visit_time', { ascending: true });
@@ -30,30 +30,36 @@ export default class FloorTrafficModel {
 
   /**
    * Insert a new floor-traffic entry.
-   * Accepts camelCase or snake_case field names and maps them
-   * to the Supabase table structure.
+   * Expects a valid customer_id.
    */
   static async create(entry) {
-    const payload = { ...entry };
+    // Only include fields that belong in floor_traffic_customers!
+    const allowedFields = [
+      'customer_id', 'visit_time', 'time_out', 'salesperson', 'vehicle', 'trade', 'demo', 'notes',
+      'customer_offer', 'worksheet', 'sold', 'status'
+    ];
+    const payload = {};
+    for (const key of allowedFields) {
+      if (entry[key] !== undefined && entry[key] !== null && entry[key] !== '') {
+        payload[key] = entry[key];
+      }
+    }
 
-    if (payload.timeIn && !payload.visit_time) {
-      payload.visit_time = payload.timeIn;
+    // If visit_time is missing, set to now
+    if (!payload.visit_time) {
+      payload.visit_time = new Date().toISOString();
     }
-    if (payload.timeOut && !payload.time_out) {
-      payload.time_out = payload.timeOut;
-    }
-    if (payload.customerName && !payload.customer_name) {
-      payload.customer_name = payload.customerName;
-    }
-
-    delete payload.timeIn;
-    delete payload.timeOut;
-    delete payload.customerName;
 
     const { data, error } = await supabase
       .from('floor_traffic_customers')
-      .insert(payload)
-      .single();
+      .insert([payload])
+      .select(`
+        *,
+        customer:customer_id (
+          customer_name, first_name, last_name, email, phone
+        )
+      `)
+      .maybeSingle();
 
     if (error) throw error;
     return data;
@@ -63,26 +69,28 @@ export default class FloorTrafficModel {
    * Update an existing entry and return the updated record.
    */
   static async update(id, fields) {
-    const payload = { ...fields };
-
-    if (payload.timeIn) {
-      payload.visit_time = payload.timeIn;
-      delete payload.timeIn;
-    }
-    if (payload.timeOut) {
-      payload.time_out = payload.timeOut;
-      delete payload.timeOut;
-    }
-    if (payload.customerName) {
-      payload.customer_name = payload.customerName;
-      delete payload.customerName;
+    const allowedFields = [
+      'visit_time', 'time_out', 'salesperson', 'vehicle', 'trade', 'demo', 'notes',
+      'customer_offer', 'worksheet', 'sold', 'status'
+    ];
+    const payload = {};
+    for (const key of allowedFields) {
+      if (fields[key] !== undefined && fields[key] !== null && fields[key] !== '') {
+        payload[key] = fields[key];
+      }
     }
 
     const { data, error } = await supabase
       .from('floor_traffic_customers')
       .update(payload)
       .eq('id', id)
-      .single();
+      .select(`
+        *,
+        customer:customer_id (
+          customer_name, first_name, last_name, email, phone
+        )
+      `)
+      .maybeSingle();
 
     if (error) throw error;
     return data;
