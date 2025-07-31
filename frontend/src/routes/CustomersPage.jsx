@@ -1,11 +1,9 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import CustomerNameLink from '../components/CustomerNameLink'
 import { Phone, MessageCircle, Mail } from 'lucide-react'
 
 export default function CustomersPage() {
   const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api'
-
   const [search, setSearch] = useState('')
   const [debounced, setDebounced] = useState('')
   const [customers, setCustomers] = useState([])
@@ -22,13 +20,19 @@ export default function CustomersPage() {
       try {
         const params = new URLSearchParams()
         if (debounced) params.append('q', debounced)
-        // ❗️Key fix: Remove trailing slash after /customers
-        const url = `${API_BASE}/customers/${params.toString() ? '?' + params.toString() : ''}`
+        const url = `${API_BASE}/customers${params.toString() ? '?' + params.toString() : ''}`
         console.log('Fetching customers from:', url)
         const res = await fetch(url)
         if (!res.ok) throw new Error('Failed to load customers')
         const data = await res.json()
-        setCustomers(Array.isArray(data) ? data : [])
+        // Normalize customer name field
+        setCustomers(Array.isArray(data)
+          ? data.map(c => ({
+              ...c,
+              name: c.name || `${c.first_name ?? ''} ${c.last_name ?? ''}`.trim()
+            }))
+          : []
+        )
       } catch (err) {
         console.error(err)
         setCustomers([])
@@ -42,7 +46,6 @@ export default function CustomersPage() {
   return (
     <div className="p-4 space-y-4">
       <h2 className="text-2xl font-bold">Customers</h2>
-
       <input
         type="text"
         placeholder="Search by name, email or phone"
@@ -53,6 +56,8 @@ export default function CustomersPage() {
 
       {isLoading ? (
         <div className="text-center">Loading...</div>
+      ) : customers.length === 0 ? (
+        <div className="text-center text-gray-500 py-8">No customers found.</div>
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y">
@@ -73,25 +78,16 @@ export default function CustomersPage() {
                   <td className="p-2 whitespace-nowrap">{c.email}</td>
                   <td className="p-2 whitespace-nowrap">{c.phone}</td>
                   <td className="p-2 space-x-1 whitespace-nowrap">
-                    <button
-                      aria-label={`Call ${c.name}`}
-                      className="rounded-full p-2 hover:bg-gray-100 transition"
-                      onClick={() => { window.location.href = `tel:${c.phone ?? ''}` }}
-                    >
+                    <button aria-label={`Call ${c.name}`} className="rounded-full p-2 hover:bg-gray-100 transition"
+                      onClick={() => { window.location.href = `tel:${c.phone ?? ''}` }}>
                       <Phone className="h-4 w-4" />
                     </button>
-                    <button
-                      aria-label={`Text ${c.name}`}
-                      className="rounded-full p-2 hover:bg-gray-100 transition"
-                      onClick={() => { window.location.href = `sms:${c.phone ?? ''}` }}
-                    >
+                    <button aria-label={`Text ${c.name}`} className="rounded-full p-2 hover:bg-gray-100 transition"
+                      onClick={() => { window.location.href = `sms:${c.phone ?? ''}` }}>
                       <MessageCircle className="h-4 w-4" />
                     </button>
-                    <button
-                      aria-label={`Email ${c.name}`}
-                      className="rounded-full p-2 hover:bg-gray-100 transition"
-                      onClick={() => { window.location.href = `mailto:${c.email ?? ''}` }}
-                    >
+                    <button aria-label={`Email ${c.name}`} className="rounded-full p-2 hover:bg-gray-100 transition"
+                      onClick={() => { window.location.href = `mailto:${c.email ?? ''}` }}>
                       <Mail className="h-4 w-4" />
                     </button>
                   </td>
