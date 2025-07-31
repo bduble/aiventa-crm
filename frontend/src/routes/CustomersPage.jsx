@@ -3,6 +3,8 @@ import KPIBar from '../components/KPIBar';
 import CustomerFilters from '../components/CustomerFilters';
 import CustomerTable from '../components/CustomerTable';
 import Customer360Panel from '../components/Customer360Panel';
+import AddCustomerModal from '../components/AddCustomerModal';
+import ImportCSVModal from '../components/ImportCSVModal';
 
 export default function CustomersPage() {
   const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
@@ -11,37 +13,23 @@ export default function CustomersPage() {
   const [selectedFilter, setSelectedFilter] = useState('All');
   const [customers, setCustomers] = useState([]);
   const [panelCustomer, setPanelCustomer] = useState(null);
-  // These stats could come from an API endpoint or calculated here
   const [kpi, setKPI] = useState({ total: 0, newThisMonth: 0, hotLeads: 0, missed: 0, nextAppt: '--' });
 
+  const [showAdd, setShowAdd] = useState(false);
+  const [showImport, setShowImport] = useState(false);
+
   useEffect(() => {
-    // Fetch customers & update KPI stats
-    const fetchCustomers = async () => {
-      try {
-        let url = `${API_BASE}/customers`;
-        const params = [];
-        if (search) params.push(`q=${encodeURIComponent(search)}`);
-        // For filter: implement custom filter logic (API or frontend)
-        url += params.length ? '?' + params.join('&') : '';
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('Failed to load customers');
-        const data = await res.json();
-        setCustomers(Array.isArray(data) ? data : []);
-        // Calculate KPI here for demo (replace with real stats API)
-        setKPI({
-          total: data.length,
-          newThisMonth: data.filter(c => isNewThisMonth(c.created_at)).length,
-          hotLeads: data.filter(c => c.hotness >= 8).length,
-          missed: data.filter(c => c.missedFollowup).length,
-          nextAppt: data
-            .filter(c => c.nextAppointment)
-            .sort((a, b) => new Date(a.nextAppointment) - new Date(b.nextAppointment))[0]?.nextAppointment || '--'
-        });
-      } catch (err) {
-        setCustomers([]);
-        setKPI({ total: 0, newThisMonth: 0, hotLeads: 0, missed: 0, nextAppt: '--' });
-      }
+    function openAdd() { setShowAdd(true); }
+    function openImport() { setShowImport(true); }
+    window.addEventListener('openAddCustomer', openAdd);
+    window.addEventListener('openImportCSV', openImport);
+    return () => {
+      window.removeEventListener('openAddCustomer', openAdd);
+      window.removeEventListener('openImportCSV', openImport);
     };
+  }, []);
+
+  useEffect(() => {
     fetchCustomers();
   }, [search, selectedFilter, API_BASE]);
 
@@ -50,6 +38,53 @@ export default function CustomersPage() {
     const d = new Date(dateStr);
     const now = new Date();
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }
+
+  async function fetchCustomers() {
+    try {
+      let url = `${API_BASE}/customers`;
+      const params = [];
+      if (search) params.push(`q=${encodeURIComponent(search)}`);
+      url += params.length ? '?' + params.join('&') : '';
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Failed to load customers');
+      const data = await res.json();
+      setCustomers(Array.isArray(data) ? data : []);
+      setKPI({
+        total: data.length,
+        newThisMonth: data.filter(c => isNewThisMonth(c.created_at)).length,
+        hotLeads: data.filter(c => c.hotness >= 8).length,
+        missed: data.filter(c => c.missedFollowup).length,
+        nextAppt: data
+          .filter(c => c.nextAppointment)
+          .sort((a, b) => new Date(a.nextAppointment) - new Date(b.nextAppointment))[0]?.nextAppointment || '--'
+      });
+    } catch (err) {
+      setCustomers([]);
+      setKPI({ total: 0, newThisMonth: 0, hotLeads: 0, missed: 0, nextAppt: '--' });
+    }
+  }
+
+  async function handleSaveCustomer(form) {
+    await fetch(`${API_BASE}/customers`, {
+      method: 'POST',
+      body: JSON.stringify(form),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    setShowAdd(false);
+    fetchCustomers();
+  }
+
+  async function handleImport(customers) {
+    await Promise.all(customers.map(c =>
+      fetch(`${API_BASE}/customers`, {
+        method: 'POST',
+        body: JSON.stringify(c),
+        headers: { 'Content-Type': 'application/json' }
+      })
+    ));
+    setShowImport(false);
+    fetchCustomers();
   }
 
   return (
@@ -63,7 +98,8 @@ export default function CustomersPage() {
           onClose={() => setPanelCustomer(null)}
         />
       )}
-      {/* AddCustomerModal and ImportCSVModal go here, triggered by events/buttons */}
+      <AddCustomerModal open={showAdd} onClose={() => setShowAdd(false)} onSave={handleSaveCustomer} />
+      <ImportCSVModal open={showImport} onClose={() => setShowImport(false)} onImport={handleImport} />
     </div>
   );
 }
