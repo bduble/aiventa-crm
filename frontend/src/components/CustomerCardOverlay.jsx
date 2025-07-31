@@ -66,7 +66,7 @@ export default function CustomerCardOverlay({ customerId, onClose, userRole = "s
   if (!customerId || !customer) return;
   const fetchHotness = async () => {
     try {
-      const res = await fetch(${API_BASE}/customers/${customerId}/ai-hotness);
+      const res = await fetch(`${API_BASE}/customers/${customerId}/ai-hotness`);
       if (res.ok) {
         const { score } = await res.json();
         setCustomer(prev => ({ ...prev, hotness: score }));
