@@ -23,6 +23,19 @@ export default function FloorTrafficPage() {
   const [filterBy, setFilterBy] = useState(null);
   const [kpiRange, setKpiRange] = useState("today");
 
+  // ---------- DEBUG SIMPLE SELECT -----------
+  useEffect(() => {
+    async function testSimpleSelect() {
+      const { data, error } = await supabase
+        .from('floor_traffic_customers')
+        .select('*')
+        .limit(10);
+      console.log("TEST SIMPLE SELECT:", data, error);
+    }
+    testSimpleSelect();
+  }, []);
+  // ------------------------------------------
+
   // FILTERED ROWS
   const filteredRows = filterBy
     ? rows.filter(r => {
@@ -60,8 +73,9 @@ export default function FloorTrafficPage() {
         if (err) throw err;
         setRows(data || []);
       } catch (err) {
-        setError('Failed to load traffic');
+        setError('Failed to load traffic: ' + (err.message || JSON.stringify(err)));
         setRows([]);
+        console.error('Supabase error:', err);
       } finally {
         setLoading(false);
       }
