@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import CustomerPicker from './CustomerPicker'; // You need a customer picker component!
+import CustomerPicker from './CustomerPicker';
 
 export default function FloorTrafficModal({ isOpen, onClose, onSubmit, initialData }) {
   const [form, setForm] = useState({
@@ -46,7 +46,7 @@ export default function FloorTrafficModal({ isOpen, onClose, onSubmit, initialDa
         notes: '',
       });
     }
-  }, [initialData]);
+  }, [initialData, isOpen]);
 
   if (!isOpen) return null;
 
@@ -57,7 +57,7 @@ export default function FloorTrafficModal({ isOpen, onClose, onSubmit, initialDa
 
   // This will be called by your customer picker component
   const handleCustomerSelect = customer => {
-    setForm(f => ({ ...f, customer_id: customer.id }));
+    setForm(f => ({ ...f, customer_id: customer?.id || '' }));
   };
 
   const handleSubmit = e => {
@@ -97,7 +97,7 @@ export default function FloorTrafficModal({ isOpen, onClose, onSubmit, initialDa
               <label className="block text-sm mb-1">Trade</label>
               <input name="trade" value={form.trade} onChange={handleChange} className="w-full border rounded px-2 py-1" />
             </div>
-            <div className="flex items-center gap-2 mt-5">
+            <div className="flex flex-wrap items-center gap-3 mt-5">
               <label className="flex items-center gap-2">
                 <input type="checkbox" name="demo" checked={form.demo} onChange={handleChange} /> Demo
               </label>
