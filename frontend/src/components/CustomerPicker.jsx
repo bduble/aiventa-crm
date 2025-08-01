@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Fuse from "fuse.js";
 import supabase from "../supabase";
-// import Modal from "react-modal"; // use any modal system you want
 
-// --- Utilities ---
 function validateEmail(email) {
   return /^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/.test(email);
 }
@@ -16,8 +14,7 @@ function validateCompany(name) {
   return !!name && name.trim().length > 2;
 }
 
-// --- Main Picker Component ---
-export default function CustomerPicker({ value, onSelect, mode = "all" /* people|business|all */ }) {
+export default function CustomerPicker({ value, onSelect, mode = "all" }) {
   const [search, setSearch] = useState("");
   const [customers, setCustomers] = useState([]);
   const [fuse, setFuse] = useState(null);
@@ -41,13 +38,13 @@ export default function CustomerPicker({ value, onSelect, mode = "all" /* people
 
   const inputRef = useRef();
 
-  // 1. Load all customers and companies for fuzzy search
+  // 1. Load customers/companies
   useEffect(() => {
     let active = true;
     (async () => {
       const { data, error: err } = await supabase
         .from("customers")
-        .select("id, is_business, company_name, first_name, last_name, email, phone, tags")
+        .select("id, is_business, company_name, first_name, last_name, customer_name, email, phone, tags")
         .order("last_name", { ascending: true });
       if (!err && active && data) {
         setCustomers(data);
@@ -60,10 +57,11 @@ export default function CustomerPicker({ value, onSelect, mode = "all" /* people
               "email",
               "phone",
               "tags",
+              "customer_name",
               {
                 name: "all",
                 getFn: (c) =>
-                  `${c.first_name || ""} ${c.last_name || ""} ${c.company_name || ""} ${c.email || ""} ${c.phone || ""} ${(c.tags || []).join(" ")}`,
+                  `${c.first_name || ""} ${c.last_name || ""} ${c.company_name || ""} ${c.customer_name || ""} ${c.email || ""} ${c.phone || ""} ${(c.tags || []).join(" ")}`,
               },
             ],
             threshold: 0.3,
@@ -76,7 +74,7 @@ export default function CustomerPicker({ value, onSelect, mode = "all" /* people
     };
   }, []);
 
-  // 2. Fuzzy search with live dup warning
+  // 2. Fuzzy search and dupe warn
   useEffect(() => {
     if (search.trim() && fuse) {
       let result = fuse.search(search).slice(0, 10).map((r) => r.item);
@@ -84,7 +82,7 @@ export default function CustomerPicker({ value, onSelect, mode = "all" /* people
       if (mode === "business") result = result.filter((c) => c.is_business);
       setResults(result);
       setShowDropdown(true);
-      // Duplicate warning logic (on business, name, email, or phone)
+
       const warnDupe = result.find((c) =>
         (newForm.is_business && c.company_name && c.company_name.toLowerCase() === newForm.company_name.toLowerCase()) ||
         (!newForm.is_business &&
@@ -97,7 +95,7 @@ export default function CustomerPicker({ value, onSelect, mode = "all" /* people
       setShowDropdown(false);
       setWarn("");
     }
-  }, [search, fuse, newForm]);
+  }, [search, fuse, newForm, mode]);
 
   // 3. Handle selection and preview
   function handleSelect(c) {
@@ -106,7 +104,7 @@ export default function CustomerPicker({ value, onSelect, mode = "all" /* people
     setWarn("");
     setError("");
     setShowAdd(false);
-    onSelect && onSelect(c);
+    onSelect && onSelect(c); // Always pass full object (with id!)
   }
 
   // 4. Keyboard nav
@@ -133,6 +131,7 @@ export default function CustomerPicker({ value, onSelect, mode = "all" /* people
     e.preventDefault();
     setWarn("");
     setError("");
+
     // Validate
     if (newForm.is_business) {
       if (!validateCompany(newForm.company_name)) {
@@ -156,6 +155,7 @@ export default function CustomerPicker({ value, onSelect, mode = "all" /* people
         }
       }
     }
+
     // Prevent hard dupe
     const dupe = customers.find(
       (c) =>
@@ -168,21 +168,25 @@ export default function CustomerPicker({ value, onSelect, mode = "all" /* people
       setWarn("Duplicate detected, not adding.");
       return;
     }
-    // Insert
+
+    // Insert new customer
     try {
+      const payload = {
+        is_business: !!newForm.is_business,
+        company_name: newForm.is_business ? newForm.company_name.trim() : null,
+        first_name: !newForm.is_business ? newForm.first_name.trim() : null,
+        last_name: !newForm.is_business ? newForm.last_name.trim() : null,
+        email: newForm.email.trim() || null,
+        phone: formatPhone(newForm.phone),
+        tags: newForm.tags,
+        // Always set customer_name for consistency
+        customer_name: newForm.is_business
+          ? newForm.company_name.trim()
+          : `${newForm.first_name.trim()} ${newForm.last_name.trim()}`,
+      };
       const { data, error: insertErr } = await supabase
         .from("customers")
-        .insert([
-          {
-            is_business: !!newForm.is_business,
-            company_name: newForm.is_business ? newForm.company_name.trim() : null,
-            first_name: !newForm.is_business ? newForm.first_name.trim() : null,
-            last_name: !newForm.is_business ? newForm.last_name.trim() : null,
-            email: newForm.email.trim() || null,
-            phone: formatPhone(newForm.phone),
-            tags: newForm.tags,
-          },
-        ])
+        .insert([payload])
         .select("*")
         .maybeSingle();
       if (insertErr) throw insertErr;
@@ -193,13 +197,14 @@ export default function CustomerPicker({ value, onSelect, mode = "all" /* people
             "first_name",
             "last_name",
             "company_name",
+            "customer_name",
             "email",
             "phone",
             "tags",
             {
               name: "all",
               getFn: (c) =>
-                `${c.first_name || ""} ${c.last_name || ""} ${c.company_name || ""} ${c.email || ""} ${c.phone || ""} ${(c.tags || []).join(" ")}`,
+                `${c.first_name || ""} ${c.last_name || ""} ${c.company_name || ""} ${c.customer_name || ""} ${c.email || ""} ${c.phone || ""} ${(c.tags || []).join(" ")}`,
             },
           ],
           threshold: 0.3,
@@ -250,7 +255,7 @@ export default function CustomerPicker({ value, onSelect, mode = "all" /* people
             <b>
               {selected.is_business
                 ? selected.company_name
-                : `${selected.first_name} ${selected.last_name}`}
+                : selected.customer_name || `${selected.first_name} ${selected.last_name}`}
             </b>
             <div className="text-xs text-gray-600">
               {selected.email}
@@ -441,7 +446,7 @@ export default function CustomerPicker({ value, onSelect, mode = "all" /* people
                       <b>
                         {c.is_business
                           ? c.company_name
-                          : `${c.first_name} ${c.last_name}`}
+                          : c.customer_name || `${c.first_name} ${c.last_name}`}
                       </b>
                       <span className="ml-2 text-xs text-gray-700">
                         {c.email}
@@ -471,7 +476,7 @@ export default function CustomerPicker({ value, onSelect, mode = "all" /* people
         </div>
       )}
 
-      {/* Modal for full view/edit (Optional—plug in your favorite modal system) */}
+      {/* Modal for full view/edit (Optional) */}
       {/* 
       <Modal isOpen={showFull} onRequestClose={() => setShowFull(false)}>
         {selected && (
