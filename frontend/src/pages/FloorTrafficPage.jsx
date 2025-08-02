@@ -38,7 +38,7 @@ export default function FloorTrafficPage() {
           .from('floor_traffic_customers')
           .select(`
             *,
-            customer:customer_id!floor_traffic_customers_customer_id_fkey (
+            customer:customer_id (
               customer_name, first_name, last_name, email, phone
             )
           `)
@@ -246,7 +246,7 @@ export default function FloorTrafficPage() {
         .insert([newEntry])
         .select(`
           *,
-          customer:customer_id!floor_traffic_customers_customer_id_fkey (
+          customer:customer_id (
             customer_name, first_name, last_name, email, phone
           )
         `);
