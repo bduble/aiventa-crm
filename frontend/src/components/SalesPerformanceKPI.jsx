@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
+import { API_BASE } from '../apiBase';
 
 export default function SalesPerformanceKPI() {
   const [stats, setStats] = useState({ demo: 0, worksheet: 0, offer: 0, sold: 0 });
 
   useEffect(() => {
-    const API_BASE = import.meta.env.PROD ? import.meta.env.VITE_API_BASE_URL : '/api';
     const fetchStats = async () => {
       try {
         const res = await fetch(`${API_BASE}/floor-traffic/month-metrics`);
