@@ -2,7 +2,7 @@
 
 // Main backend API URL (Vite syntax)
 export const API_BASE =
-  import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "/api";
+  import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") || "/api";
 
 // Fallback public VIN decoder, if you want it:
 export const FALLBACK_VIN_DECODER =
