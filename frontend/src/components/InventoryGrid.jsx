@@ -18,7 +18,7 @@ export default function InventoryGrid({ vehicles = [], onEdit, onToggle }) {
         )}
         {vehicles.map(v => (
           <Motion.div
-            key={v.id || v.vin} // Always prefer UUID id, but fallback to VIN
+            key={v.id || v.vin}
             layout
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
