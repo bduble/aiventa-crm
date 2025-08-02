@@ -7,7 +7,7 @@ export default function SalesPerformanceKPI() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await fetch(`${API_BASE}/floor-traffic/month-metrics`);
+        const res = await fetch(`${API_BASE}/api/floor-traffic/month-metrics`);
         if (!res.ok) return;
         const data = await res.json();
         const total = data.total_customers ?? data.totalCustomers ?? 0;

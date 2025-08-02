@@ -4,7 +4,7 @@ import UserModal from '../components/UserModal'
 import Pagination from '../components/Pagination'
 
 export default function UsersPage() {
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api'
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || ''
   const [users, setUsers] = useState([])
   const [filtered, setFiltered] = useState([])
   const [search, setSearch] = useState('')
@@ -29,7 +29,7 @@ export default function UsersPage() {
     setIsLoading(true)
     setError('')
     try {
-      const res = await fetch(`${API_BASE}/users/`)
+      const res = await fetch(`${API_BASE}/api/users/`)
       if (!res.ok) throw new Error('Failed to load users')
       const data = await res.json()
       setUsers(data)
@@ -54,7 +54,7 @@ export default function UsersPage() {
     setUsers(prev => prev.map(u => (u.id === user.id ? updated : u)))
     setFiltered(prev => prev.map(u => (u.id === user.id ? updated : u)))
     try {
-      const res = await fetch(`${API_BASE}/users/${user.id}`, {
+      const res = await fetch(`${API_BASE}/api/users/${user.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ active: updated.active })
@@ -75,7 +75,7 @@ export default function UsersPage() {
   const handleSubmit = async data => {
     try {
       const isEdit = !!editing
-      const url = isEdit ? `${API_BASE}/users/${editing.id}` : `${API_BASE}/users/`
+      const url = isEdit ? `${API_BASE}/api/users/${editing.id}` : `${API_BASE}/api/users/`
       const method = isEdit ? 'PUT' : 'POST'
       const res = await fetch(url, {
         method,

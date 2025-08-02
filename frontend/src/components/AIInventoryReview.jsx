@@ -3,14 +3,14 @@ import { useEffect, useState } from 'react';
 export default function AIInventoryReview({ vehicleId, open, onClose, radius = 200 }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
 
   useEffect(() => {
     if (!open) return;
     const fetchData = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`${API_BASE}/ai/inventory/${vehicleId}/review`);
+        const res = await fetch(`${API_BASE}/api/ai/inventory/${vehicleId}/review`);
         const json = await res.json();
         setData(json);
       } catch {

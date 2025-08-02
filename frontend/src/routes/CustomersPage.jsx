@@ -10,7 +10,7 @@ import MassTextModal from '../components/MassTextModal';
 import MassEmailModal from '../components/MassEmailModal';
 
 export default function CustomersPage() {
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState(['All', 'Hot Leads', 'Service', 'BMW Owners', 'Equity+']);
   const [selectedFilter, setSelectedFilter] = useState('All');
@@ -51,7 +51,7 @@ export default function CustomersPage() {
 
   async function fetchCustomers() {
     try {
-      let url = `${API_BASE}/customers`;
+      let url = `${API_BASE}/api/customers`;
       const params = [];
       if (search) params.push(`q=${encodeURIComponent(search)}`);
       url += params.length ? '?' + params.join('&') : '';
@@ -77,7 +77,7 @@ export default function CustomersPage() {
   }
 
   async function handleSaveCustomer(form) {
-    await fetch(`${API_BASE}/customers`, {
+      await fetch(`${API_BASE}/api/customers`, {
       method: 'POST',
       body: JSON.stringify(form),
       headers: { 'Content-Type': 'application/json' }
@@ -88,7 +88,7 @@ export default function CustomersPage() {
 
   async function handleImport(customers) {
     await Promise.all(customers.map(c =>
-      fetch(`${API_BASE}/customers`, {
+      fetch(`${API_BASE}/api/customers`, {
         method: 'POST',
         body: JSON.stringify(c),
         headers: { 'Content-Type': 'application/json' }
@@ -112,7 +112,7 @@ export default function CustomersPage() {
   // Mass action logic
   async function handleMassTextSend(message) {
     // Example endpoint - update as needed
-    await fetch(`${API_BASE}/bulk/text`, {
+    await fetch(`${API_BASE}/api/bulk/text`, {
       method: 'POST',
       body: JSON.stringify({ ids: selected, message }),
       headers: { 'Content-Type': 'application/json' }
@@ -121,7 +121,7 @@ export default function CustomersPage() {
     clearSelection();
   }
   async function handleMassEmailSend({ subject, body }) {
-    await fetch(`${API_BASE}/bulk/email`, {
+    await fetch(`${API_BASE}/api/bulk/email`, {
       method: 'POST',
       body: JSON.stringify({ ids: selected, subject, body }),
       headers: { 'Content-Type': 'application/json' }

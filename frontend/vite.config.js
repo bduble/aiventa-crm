@@ -17,6 +17,6 @@ export default defineConfig({
   },
   // Optional: expose your prod env var under a simpler name
   define: {
-    __API_BASE__: JSON.stringify(process.env.VITE_API_BASE_URL || '/api'),
+    __API_BASE__: JSON.stringify(process.env.VITE_API_BASE_URL || ''),
   },
 });

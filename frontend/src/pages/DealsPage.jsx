@@ -52,7 +52,7 @@ export default function DealsPage() {
 
   // Fetch all deals
   useEffect(() => {
-    fetch(`${API_BASE}/deals/`)
+    fetch(`${API_BASE}/api/deals/`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to load deals");
         return res.json();
@@ -63,7 +63,7 @@ export default function DealsPage() {
 
   // Fetch sold customers for dropdown
   useEffect(() => {
-    fetch(`${API_BASE}/deals/sold-customers`)
+    fetch(`${API_BASE}/api/deals/sold-customers`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to load sold customers");
         return res.json();
@@ -79,7 +79,7 @@ export default function DealsPage() {
 
   function handleUnwind(deal) {
     if (!window.confirm("Unwind this deal?")) return;
-    fetch(`${API_BASE}/deals/${deal.id}/unwind`, {
+    fetch(`${API_BASE}/api/deals/${deal.id}/unwind`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ reason: "Manager unwind from UI" }),
@@ -107,7 +107,7 @@ export default function DealsPage() {
       back_gross: parseFloat(form.back_gross.value) || 0,
       total_gross: parseFloat(form.total_gross.value) || 0,
     };
-    fetch(`${API_BASE}/deals/${selectedDeal.id}`, {
+    fetch(`${API_BASE}/api/deals/${selectedDeal.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updated),
@@ -158,7 +158,7 @@ export default function DealsPage() {
     ) {
       val = parseFloat(val) || 0;
     }
-    fetch(`${API_BASE}/deals/${editCell.id}`, {
+    fetch(`${API_BASE}/api/deals/${editCell.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ [editCell.field]: val }),

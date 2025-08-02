@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import CustomerNameLink from "./CustomerNameLink";
 
 export default function SmartSearchBar() {
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
   const [query, setQuery] = useState('');
   const [results, setResults] = useState({ customers: [], inventory: [] });
   const [open, setOpen] = useState(false);
@@ -17,7 +17,7 @@ export default function SmartSearchBar() {
     }
     clearTimeout(timer.current);
     timer.current = setTimeout(() => {
-      fetch(`${API_BASE}/search?q=${encodeURIComponent(query.trim())}`)
+      fetch(`${API_BASE}/api/search?q=${encodeURIComponent(query.trim())}`)
         .then(r => (r.ok ? r.json() : Promise.reject()))
         .then(data => setResults(data))
         .catch(() => setResults({ customers: [], inventory: [] }));

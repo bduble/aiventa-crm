@@ -40,7 +40,7 @@ const ANIM_PROPS = { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0
 
 export default function CustomerCard({ userRole = "sales" }) {
   const { id } = useParams()
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api'
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || ''
   const CURRENT_USER_ID = 1
 
   const [customer, setCustomer] = useState(null)
@@ -67,7 +67,7 @@ export default function CustomerCard({ userRole = "sales" }) {
   // ---- AI Live Hotness Auto-Update ----
   const fetchHotness = async () => {
     try {
-      const res = await fetch(`${API_BASE}/customers/${id}/ai-hotness`);
+      const res = await fetch(`${API_BASE}/api/customers/${id}/ai-hotness`);
       if (res.ok) {
         const { score } = await res.json();
         setCustomer(prev => prev ? { ...prev, hotness: score } : prev);
@@ -79,7 +79,7 @@ export default function CustomerCard({ userRole = "sales" }) {
 
   const fetchCustomerData = async () => {
     try {
-      const res = await fetch(`${API_BASE}/customers/${id}`);
+      const res = await fetch(`${API_BASE}/api/customers/${id}`);
       if (res.ok) {
         const data = await res.json();
         setCustomer(data);
@@ -99,7 +99,7 @@ export default function CustomerCard({ userRole = "sales" }) {
   // ---- Next Best Action ----
   const [nextAction, setNextAction] = useState('');
   useEffect(() => {
-    fetch(`${API_BASE}/customers/${id}/ai-next-action`)
+    fetch(`${API_BASE}/api/customers/${id}/ai-next-action`)
       .then(res => res.json()).then(data => setNextAction(data.action));
   }, [id, ledger, tasks]);
 
@@ -110,14 +110,14 @@ export default function CustomerCard({ userRole = "sales" }) {
 
   useEffect(() => {
     setLoading(true)
-    fetch(`${API_BASE}/customers/${id}`)
+    fetch(`${API_BASE}/api/customers/${id}`)
       .then(r => r.json()).then(data => { setCustomer(data); setEdited(data); setLoading(false) })
       .catch(() => setLoading(false))
-    fetch(`${API_BASE}/customers/${id}/ai-summary`)
+    fetch(`${API_BASE}/api/customers/${id}/ai-summary`)
       .then(r => r.json()).then(setAiInfo)
-    fetch(`${API_BASE}/activities?customer_id=${id}`)
+    fetch(`${API_BASE}/api/activities?customer_id=${id}`)
       .then(r => r.json()).then(setLedger)
-    fetch(`${API_BASE}/customers/${id}/files`)
+    fetch(`${API_BASE}/api/customers/${id}/files`)
       .then(r => r.json()).then(docs => setFiles(docs || []))
     // Social Lookup (Mocked)
     setTimeout(() => setSocial({
@@ -140,21 +140,21 @@ export default function CustomerCard({ userRole = "sales" }) {
 
   const fetchTasks = async () => {
     try {
-      const res = await fetch(`${API_BASE}/tasks?customer_id=${id}`)
+      const res = await fetch(`${API_BASE}/api/tasks?customer_id=${id}`)
       if (res.ok) setTasks(await res.json())
       else setTasks([])
     } catch { setTasks([]) }
   }
   const fetchAppointments = async () => {
     try {
-      const res = await fetch(`${API_BASE}/appointments?customer_id=${id}`)
+      const res = await fetch(`${API_BASE}/api/appointments?customer_id=${id}`)
       if (res.ok) setAppointments(await res.json())
       else setAppointments([])
     } catch { setAppointments([]) }
   }
   const fetchDealOffers = async () => {
     try {
-      const res = await fetch(`${API_BASE}/deals?customer_id=${id}`);
+      const res = await fetch(`${API_BASE}/api/deals?customer_id=${id}`);
       if (res.ok) setDealOffers(await res.json());
       else setDealOffers([]);
     } catch { setDealOffers([]) }
@@ -163,12 +163,12 @@ export default function CustomerCard({ userRole = "sales" }) {
   const logActivity = async (type, note = '', subject = '') => {
     const payload = { activity_type: type, note, subject, customer_id: id, user_id: CURRENT_USER_ID }
     try {
-      await fetch(`${API_BASE}/activities`, {
+      await fetch(`${API_BASE}/api/activities`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
-      fetch(`${API_BASE}/activities?customer_id=${id}`)
+      fetch(`${API_BASE}/api/activities?customer_id=${id}`)
         .then(r => r.json()).then(setLedger)
     } catch (err) { }
   }
@@ -178,7 +178,7 @@ export default function CustomerCard({ userRole = "sales" }) {
       const payload = {}
       PROFILE_FIELDS.forEach(({ key }) => payload[key] = edited[key] ?? "")
       if (userRole === "manager") payload['hashed_password'] = edited['hashed_password'] ?? ""
-      const res = await fetch(`${API_BASE}/customers/${id}`, {
+      const res = await fetch(`${API_BASE}/api/customers/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -205,13 +205,13 @@ export default function CustomerCard({ userRole = "sales" }) {
     setUploading(true)
     const form = new FormData()
     form.append("file", file)
-    const res = await fetch(`${API_BASE}/customers/${id}/files/smart`, { method: 'POST', body: form })
+    const res = await fetch(`${API_BASE}/api/customers/${id}/files/smart`, { method: 'POST', body: form })
     if (res.ok) {
       const { fields } = await res.json();
       setEdited(prev => ({ ...prev, ...fields }));
     }
     setUploading(false)
-    fetch(`${API_BASE}/customers/${id}/files`).then(r => r.json()).then(docs => setFiles(docs || []))
+    fetch(`${API_BASE}/api/customers/${id}/files`).then(r => r.json()).then(docs => setFiles(docs || []))
   }
 
   // ---- Credit Modal ----
@@ -251,7 +251,7 @@ export default function CustomerCard({ userRole = "sales" }) {
     const [due, setDue] = useState('')
     const handleAdd = async () => {
       if (!title) return
-      await fetch(`${API_BASE}/tasks`, {
+      await fetch(`${API_BASE}/api/tasks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, due_date: due, customer_id: id })
@@ -278,7 +278,7 @@ export default function CustomerCard({ userRole = "sales" }) {
     const [start, setStart] = useState('')
     const handleAdd = async () => {
       if (!type || !start) return
-      await fetch(`${API_BASE}/appointments`, {
+      await fetch(`${API_BASE}/api/appointments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ appointment_type: type, start_time: start, customer_id: id })

@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 export default function EditAppraisalPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
 
   const [form, setForm] = useState({ vehicle_vin: '', customer_id: '' });
   const [loading, setLoading] = useState(true);
@@ -13,7 +13,7 @@ export default function EditAppraisalPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`${API_BASE}/appraisals/${id}`);
+        const res = await fetch(`${API_BASE}/api/appraisals/${id}`);
         if (!res.ok) throw new Error('Failed to load');
         const data = await res.json();
         setForm({
@@ -38,7 +38,7 @@ export default function EditAppraisalPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`${API_BASE}/appraisals/${id}`, {
+      const res = await fetch(`${API_BASE}/api/appraisals/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
