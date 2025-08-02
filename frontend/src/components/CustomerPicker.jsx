@@ -126,9 +126,8 @@ export default function CustomerPicker({ value, onSelect, mode = "all" }) {
     }
   };
 
-  // 5. Quick Add (people or business)
-  async function handleAddNew(e) {
-    e.preventDefault();
+  // 5. Quick Add (people or business) — now not tied to a form!
+  async function handleAddNew() {
     setWarn("");
     setError("");
 
@@ -282,10 +281,8 @@ export default function CustomerPicker({ value, onSelect, mode = "all" }) {
           </button>
         </div>
       ) : showAdd ? (
-        <form
-          onSubmit={handleAddNew}
-          className="space-y-2 bg-gray-50 p-3 rounded border shadow"
-        >
+        // Changed form to div to avoid nested forms
+        <div className="space-y-2 bg-gray-50 p-3 rounded border shadow">
           <div className="flex items-center gap-4">
             <label className="font-semibold text-sm">
               <input
@@ -387,14 +384,15 @@ export default function CustomerPicker({ value, onSelect, mode = "all" }) {
               Cancel
             </button>
             <button
-              type="submit"
+              type="button"
+              onClick={handleAddNew}
               className="px-2 py-1 text-xs rounded bg-blue-600 text-white"
               disabled={!!warn}
             >
               Add {newForm.is_business ? "Business" : "Customer"}
             </button>
           </div>
-        </form>
+        </div>
       ) : (
         <div className="relative">
           <input
