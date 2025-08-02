@@ -1,11 +1,49 @@
 import { useState } from 'react';
 import AIInventoryReview from './AIInventoryReview';
 import {
-  ChevronLeft, ChevronRight, X, DollarSign, Tag, Droplet, Palette, ExternalLink, Copy, User, Zap
+  ChevronLeft,
+  ChevronRight,
+  X,
+  DollarSign,
+  Tag,
+  Droplet,
+  Palette,
+  ExternalLink,
+  Send,
+  Copy
 } from "lucide-react";
-import toast from "react-hot-toast";
 
-export default function InventoryCard({ vehicle, onEdit, onToggle, onAppraisal, onRequestPics, onMissingKeys, onQuickText, onQuickCall }) {
+// -- Customer-facing card for the modal --
+function CustomerVehicleCard({ vehicle, image }) {
+  const { year, make, model, trim, sellingprice, msrp, mileage, exterior_color, interior_color, stocknumber } = vehicle;
+  return (
+    <div className="max-w-md mx-auto rounded-2xl shadow-lg overflow-hidden border border-gray-200 bg-white">
+      <img src={image} alt={`${year} ${make} ${model}`} className="w-full h-48 object-cover" />
+      <div className="p-4 space-y-2">
+        <h2 className="text-xl font-bold">{year} {make} {model} {trim && <span className="font-normal">{trim}</span>}</h2>
+        <div className="flex gap-2 items-center text-lg">
+          <span className="text-green-600 font-bold">{sellingprice ? `$${Number(sellingprice).toLocaleString()}` : "Contact for Price"}</span>
+          {msrp && <span className="line-through text-gray-400 text-base">{`MSRP: $${Number(msrp).toLocaleString()}`}</span>}
+        </div>
+        {mileage != null && <div>Mileage: {Number(mileage).toLocaleString()} mi</div>}
+        <div>Exterior: {exterior_color || "—"}</div>
+        <div>Interior: {interior_color || "—"}</div>
+        <div className="text-xs text-gray-400">Stock #: {stocknumber}</div>
+        <div className="mt-4">
+          <a
+            href={`tel:YOUR_STORE_PHONE`}
+            className="inline-block bg-blue-600 text-white px-4 py-2 rounded-md font-bold hover:bg-blue-700 transition"
+          >
+            Call Us Today!
+          </a>
+        </div>
+      </div>
+      <div className="p-2 text-xs text-gray-400 text-center">Powered by Garlyn Shelton</div>
+    </div>
+  );
+}
+
+export default function InventoryCard({ vehicle, onEdit, onToggle }) {
   const {
     year,
     make,
@@ -30,16 +68,9 @@ export default function InventoryCard({ vehicle, onEdit, onToggle, onAppraisal, 
     exterior_color,
     interior_color,
     active,
-    sellNextScore,
-    ai_summary,
-    recon_status, // "Needs Recon", "Recon Complete", etc.
-    last_lead, // {name, date}
-    last_showroom_visit, // date
-    assigned_customer, // {name, phone}
-    fresh_trade, // true/false
+    id,
   } = vehicle;
 
-  // collect every image field (camelCase keys)
   const imageFields = [
     imageLink,
     additionalImageLink,
@@ -52,57 +83,44 @@ export default function InventoryCard({ vehicle, onEdit, onToggle, onAppraisal, 
     additionalImageLink7,
     additionalImageLink8,
   ];
-  const images = imageFields.filter(u => typeof u === "string" && u.trim()).flatMap(u => u.split(",")).map(u => u.trim());
-  const displayImages = images.length ? images : ["/images/placeholder-car.svg"];
+
+  const images = imageFields
+    .filter((u) => typeof u === "string" && u.trim())
+    .flatMap((u) => u.split(","))
+    .map((u) => u.trim());
+
+  const displayImages = images.length
+    ? images
+    : ["/images/placeholder-car.svg"];
+
   const [current, setCurrent] = useState(0);
   const [open, setOpen] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
 
-  const prevImage = () => setCurrent(i => (i === 0 ? displayImages.length - 1 : i - 1));
-  const nextImage = () => setCurrent(i => (i === displayImages.length - 1 ? 0 : i + 1));
-  const formattedMSRP = msrp != null ? `$${Number(msrp).toLocaleString()}` : null;
-  const formattedPrice = sellingprice != null ? `$${Number(sellingprice).toLocaleString()}` : null;
+  // For customer card modal
+  const [showCustomerCard, setShowCustomerCard] = useState(false);
 
-  // Utility: Copy Link
-  const handleCopy = () => {
-    if (link) {
-      navigator.clipboard.writeText(link);
-      toast.success("Link copied!");
-    }
+  const prevImage = () =>
+    setCurrent((i) => (i === 0 ? displayImages.length - 1 : i - 1));
+  const nextImage = () =>
+    setCurrent((i) => (i === displayImages.length - 1 ? 0 : i + 1));
+
+  const formattedMSRP =
+    msrp != null ? `$${Number(msrp).toLocaleString()}` : null;
+  const formattedPrice =
+    sellingprice != null ? `$${Number(sellingprice).toLocaleString()}` : null;
+
+  // Replace with your real public URL logic
+  const publicLink = `https://yourcrm.com/inventory/${id}`;
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(publicLink);
+    // Optionally add a toast/notification here!
+    alert('Link copied!');
   };
-
-  // AI "Sell Next" and badges
-  const sellNext = sellNextScore && sellNextScore > 85;
-  const isFreshTrade = fresh_trade;
 
   return (
     <div className="rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300 bg-white dark:bg-gray-900">
-      {/* BADGES */}
-      <div className="absolute left-2 top-2 flex gap-2 z-10">
-        {sellNext && (
-          <span className="inline-flex items-center px-2 py-1 bg-orange-200 text-orange-800 rounded text-xs font-bold mr-1" title="AI predicts this will sell soon">
-            <Zap className="w-4 h-4 mr-1" /> Sell Next
-          </span>
-        )}
-        {isFreshTrade && (
-          <span className="inline-flex items-center px-2 py-1 bg-lime-200 text-lime-800 rounded text-xs font-bold" title="Fresh Trade">
-            <User className="w-4 h-4 mr-1" /> Fresh Trade
-          </span>
-        )}
-        {recon_status && (
-          <span
-            className={`inline-flex items-center px-2 py-1 rounded text-xs font-bold ${
-              recon_status === "Recon Complete"
-                ? "bg-green-200 text-green-800"
-                : "bg-yellow-100 text-yellow-800"
-            }`}
-            title={recon_status}
-          >
-            {recon_status}
-          </span>
-        )}
-      </div>
-
       {/* IMAGE CAROUSEL */}
       <div className="relative bg-gray-100 dark:bg-gray-700">
         <img
@@ -136,7 +154,9 @@ export default function InventoryCard({ vehicle, onEdit, onToggle, onAppraisal, 
                   key={idx}
                   onClick={() => setCurrent(idx)}
                   className={`w-2 h-2 rounded-full cursor-pointer transition-colors duration-200 ${
-                    idx === current ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-600"
+                    idx === current
+                      ? "bg-blue-600"
+                      : "bg-gray-300 dark:bg-gray-600"
                   }`}
                 />
               ))}
@@ -156,77 +176,48 @@ export default function InventoryCard({ vehicle, onEdit, onToggle, onAppraisal, 
             <Tag className="w-4 h-4" /> Stock #: {stocknumber}
           </p>
         )}
+
         {formattedMSRP && (
           <p className="flex items-center gap-1">
             <DollarSign className="w-4 h-4" /> MSRP: {formattedMSRP}
           </p>
         )}
+
         {formattedPrice && (
           <p className="flex items-center gap-1">
             <DollarSign className="w-4 h-4" /> Price: {formattedPrice}
           </p>
         )}
+
         {mileage != null && (
           <p className="flex items-center gap-1">
-            <Tag className="w-4 h-4" /> Mileage: {Number(mileage).toLocaleString()} mi
+            <Tag className="w-4 h-4" /> Mileage:{" "}
+            {Number(mileage).toLocaleString()} mi
           </p>
         )}
+
         {trim && (
           <p className="flex items-center gap-1">
             <Tag className="w-4 h-4" /> Trim: {trim}
           </p>
         )}
+
         {type && (
           <p className="flex items-center gap-1">
             <Tag className="w-4 h-4" /> Type: {type}
           </p>
         )}
+
         {exterior_color && (
           <p className="flex items-center gap-1">
             <Palette className="w-4 h-4" /> Exterior: {exterior_color}
           </p>
         )}
+
         {interior_color && (
           <p className="flex items-center gap-1">
             <Droplet className="w-4 h-4" /> Interior: {interior_color}
           </p>
-        )}
-        {/* Quick Customer/Lead info */}
-        {assigned_customer && assigned_customer.name && (
-          <p className="flex items-center gap-1 text-blue-700 dark:text-blue-300">
-            <User className="w-4 h-4" /> Assigned to: {assigned_customer.name}
-            {assigned_customer.phone && (
-              <>
-                <button className="ml-2 text-xs underline" onClick={() => onQuickCall?.(assigned_customer.phone)}>
-                  Call
-                </button>
-                <button className="ml-1 text-xs underline" onClick={() => onQuickText?.(assigned_customer.phone)}>
-                  Text
-                </button>
-              </>
-            )}
-          </p>
-        )}
-        {/* Last lead & last showroom visit */}
-        {last_lead && last_lead.name && (
-          <p className="flex items-center gap-1 text-gray-500">
-            Last Lead: {last_lead.name} ({last_lead.date && new Date(last_lead.date).toLocaleDateString()})
-          </p>
-        )}
-        {last_showroom_visit && (
-          <p className="flex items-center gap-1 text-gray-500">
-            Last Showroom Visit: {new Date(last_showroom_visit).toLocaleDateString()}
-          </p>
-        )}
-        {/* AI summary */}
-        {ai_summary && (
-          <div
-            className="text-xs italic bg-blue-50 rounded p-2 mt-2 cursor-pointer hover:bg-blue-100"
-            title="Click to see full AI review"
-            onClick={() => setReviewOpen(true)}
-          >
-            {ai_summary.slice(0, 110)}{ai_summary.length > 110 ? "..." : ""}
-          </div>
         )}
       </div>
 
@@ -246,30 +237,6 @@ export default function InventoryCard({ vehicle, onEdit, onToggle, onAppraisal, 
         )}
 
         <div className="flex gap-2">
-          <button onClick={handleCopy} className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300" title="Copy link to clipboard">
-            <Copy className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => onAppraisal?.(vehicle)}
-            className="px-2 py-1 bg-yellow-200 text-yellow-800 rounded hover:bg-yellow-300"
-            title="Send to Appraisal"
-          >
-            📈
-          </button>
-          <button
-            onClick={() => onRequestPics?.(vehicle)}
-            className="px-2 py-1 bg-purple-200 text-purple-800 rounded hover:bg-purple-300"
-            title="Request Pics"
-          >
-            📷
-          </button>
-          <button
-            onClick={() => onMissingKeys?.(vehicle)}
-            className="px-2 py-1 bg-red-200 text-red-800 rounded hover:bg-red-300"
-            title="Mark as Missing Keys"
-          >
-            🔑
-          </button>
           {onEdit && (
             <button
               onClick={() => onEdit(vehicle)}
@@ -283,6 +250,13 @@ export default function InventoryCard({ vehicle, onEdit, onToggle, onAppraisal, 
             className="px-3 py-1 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700 transition"
           >
             AI Review
+          </button>
+          {/* ---- NEW: Send to Customer button ---- */}
+          <button
+            onClick={() => setShowCustomerCard(true)}
+            className="px-3 py-1 bg-cyan-700 text-white text-sm rounded-md hover:bg-cyan-800 transition flex items-center gap-1"
+          >
+            <Send className="w-4 h-4" /> Send to Customer
           </button>
           {onToggle && (
             <button
@@ -321,6 +295,31 @@ export default function InventoryCard({ vehicle, onEdit, onToggle, onAppraisal, 
           </div>
         </div>
       )}
+
+      {/* --- NEW: Customer Card Modal --- */}
+      {showCustomerCard && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-lg w-full relative">
+            <button
+              onClick={() => setShowCustomerCard(false)}
+              className="absolute top-3 right-3 p-1 bg-gray-200 rounded-full hover:bg-gray-300"
+            >
+              <X size={20} />
+            </button>
+            <CustomerVehicleCard vehicle={vehicle} image={displayImages[0]} />
+            <div className="flex gap-3 mt-4 justify-center">
+              <button
+                onClick={handleCopyLink}
+                className="flex items-center gap-1 px-4 py-2 bg-cyan-700 text-white rounded-md hover:bg-cyan-800"
+              >
+                <Copy className="w-4 h-4" /> Copy Link
+              </button>
+              {/* TODO: Add "Send Email" or "Send SMS" here if desired */}
+            </div>
+          </div>
+        </div>
+      )}
+
       <AIInventoryReview
         vehicleId={vehicle.id}
         open={reviewOpen}
