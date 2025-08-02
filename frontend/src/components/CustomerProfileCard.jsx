@@ -123,13 +123,13 @@ export default function CustomerProfileCard({ customer, ledger = [], onSave }) {
   const [form, setForm] = useState(customer);
   const [activeTab, setActiveTab] = useState("Details");
   const [showEmailModal, setShowEmailModal] = useState(false);
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api'
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || ''
   const CURRENT_USER_ID = 1
 
   const logActivity = async (type, note = '', subject = '') => {
     const payload = { activity_type: type, note, subject, customer_id: customer?.id, user_id: CURRENT_USER_ID }
     try {
-      await fetch(`${API_BASE}/activities`, {
+      await fetch(`${API_BASE}/api/activities`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

@@ -8,8 +8,8 @@ export default function ChatGPTPrompt() {
   const sourceRef = useRef(null);               // keep EventSource between renders
 
   // Adjust the base URL + route to match your new FastAPI handler
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
-  const STREAM_ENDPOINT = `${API_BASE}/ai/ask-stream`; // GET /ai/ask-stream?q=
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
+  const STREAM_ENDPOINT = `${API_BASE}/api/ai/ask-stream`; // GET /ai/ask-stream?q=
 
   /** Open modal + fire SSE request */
   const askQuestion = () => {

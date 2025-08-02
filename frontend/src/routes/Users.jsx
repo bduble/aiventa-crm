@@ -13,7 +13,7 @@ export default function Users() {
   const [saving, setSaving] = useState(false);
   const [editId, setEditId] = useState(null);
 
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 
   useEffect(() => {
     fetchUsers();
@@ -21,7 +21,7 @@ export default function Users() {
   }, [API_BASE]);
 
   const fetchUsers = () => {
-    fetch(`${API_BASE}/users/`)
+    fetch(`${API_BASE}/api/users/`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to load users");
         return res.json();
@@ -64,7 +64,7 @@ export default function Users() {
     try {
       let res, updatedUser;
       if (editId) {
-        res = await fetch(`${API_BASE}/users/${editId}`, {
+        res = await fetch(`${API_BASE}/api/users/${editId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -78,7 +78,7 @@ export default function Users() {
           users.map((u) => (u.id === editId ? updatedUser : u))
         );
       } else {
-        res = await fetch(`${API_BASE}/users/`, {
+        res = await fetch(`${API_BASE}/api/users/`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -101,7 +101,7 @@ export default function Users() {
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this user?")) return;
     try {
-      const res = await fetch(`${API_BASE}/users/${id}`, { method: "DELETE" });
+      const res = await fetch(`${API_BASE}/api/users/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete user");
       setUsers((users) => users.filter((u) => u.id !== id));
     } catch (err) {

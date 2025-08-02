@@ -8,11 +8,11 @@ export default function EmailModal({ isOpen, onClose, customer }) {
   const [body, setBody] = useState('');
 
 
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
 
   const sendEmail = async () => {
     try {
-      const res = await fetch(`${API_BASE}/emails/send`, {
+      const res = await fetch(`${API_BASE}/api/emails/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

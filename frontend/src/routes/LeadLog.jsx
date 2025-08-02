@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useCustomerCard } from '../context/CustomerCardContext';
 
 export default function LeadLog() {
-  const API_BASE = `${import.meta.env.VITE_API_BASE_URL}/leads`;
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
   const today = new Date().toISOString().split('T')[0];
 
   // Overlay context
@@ -36,7 +36,7 @@ export default function LeadLog() {
     const params = new URLSearchParams();
     if (startDate) params.append('startDate', startDate);
     if (endDate) params.append('endDate', endDate);
-    const url = `${API_BASE}?${params.toString()}`;
+    const url = `${API_BASE}/api/leads?${params.toString()}`;
     try {
       const res = await fetch(url);
       if (!res.ok) {
@@ -59,7 +59,7 @@ export default function LeadLog() {
 
   const fetchPrioritized = async () => {
     setPrioritizedError('');
-    const url = `${API_BASE}/prioritized`;
+    const url = `${API_BASE}/api/leads/prioritized`;
     try {
       const res = await fetch(url);
       if (!res.ok) {
@@ -82,7 +82,7 @@ export default function LeadLog() {
 
   const fetchAwaiting = async () => {
     setAwaitingError('');
-    const url = `${API_BASE}/awaiting-response`;
+    const url = `${API_BASE}/api/leads/awaiting-response`;
     try {
       const res = await fetch(url);
       if (!res.ok) {
@@ -105,7 +105,7 @@ export default function LeadLog() {
 
   const fetchMetrics = async () => {
     setMetricsError('');
-    const url = `${API_BASE}/metrics`;
+    const url = `${API_BASE}/api/leads/metrics`;
     try {
       const res = await fetch(url);
       if (!res.ok) {
@@ -133,7 +133,7 @@ export default function LeadLog() {
       setAskError('Enter a question.');
       return;
     }
-    const url = `${API_BASE}/ask`;
+    const url = `${API_BASE}/api/leads/ask`;
     const payload = { question, lead_id: leadId || null };
     try {
       const res = await fetch(url, {

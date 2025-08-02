@@ -82,10 +82,10 @@ export default function InventorySnapshot() {
   // const [modalParams, setModalParams] = useState(null);
 
   useEffect(() => {
-    const API_BASE = import.meta.env.PROD ? import.meta.env.VITE_API_BASE_URL : '/api';
+    const API_BASE = import.meta.env.PROD ? import.meta.env.VITE_API_BASE_URL : '';
     const fetchStats = async () => {
       try {
-        const url = `${API_BASE}/analytics/inventory-overview`;
+        const url = `${API_BASE}/api/analytics/inventory-overview`;
         console.log("API called:", url);
         const res = await fetch(url);
         if (!res.ok) {

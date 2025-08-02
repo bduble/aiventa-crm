@@ -13,10 +13,10 @@ export default function CustomerSatisfaction() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const API_BASE = import.meta.env.PROD ? import.meta.env.VITE_API_BASE_URL : '/api';
+    const API_BASE = import.meta.env.PROD ? import.meta.env.VITE_API_BASE_URL : '';
     const fetchStats = async () => {
       try {
-        const res = await fetch(`${API_BASE}/analytics/customer-satisfaction`);
+        const res = await fetch(`${API_BASE}/api/analytics/customer-satisfaction`);
         if (!res.ok) return;
         const data = await res.json();
         setStats({

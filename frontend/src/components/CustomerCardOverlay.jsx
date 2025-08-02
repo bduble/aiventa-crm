@@ -38,7 +38,7 @@ const PROFILE_FIELDS = [
 const ANIM_PROPS = { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -20 }, transition: { duration: 0.2 } };
 
 export default function CustomerCardOverlay({ customerId, onClose, userRole = "sales" }) {
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
   const CURRENT_USER_ID = 1;
 
   const [customer, setCustomer] = useState(null);
@@ -66,7 +66,7 @@ export default function CustomerCardOverlay({ customerId, onClose, userRole = "s
   if (!customerId || !customer) return;
   const fetchHotness = async () => {
     try {
-      const res = await fetch(`${API_BASE}/customers/${customerId}/ai-hotness`);
+      const res = await fetch(`${API_BASE}/api/customers/${customerId}/ai-hotness`);
       if (res.ok) {
         const { score } = await res.json();
         setCustomer(prev => ({ ...prev, hotness: score }));
@@ -79,7 +79,7 @@ export default function CustomerCardOverlay({ customerId, onClose, userRole = "s
   const [nextAction, setNextAction] = useState('');
   useEffect(() => {
     if (!customerId) return;
-    fetch(`${API_BASE}/customers/${customerId}/ai-next-action`)
+    fetch(`${API_BASE}/api/customers/${customerId}/ai-next-action`)
       .then(res => res.json()).then(data => setNextAction(data.action));
   }, [customerId, ledger, tasks]);
 
@@ -91,14 +91,14 @@ export default function CustomerCardOverlay({ customerId, onClose, userRole = "s
   useEffect(() => {
     if (!customerId) return;
     setLoading(true);
-    fetch(`${API_BASE}/customers/${customerId}`)
+    fetch(`${API_BASE}/api/customers/${customerId}`)
       .then(r => r.json()).then(data => { setCustomer(data); setEdited(data); setLoading(false) })
       .catch(() => setLoading(false))
-    fetch(`${API_BASE}/customers/${customerId}/ai-summary`)
+    fetch(`${API_BASE}/api/customers/${customerId}/ai-summary`)
       .then(r => r.json()).then(setAiInfo)
-    fetch(`${API_BASE}/activities?customer_id=${customerId}`)
+    fetch(`${API_BASE}/api/activities?customer_id=${customerId}`)
       .then(r => r.json()).then(setLedger)
-    fetch(`${API_BASE}/customers/${customerId}/files`)
+    fetch(`${API_BASE}/api/customers/${customerId}/files`)
       .then(r => r.json()).then(docs => setFiles(docs || []))
     setTimeout(() => setSocial({
       linkedin: "https://linkedin.com/in/fake-profile",
@@ -134,21 +134,21 @@ export default function CustomerCardOverlay({ customerId, onClose, userRole = "s
 
   const fetchTasks = async () => {
     try {
-      const res = await fetch(`${API_BASE}/tasks?customer_id=${customerId}`)
+      const res = await fetch(`${API_BASE}/api/tasks?customer_id=${customerId}`)
       if (res.ok) setTasks(await res.json())
       else setTasks([])
     } catch { setTasks([]) }
   }
   const fetchAppointments = async () => {
     try {
-      const res = await fetch(`${API_BASE}/appointments?customer_id=${customerId}`)
+      const res = await fetch(`${API_BASE}/api/appointments?customer_id=${customerId}`)
       if (res.ok) setAppointments(await res.json())
       else setAppointments([])
     } catch { setAppointments([]) }
   }
   const fetchDealOffers = async () => {
     try {
-      const res = await fetch(`${API_BASE}/deals?customer_id=${customerId}`);
+      const res = await fetch(`${API_BASE}/api/deals?customer_id=${customerId}`);
       if (res.ok) setDealOffers(await res.json());
       else setDealOffers([]);
     } catch { setDealOffers([]) }
@@ -157,12 +157,12 @@ export default function CustomerCardOverlay({ customerId, onClose, userRole = "s
   const logActivity = async (type, note = '', subject = '') => {
     const payload = { activity_type: type, note, subject, customer_id: customerId, user_id: CURRENT_USER_ID }
     try {
-      await fetch(`${API_BASE}/activities`, {
+      await fetch(`${API_BASE}/api/activities`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
-      fetch(`${API_BASE}/activities?customer_id=${customerId}`)
+      fetch(`${API_BASE}/api/activities?customer_id=${customerId}`)
         .then(r => r.json()).then(setLedger)
     } catch (err) { }
   }
@@ -172,7 +172,7 @@ export default function CustomerCardOverlay({ customerId, onClose, userRole = "s
       const payload = {}
       PROFILE_FIELDS.forEach(({ key }) => payload[key] = edited[key] ?? "")
       if (userRole === "manager") payload['hashed_password'] = edited['hashed_password'] ?? ""
-      const res = await fetch(`${API_BASE}/customers/${customerId}`, {
+      const res = await fetch(`${API_BASE}/api/customers/${customerId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -198,13 +198,13 @@ export default function CustomerCardOverlay({ customerId, onClose, userRole = "s
     setUploading(true)
     const form = new FormData()
     form.append("file", file)
-    const res = await fetch(`${API_BASE}/customers/${customerId}/files/smart`, { method: 'POST', body: form })
+    const res = await fetch(`${API_BASE}/api/customers/${customerId}/files/smart`, { method: 'POST', body: form })
     if (res.ok) {
       const { fields } = await res.json();
       setEdited(prev => ({ ...prev, ...fields }));
     }
     setUploading(false)
-    fetch(`${API_BASE}/customers/${customerId}/files`).then(r => r.json()).then(docs => setFiles(docs || []))
+    fetch(`${API_BASE}/api/customers/${customerId}/files`).then(r => r.json()).then(docs => setFiles(docs || []))
   }
 
   function CreditAppModal({ onClose }) {
@@ -241,7 +241,7 @@ export default function CustomerCardOverlay({ customerId, onClose, userRole = "s
     const [due, setDue] = useState('')
     const handleAdd = async () => {
       if (!title) return
-      await fetch(`${API_BASE}/tasks`, {
+      await fetch(`${API_BASE}/api/tasks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, due_date: due, customer_id: customerId })
@@ -269,7 +269,7 @@ export default function CustomerCardOverlay({ customerId, onClose, userRole = "s
     const [start, setStart] = useState('')
     const handleAdd = async () => {
       if (!type || !start) return
-      await fetch(`${API_BASE}/appointments`, {
+      await fetch(`${API_BASE}/api/appointments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ appointment_type: type, start_time: start, customer_id: customerId })

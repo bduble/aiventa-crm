@@ -17,10 +17,10 @@ export default function LeadPerformanceKPI() {
   });
 
   useEffect(() => {
-    const API_BASE = import.meta.env.PROD ? import.meta.env.VITE_API_BASE_URL : '/api';
+    const API_BASE = import.meta.env.PROD ? import.meta.env.VITE_API_BASE_URL : '';
     const fetchStats = async () => {
       try {
-        const res = await fetch(`${API_BASE}/analytics/lead-overview`);
+        const res = await fetch(`${API_BASE}/api/analytics/lead-overview`);
         if (!res.ok) return;
         const data = await res.json();
         setStats({

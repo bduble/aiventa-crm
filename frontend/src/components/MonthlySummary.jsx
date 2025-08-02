@@ -4,10 +4,10 @@ export default function MonthlySummary() {
   const [summary, setSummary] = useState('');
 
   useEffect(() => {
-    const API_BASE = import.meta.env.PROD ? import.meta.env.VITE_API_BASE_URL : '/api';
+    const API_BASE = import.meta.env.PROD ? import.meta.env.VITE_API_BASE_URL : '';
     const fetchSummary = async () => {
       try {
-        const res = await fetch(`${API_BASE}/analytics/month-summary`);
+        const res = await fetch(`${API_BASE}/api/analytics/month-summary`);
         if (!res.ok) return;
         const data = await res.json();
         setSummary(data.summary || '');
