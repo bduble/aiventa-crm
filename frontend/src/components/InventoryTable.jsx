@@ -1,4 +1,3 @@
-// components/InventoryTable.jsx
 import React from "react";
 
 // Example icons
