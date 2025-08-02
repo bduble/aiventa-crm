@@ -2,12 +2,56 @@ import { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
-import { API_BASE } from '../apiBase'; // The ONLY base you should use for fetches!
+import { API_BASE } from '../apiBase';
 import FilterPanel from '../components/FilterPanel';
 import Pagination from '../components/Pagination';
 import InventoryGrid from '../components/InventoryGrid';
 import InventoryTable from '../components/InventoryTable';
 import VehicleModal from '../components/VehicleModal';
+import BulkActionsBar from '../components/BulkActionsBar';
+
+// --- RecentLeadsPanel component (you can extract this if you want) ---
+function RecentLeadsPanel({ vehicle, onClose }) {
+  const [leads, setLeads] = useState([]);
+  useEffect(() => {
+    if (!vehicle) return;
+    fetch(`${API_BASE}/api/leads?vehicle_id=${vehicle.id}&limit=5`)
+      .then(res => res.json())
+      .then(setLeads)
+      .catch(() => setLeads([]));
+  }, [vehicle]);
+  if (!vehicle) return null;
+  return (
+    <div className="fixed top-0 right-0 w-96 h-full bg-white shadow-xl p-6 z-50 overflow-auto border-l border-gray-200">
+      <button className="absolute top-2 right-2" onClick={onClose}>✖️</button>
+      <h3 className="text-lg font-bold mb-2">
+        Recent Leads for {vehicle.year} {vehicle.make} {vehicle.model}
+      </h3>
+      <ul className="divide-y">
+        {leads.map(lead => (
+          <li key={lead.id} className="py-2 flex justify-between items-center">
+            <div>
+              <div className="font-semibold">{lead.name}</div>
+              <div className="text-xs text-gray-500">
+                {lead.source} • {new Date(lead.created_at).toLocaleString()}
+              </div>
+              <div className="text-xs text-blue-800">{lead.status}</div>
+            </div>
+            <button
+              onClick={() => { /* log follow-up modal, if desired */ }}
+              className="text-xs px-2 py-1 rounded bg-blue-100"
+            >
+              Log Follow-Up
+            </button>
+          </li>
+        ))}
+        {leads.length === 0 && (
+          <li className="py-2 text-gray-400">No recent leads.</li>
+        )}
+      </ul>
+    </div>
+  );
+}
 
 export default function InventoryPage() {
   const location = useLocation();
@@ -40,6 +84,10 @@ export default function InventoryPage() {
   const [error, setError] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+
+  // --- New: Bulk selection and recent leads ---
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [recentLeadsVehicle, setRecentLeadsVehicle] = useState(null);
 
   // Update search when URL query changes
   useEffect(() => {
@@ -190,11 +238,20 @@ export default function InventoryPage() {
     }
   };
 
+  // --- New: Bulk actions ---
+  const handleBulkAction = (action, ids) => {
+    if (!ids?.length) return;
+    toast.success(`"${action}" for ${ids.length} vehicle(s)!`);
+    setSelectedIds([]);
+    // Implement your actual logic here: open modal, call API, etc.
+  };
+
+  // --- New: Pass selection props to table/grid ---
   const paginated = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
   const totalPages = Math.ceil(filtered.length / pageSize);
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4 space-y-4 relative">
       <h2 className="text-2xl font-bold">Inventory</h2>
 
       {error && (
@@ -247,9 +304,25 @@ export default function InventoryPage() {
         </div>
       ) : (
         view === 'grid' ? (
-          <InventoryGrid vehicles={paginated} onEdit={openEdit} onToggle={handleToggle} />
+          <InventoryGrid
+            vehicles={paginated}
+            onEdit={openEdit}
+            onToggle={handleToggle}
+            // New:
+            selectedIds={selectedIds}
+            setSelectedIds={setSelectedIds}
+            onShowLeads={setRecentLeadsVehicle}
+          />
         ) : (
-          <InventoryTable vehicles={paginated} onEdit={openEdit} onToggle={handleToggle} />
+          <InventoryTable
+            vehicles={paginated}
+            onEdit={openEdit}
+            onToggle={handleToggle}
+            // New:
+            selectedIds={selectedIds}
+            setSelectedIds={setSelectedIds}
+            onShowLeads={setRecentLeadsVehicle}
+          />
         )
       )}
 
@@ -260,6 +333,21 @@ export default function InventoryPage() {
         onClose={() => { setModalOpen(false); setEditing(null); }}
         onSubmit={handleSubmit}
         initialData={editing}
+      />
+
+      {/* CRM Bulk Actions Bar */}
+      <BulkActionsBar
+        count={selectedIds.length}
+        onClear={() => setSelectedIds([])}
+        onMassText={() => handleBulkAction("massText", selectedIds)}
+        onMassEmail={() => handleBulkAction("massEmail", selectedIds)}
+        onTag={() => handleBulkAction("tag", selectedIds)}
+      />
+
+      {/* Recent Leads Panel */}
+      <RecentLeadsPanel
+        vehicle={recentLeadsVehicle}
+        onClose={() => setRecentLeadsVehicle(null)}
       />
     </div>
   );
