@@ -14,7 +14,6 @@ export default function FloorTrafficModal({ isOpen, onClose, onSubmit, initialDa
     notes: '',
   });
 
-  // Populate initial data if editing
   useEffect(() => {
     if (initialData) {
       setForm({
@@ -55,7 +54,6 @@ export default function FloorTrafficModal({ isOpen, onClose, onSubmit, initialDa
     setForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
   };
 
-  // This will be called by your customer picker component
   const handleCustomerSelect = customer => {
     setForm(f => ({ ...f, customer_id: customer?.id || '' }));
   };
@@ -66,7 +64,14 @@ export default function FloorTrafficModal({ isOpen, onClose, onSubmit, initialDa
       alert('Customer is required.');
       return;
     }
-    onSubmit(form);
+    // Only pass allowed fields
+    const allowedFields = [
+      'customer_id', 'salesperson', 'vehicle', 'trade', 'demo', 'worksheet', 'customer_offer', 'sold', 'notes'
+    ];
+    const filteredForm = Object.fromEntries(
+      Object.entries(form).filter(([k]) => allowedFields.includes(k))
+    );
+    onSubmit(filteredForm);
   };
 
   return (
@@ -74,7 +79,6 @@ export default function FloorTrafficModal({ isOpen, onClose, onSubmit, initialDa
       <div className="bg-white dark:bg-gray-800 p-6 rounded w-full max-w-xl space-y-4">
         <h3 className="text-lg font-semibold">Floor Traffic Entry</h3>
         <form onSubmit={handleSubmit} className="space-y-4 max-h-[80vh] overflow-y-auto pr-2">
-          {/* Customer Picker */}
           <div>
             <label className="block text-sm mb-1">Customer</label>
             <CustomerPicker
