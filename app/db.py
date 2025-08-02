@@ -2,6 +2,7 @@
 
 import os
 import logging
+import re
 from dotenv import load_dotenv
 from supabase import create_client
 from types import SimpleNamespace
@@ -17,7 +18,10 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("db")
 
 # 3️⃣ Environment variables
-SUPABASE_URL = os.getenv("SUPABASE_URL")
+raw_url = os.getenv("SUPABASE_URL") or ""
+# Strip any trailing PostgREST path (e.g. `/rest/v1`) which would cause
+# requests to hit `<project-url>/rest/v1/rest/v1/...` and return 404s.
+SUPABASE_URL = re.sub(r"/rest/v1/?$", "", raw_url)
 SUPABASE_KEY = (
     os.getenv("SUPABASE_SERVICE_ROLE_KEY")
     or os.getenv("SUPABASE_KEY")

@@ -1,11 +1,7 @@
 // models/UserModel.js
-import { createClient } from '@supabase/supabase-js';
-
-// Set your Supabase project credentials here or use environment variables
-const supabase = createClient(
-  process.env.SUPABASE_URL,   // Example: 'https://xyzcompany.supabase.co'
-  process.env.SUPABASE_KEY    // Example: 'public-anon-key'
-);
+// Reuse the centralized Supabase client so URL sanitization and credentials are
+// handled consistently across the backend.
+import supabase from '../lib/supabaseClient.js';
 
 export default class UserModel {
   // Fetch all users from the Supabase users table
